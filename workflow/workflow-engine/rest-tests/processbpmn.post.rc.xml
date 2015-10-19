@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<rest-client version="3.4">
+	<request>
+		<http-version>1.1</http-version>
+		<http-follow-redirects />
+		<URL>http://localhost:8080/workflow-engine/api/processbpmn</URL>
+		<method>POST</method>
+		<body>
+			<multipart>
+				<file content-type="application/xml" charset="UTF-8" name="file"
+					filename="test-file.bpmn20.xml">C:\home\projects\GRNET.WORKFLOW\devel\workflow-engine\rest-tests\test.bpmn20.xml</file>
+			</multipart>
+		</body>
+	</request>
+</rest-client>
