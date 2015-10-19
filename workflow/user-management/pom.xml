@@ -10,7 +10,4 @@
 	<packaging>war</packaging>
 	<name>user-management</name>
 
-	<properties>
-		<failOnMissingWebXml>false</failOnMissingWebXml>
-	</properties>
 </project>

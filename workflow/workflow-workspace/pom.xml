@@ -10,7 +10,4 @@
 	<packaging>war</packaging>
 	<name>workflow-workspace</name>
 
-	<properties>
-		<failOnMissingWebXml>false</failOnMissingWebXml>
-	</properties>
 </project>
