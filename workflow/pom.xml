@@ -39,4 +39,30 @@
 		</pluginManagement>
 	</build>
 
+	<profiles>
+		<profile>
+			<id>local</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<resources>
+					<resource>
+						<directory>src/main/resources/local</directory>
+					</resource>
+				</resources>
+			</build>
+		</profile>
+		<profile>
+			<id>grnet</id>
+			<build>
+				<resources>
+					<resource>
+						<directory>src/main/resources/grnet</directory>
+					</resource>
+				</resources>
+			</build>
+		</profile>
+	</profiles>
+
 </project>
