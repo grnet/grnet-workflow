@@ -17,7 +17,6 @@
 	<modules>
 		<module>workflow-engine</module>
 		<module>workflow-workspace</module>
-		<module>workflow-manager</module>
 		<module>user-management</module>
 		<module>file-repository</module>
 		<module>workflow-sso</module>

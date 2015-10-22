@@ -6,5 +6,8 @@
      <exclude-subsystems>
         <subsystem name="logging" />
     </exclude-subsystems>
+    <exclusions>
+        <module name="org.jboss.as.jpa" />
+    </exclusions>
   </deployment>
 </jboss-deployment-structure>
