@@ -1,0 +1,49 @@
+<section layout="column">
+
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+
+            <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-lg>
+                <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+            </md-button>
+
+            <md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
+
+            <span class="md-title" hide-sm layout-padding>workflow::workspace</span>
+            <span flex></span>
+        </div>
+    </md-toolbar>
+
+    <section layout="row">
+        <!-- Process to start ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <md-content flex layout-padding ng-if="process !== null">
+            <md-card style="width: 100%">
+                <md-card-content style="max-width: 600px">
+                    <div class="card-header">
+                        <md-icon md-svg-src="{{'img/avatars/'+process.icon}}" class="md-avatar"
+                                 style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
+                        <h2 class="md-title after-icon">{{process.name}}</h2>
+                    </div>
+
+                    <md-input-container>
+                        <label for="processDescription">Description</label>
+                        <textarea id="processDescription" ng-model="process.description" readonly></textarea>
+                    </md-input-container>
+
+                    <ng-form name="startForm">
+                        <nlk-process-form-item ng-repeat="item in process.processForm" ng-model="item">
+                        </nlk-process-form-item>
+                    </ng-form>
+
+                    <div class="md-actions" layout="row" layout-align="start center" layout-padding>
+                        <md-button class="md-raised" ng-class="{'md-accent': (startForm.$dirty && startForm.$valid) }"
+                                   ng-disabled="!startForm.$valid"
+                                   ng-click="startProcess()">Start
+                        </md-button>
+                    </div>
+                </md-card-content>
+            </md-card>
+        </md-content>
+    </section>
+
+</section>

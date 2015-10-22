@@ -1,0 +1,47 @@
+<section layout="column">
+
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+
+            <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-lg>
+                <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+            </md-button>
+
+            <md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
+
+            <span class="md-title" hide-sm layout-padding>workflow::workspace</span>
+            <span flex></span>
+        </div>
+    </md-toolbar>
+
+    <section layout="row">
+        <!-- Task to assign ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <md-content flex layout-padding ng-if="process !== null">
+            <md-card style="width: 100%">
+                <md-card-content style="max-width: 600px">
+                    <div class="card-header">
+                        <h2 class="md-title after-icon">{{task.name}}</h2>
+                    </div>
+
+                    <md-input-container>
+                        <label for="processDescription">Description</label>
+                        <textarea id="processDescription" ng-model="task.description" readonly></textarea>
+                    </md-input-container>
+
+                    <ng-form name="taskForm">
+                        <nlk-process-form-item ng-repeat="item in task.taskForm" ng-model="item">
+                        </nlk-process-form-item>
+                    </ng-form>
+
+                    <div class="md-actions" layout="row" layout-align="start center" layout-padding>
+                        <md-button class="md-raised" ng-class="{'md-accent': (taskForm.$dirty && taskForm.$valid) }"
+                                   ng-disabled="!taskForm.$valid"
+                                   ng-click="assignTask()">Assign
+                        </md-button>
+                    </div>
+                </md-card-content>
+            </md-card>
+        </md-content>
+    </section>
+
+</section>
