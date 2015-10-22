@@ -1,0 +1,44 @@
+<md-dialog aria-label="Upload new BPMN file" ng-style="{'min-width': '600px'}">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>Upload new BPMN file {{process!=null?'for process "' + process.name + '"':''}}</h2>
+            <span flex></span>
+            <md-button class="md-icon-button" ng-click="cancel()">
+                <md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+
+    <form>
+
+        <md-content layout-padding>
+
+            <section layout="row">
+                <md-input-container flex>
+                    <label for="bpmnFileName">BPMN File</label>
+                    <input type="text" readonly id="bpmnFileName" name="bpmnFile" ng-model="bpmnFile.name"/>
+                </md-input-container>
+
+                <input type="file" id="bpmnFile" name="bpmnFile" nlk-file-input="bpmnFile"
+                       ng-style="{'display': 'none'}"/>
+
+                <md-button class="md-icon-button" onclick="(document.querySelector('#bpmnFile')).click()">
+                    <md-icon md-svg-src="img/icons/drive-file.svg" aria-label="Close dialog"></md-icon>
+                </md-button>
+
+            </section>
+
+        </md-content>
+
+        <div class="md-actions" layout="row">
+            <span flex></span>
+            <md-button ng-click="answer(bpmnFile)" ng-disabled="bpmnFile === null || inProgress">
+                Ok
+            </md-button>
+            <md-button ng-click="cancel()" style="margin-right:20px;" >
+                Cancel
+            </md-button>
+        </div>
+
+    </form>
+</md-dialog>

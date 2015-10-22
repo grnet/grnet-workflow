@@ -1,0 +1,130 @@
+<section layout="column">
+
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+
+            <md-button id="back-button" class="md-icon-button" aria-label="Back" ng-click="goTo('/process')">
+                <md-icon md-svg-icon="img/icons/back.svg"></md-icon>
+            </md-button>
+
+            <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-lg>
+                <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+            </md-button>
+
+            <md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
+
+            <span class="md-title" hide-sm layout-padding>workflow::manager</span>
+            <span flex></span>
+
+            <md-button class="md-icon-button" aria-label="Show Diagram" ng-click="showDiagram()">
+                <md-icon md-svg-icon="img/icons/bpmn.svg"></md-icon>
+            </md-button>
+
+            <md-button class="md-icon-button" aria-label="Add Version" ng-click="showAddVersion()">
+                <md-icon md-svg-icon="img/icons/add.svg"></md-icon>
+            </md-button>
+
+            <md-button class="md-icon-button" aria-label="Delete Process" ng-click="askDeleteProcess($event)">
+                <md-icon md-svg-icon="img/icons/delete.svg"></md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+
+    <md-tabs md-dynamic-height>
+
+        <!--Process Definition Details ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <md-tab label="Definition">
+            <md-content class="md-padding" layout="row" layout-sm="column">
+
+                <section layout="column" flex>
+                    <ng-form name="processForm">
+
+                        <md-input-container>
+                            <label for="processName">Name</label>
+                            <input id="processName" ng-model="workflowDefinition.name">
+                        </md-input-container>
+
+                        <md-input-container>
+                            <label for="processKey">Code</label>
+                            <input id="processKey" readonly ng-model="workflowDefinition.key">
+                        </md-input-container>
+
+                        <section layout="row" layout-sm="column">
+                            <md-input-container flex ng-style="{'max-width':'400px'}">
+                                <label for="processVersion">Active version</label>
+                                <md-select id="processVersion" ng-model="workflowDefinition.activeDeploymentId"
+                                           ng-if="recreateSelect">
+                                    <md-option ng-repeat="deployment in workflowDefinition.definitionVersions"
+                                               ng-value="deployment.deploymentId">
+                                    <span>
+                                        v{{deployment.version}} {{(deployment.deploymentdate | date: '(d/M/yyyy)')}}
+                                    </span>
+                                    <span ng-style="{'color': deployment.status==='active'?'default':'red'}">
+                                        ({{deployment.status}})
+                                    </span>
+                                    </md-option>
+                                </md-select>
+                            </md-input-container>
+
+                            <section layout="row">
+                                <md-input-container>
+                                    <md-button class="md-raised" aria-label="Change Status"
+                                               ng-click="changeStatus($event)"
+                                               ng-show="workflowDefinition !== null
+                                && workflowDefinition.activeDeploymentId !== null
+                                && findActiveVersion() !== null">
+                                        {{newStatusButtonLabel()}}
+                                    </md-button>
+                                </md-input-container>
+
+                                <md-button class="md-icon-button" aria-label="Delete"
+                                           ng-click="askDeleteVersion($event)"
+                                           ng-disabled="workflowDefinition.activeDeploymentId === null">
+                                    <md-icon md-svg-icon="img/icons/delete.svg"></md-icon>
+                                </md-button>
+                            </section>
+                        </section>
+
+                        <md-input-container flex>
+                            <label for="processDescription">Description</label>
+                            <textarea id="processDescription" ng-model="workflowDefinition.description"
+                                      md-maxlength="250"></textarea>
+                        </md-input-container>
+
+                        <section layout="row">
+                            <md-input-container style="width: 100px">
+                                <label for="processIcon">Icon</label>
+                                <input id="processIcon" readonly ng-model="iconName">
+                            </md-input-container>
+                            <md-input-container>
+                                <md-button class="md-avatar" aria-label="Process Icon"
+                                           ng-click="showIconSelect($event)">
+                                    <md-icon md-svg-src="img/avatars/{{workflowDefinition.icon}}" class="avatar"></md-icon>
+                                </md-button>
+                            </md-input-container>
+                        </section>
+                        <input id="icon" hidden readonly name="icon" ng-model="workflowDefinition.icon">
+
+                    </ng-form>
+
+                    <section layout="row">
+                        <md-button class="md-primary" ng-click="save()"
+                                   ng-class="{'md-raised md-hue-1': (processForm.$dirty && processForm.$valid) }"
+                                   aria-label="Save Process Definition">Save
+                        </md-button>
+                    </section>
+                </section>
+
+                <section flex="33">
+                </section>
+            </md-content>
+        </md-tab>
+
+        <!--Process Definition Tasks metadata ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <md-tab label="Tasks"></md-tab>
+
+        <!--Tasks in Progress ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <md-tab label="In Progress"></md-tab>
+    </md-tabs>
+
+</section>
