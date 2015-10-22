@@ -1,0 +1,18 @@
+<md-list style="width: 300px">
+    <section layout="row">
+        <md-list-item flex>
+            <md-checkbox class="select-all" ng-model="allSelected"></md-checkbox>
+            <p class="md-subhead">{{allLabel}}</p>
+        </md-list-item>
+        <md-icon md-svg-src="img/icons/collapse.svg" ng-click="toggleExpand()"
+                 ng-style="{'width': '40px', 'transform': 'rotate(' + (expanded?0:180) + 'deg)'}"></md-icon>
+    </section>
+    <md-divider></md-divider>
+
+    <section ng-hide="!expanded">
+        <md-list-item ng-repeat="choiceItem in checklistModel">
+            <md-checkbox md-primary ng-model="selectionStatus[$index]"></md-checkbox>
+            <p>{{choiceItem.name}}</p>
+        </md-list-item>
+    </section>
+</md-list>

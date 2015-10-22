@@ -1,0 +1,62 @@
+<section layout="column">
+
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+
+            <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-lg>
+                <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+            </md-button>
+
+            <md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
+
+            <span class="md-title" hide-sm layout-padding>workflow::workspace</span>
+            <span flex></span>
+
+            <md-button class="md-icon-button" ng-click="showProcessSelectDialog($event)" aria-label="choose process"
+                       hide-gt-sm>
+                <md-icon md-svg-icon="img/icons/filter.svg"></md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+
+    <section layout="row">
+        <!-- Process selection ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <section layout="column" layout-align="start center" flex="33" hide-sm>
+            <md-radio-group ng-model="selectedProcessIndex" class="md-primary" ng-change="processSelectionChanged()">
+                <md-radio-button ng-repeat="process in processes"
+                                 ng-value="$index">
+                    {{ process.name }}<br/>
+                </md-radio-button>
+            </md-radio-group>
+        </section>
+
+        <!-- Process to start ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+        <md-content layout-padding flex>
+            <md-card ng-if="process !== null">
+                <md-card-content>
+                    <div class="card-header">
+                        <md-icon md-svg-src="img/avatars/{{process.icon}}" class="md-avatar"
+                                 style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
+                        <h2 class="md-title after-icon">{{process.name}}</h2>
+                    </div>
+
+                    <md-input-container>
+                        <label for="processKey">Key</label>
+                        <input id="processKey" ng-model="process.key" readonly>
+                    </md-input-container>
+
+                    <md-input-container>
+                        <label for="processDescription">Description</label>
+                        <textarea id="processDescription" ng-model="process.description" readonly></textarea>
+                    </md-input-container>
+                </md-card-content>
+
+                <div class="md-actions" layout="row" layout-align="start center" layout-padding>
+                    <md-button class="md-primary md-raised" ng-click="showDiagram()">Diagram</md-button>
+                    <md-button class="md-accent md-raised" ng-click="startProcess()">Start</md-button>
+                </div>
+            </md-card>
+        </md-content>
+    </section>
+
+</section>
