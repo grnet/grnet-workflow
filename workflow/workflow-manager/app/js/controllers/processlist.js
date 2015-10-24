@@ -6,12 +6,14 @@
     'use strict';
 
     angular.module('wfmanagerControllers')
-        .controller('ProcessListCtrl', ['$scope', '$http', '$location', '$mdDialog', 'processService', 'CONFIG',
+        .controller('ProcessListCtrl', ['$scope', '$http', '$location', '$mdDialog', 'processService', 'CONFIG', 'auth',
 
-            function ($scope, $http, $location, $mdDialog, processService, config) {
+            function ($scope, $http, $location, $mdDialog, processService, config, auth) {
 
                 $scope.workflowDefinitions = null;
                 $scope.imagePath = config.AVATARS_PATH;
+
+                console.log(auth.getRoles());
 
                 /**
                  * Get all process definitions

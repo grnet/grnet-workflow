@@ -4,8 +4,8 @@
 
     angular.module('wfmanagerControllers')
         .controller('NavBarCtrl',
-        ['$scope', '$mdSidenav', '$location', '$log', '$mdDialog',
-            function ($scope, $mdSidenav, $location, $log, $mdDialog) {
+        ['$scope', '$mdSidenav', '$location', '$log', '$mdDialog', 'auth',
+            function ($scope, $mdSidenav, $location, $log, $mdDialog, authProvider) {
 
                 $scope.inputFile = null;
 
@@ -33,6 +33,10 @@
                 $scope.goTo = function (path) {
                     $mdSidenav('navbar').close();
                     $location.path(path);
+                };
+
+                $scope.logout = function () {
+                    authProvider.logout();
                 };
 
                 $scope.showOwnerFilterDialog = function (ev) {
