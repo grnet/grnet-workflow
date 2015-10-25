@@ -1,0 +1,101 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a4j="http://richfaces.org/a4j">
+
+	<ui:component>
+
+		<h:inputHidden id="hasMessages"
+			value="#{userManagementBackend.messagesExist}" />
+
+		<a4j:region>
+			<rich:popupPanel id="userPopup" modal="true"
+				styleClass="modalPanelStyle" headerClass="modalPanelHeader"
+				top="75" width="470" height="450" domElementAttachment="form" >
+
+				<f:facet name="header">
+					<h:panelGrid columns="2" styleClass="popupHeaderGrid"
+						columnClasses="popupHeaderTitle, popupHeaderControls">
+						
+						<h:panelGroup layout="block">
+								<div class="header">
+									<div class="header-icon">
+									</div>
+									<div class="header-text">
+										<h:outputText value="#{show.add}" rendered="#{!userManagementBackend.edit}"/>
+										<h:outputText value="#{show.edit}" rendered="#{userManagementBackend.edit}"/>
+									</div>
+									<div style="clear: both;"></div>
+								</div>
+						</h:panelGroup>
+						
+						<h:panelGroup layout="block">
+							
+							<a4j:commandButton id="saveBtn" execute="@region" render="hasMessages allUsersTable allUsersTableScroller"
+								action="#{userManagementBackend.saveUser}" image="/resources/img/save.png"
+								disabled="#{userManagementBackend.edit and (userManagementBackend.allUsersSelection.size()) == 0}"
+								oncomplete="if (document.getElementById('usersForm:hasMessages').value == 'false') {
+									#{rich:component('userPopup')}.hide();
+									#{rich:component('saveBtnTooltip')}.hide();}"/>
+							<rich:tooltip id="saveBtnTooltip"
+								target="saveBtn" followMouse="true"
+								showDelay="250" styleClass="tooltip">
+								<h:outputLabel value="#{show.save}" />
+							</rich:tooltip>
+
+							<a4j:commandButton id="closeBtn" execute="@this" image="/resources/img/remove.png"
+								oncomplete="#{rich:component('userPopup')}.hide();
+									#{rich:component('closeBtnTooltip')}.hide();" />
+							<rich:tooltip id="closeBtnTooltip"
+								target="closeBtn" followMouse="true"
+								showDelay="250" styleClass="tooltip">
+								<h:outputLabel value="#{show.close}" />
+							</rich:tooltip>
+						</h:panelGroup>
+					</h:panelGrid>
+
+				</f:facet>
+
+				<h:panelGrid id="modalInfo" columns="2" styleClass="modalPanelGrid"
+					columnClasses="modalPanelGridLeft, modalPanelGridRight">
+
+					<h:outputLabel value="" />
+					<rich:messages globalOnly="true" styleClass="errormessage" />
+
+					<h:outputLabel value="#{show.email}:" styleClass="required" />
+					<h:inputText id="email" value="#{userManagementBackend.user.email}" size="40" styleClass="regInput"
+						disabled="#{userManagementBackend.user.status == 'verified' or 
+							(userManagementBackend.edit and userManagementBackend.allUsersSelection.size() == 0)}"/>
+					
+					<h:outputLabel value="#{show.firstname}:" styleClass="required" />
+					<h:inputText id="firstname" value="#{userManagementBackend.user.firstname}" size="40" styleClass="regInput"
+						disabled="#{userManagementBackend.edit and (userManagementBackend.allUsersSelection.size()) == 0}" />
+					
+					<h:outputLabel value="#{show.lastname}:" styleClass="required" />
+					<h:inputText id="lastname" value="#{userManagementBackend.user.lastname}" size="40" styleClass="regInput"
+						disabled="#{userManagementBackend.edit and (userManagementBackend.allUsersSelection.size()) == 0}" />
+						
+					<h:outputLabel value="#{show.section}:" />
+					<h:inputText id="section" value="#{userManagementBackend.user.section}" size="40" styleClass="regInput"
+						disabled="#{userManagementBackend.edit and (userManagementBackend.allUsersSelection.size()) == 0}" />
+					
+				</h:panelGrid>	
+				
+				<rich:pickList value="#{userManagementBackend.selectedRoles}" styleClass="rolesPickList"
+					sourceCaption="#{show.availableRoles}" targetCaption="#{show.selectedRoles}" 
+					listHeight="200" listWidth="150" switchByDblClick="true" 
+					addText="#{show.add}" addAllText="#{show.addAll}" removeText="#{show.remove}" removeAllText="#{show.removeAll}">
+					<f:selectItems value="#{userManagementBackend.rolesList}" var="role"
+						itemValue="#{role}" itemLabel="#{role.name}" />
+					<f:converter converterId="RoleConverter" />
+				</rich:pickList>	
+				
+			</rich:popupPanel>
+		</a4j:region>
+		
+	</ui:component>
+</ui:composition>

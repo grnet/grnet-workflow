@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a4j="http://richfaces.org/a4j"
+	template="/layout/usersTemplate.xhtml">
+
+	<ui:define name="mainArea">
+
+		<f:metadata>
+		    <f:viewParam name="return_url" value="#{usersBackend.returnURL}"/>
+		</f:metadata>
+		
+		<h:outputStylesheet name="/css/users.css" />
+
+		<f:view beforePhase="#{usersBackend.setUser}">
+
+			<h:form id="changePassForm">
+
+				<h:panelGroup layout="block" styleClass="usersForm">
+					
+					<div class="headerWrapper">
+						<div class="header">
+							<div class="header-icon">
+							</div>
+							<div class="header-text">
+								<h:outputText value="#{show.changePwd}" />
+							</div>
+							<div style="clear: both;"></div>
+						</div>
+					</div>
+
+					<h:panelGrid columns="2" styleClass="usersPanel"
+						columnClasses="labelCol, inputCol">
+
+						<h:outputLabel value="" />
+						<h:messages globalOnly="true" styleClass="error" />
+						
+						<h:outputLabel value="#{show.oldPwd}:" styleClass="required" />
+						<h:inputSecret id="oldPassword" size="20"
+							value="#{usersBackend.password}" styleClass="regInput" />
+							
+						<h:outputLabel value="" />
+						<h:message for="oldPassword" styleClass="error" />
+
+						<h:outputLabel value="#{show.newPwd}:" styleClass="required" />
+						<h:inputSecret id="password" size="20"
+							value="#{usersBackend.newPassword}" styleClass="regInput" />
+
+						<h:outputLabel value="" />
+						<h:message for="password" styleClass="error" />
+
+						<h:outputLabel value="" />
+						<h:outputText id="pwdRules" value="#{show.pwdRules}"
+							styleClass="info" />
+
+						<h:outputLabel value="#{show.regConfPassword}:"
+							styleClass="required" />
+						<h:inputSecret id="confPassword" value="#{usersBackend.confNewPassword}" size="20"
+							styleClass="regInput">
+							<a4j:ajax event="keyup" execute="password confPassword"
+								render="matchPassword changePwdBtn" />
+						</h:inputSecret>
+
+						<h:outputLabel value="" />
+						<h:message for="confPassword" styleClass="error" />
+
+						<h:outputLabel value="" />
+						<h:panelGroup id="matchPassword">
+							<h:outputText styleClass="error" value="#{show.pwdNotMatch}"
+								rendered="#{usersBackend.newPassword != usersBackend.confNewPassword}" />
+						</h:panelGroup>
+
+						<h:outputLabel value="" />
+						<h:panelGroup>
+							<h:commandButton id="changePwdBtn"
+								action="#{usersBackend.savePassword}" value="#{show.requestPwd}"
+								disabled="#{usersBackend.newPassword != usersBackend.confNewPassword}"
+								styleClass="regButton" />
+							<span style="padding: 4px"></span>
+							<h:commandButton id="cancelBtn"
+								action="/account/profile" value="#{show.cancel}"
+								styleClass="regButton" immediate="true"/>
+						</h:panelGroup>
+					</h:panelGrid>
+
+				</h:panelGroup>
+			</h:form>
+
+		</f:view>
+
+	</ui:define>
+
+</ui:composition>

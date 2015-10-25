@@ -1,0 +1,117 @@
+.wrapper {
+	
+	width: 560px;
+}
+
+.banner {
+	
+	width: 220px;
+}
+
+.usersWrapper {
+	
+	max-width: 100%;
+	margin: 0 auto;
+	background-color: #dedede;
+	border: 1px solid #dedede;
+}
+
+.usersForm {
+	
+	width: 100%;
+	min-height: 420px;
+	margin-top: 10px;
+	background-color: #ffffff;
+	overflow: hidden;
+}
+
+.usersHeader {
+	font-size: 24px;
+	margin: 0 auto 30px;
+	text-align: center;
+	width: 100%;
+}
+
+.usersPanel {
+	margin: 10px auto;
+}
+
+.labelCol {
+	font-size: 12px;
+	vertical-align: middle;
+	text-align: right;
+	padding-right: 10px;
+}
+
+.inputCol {
+	width: 280px;
+}
+
+.regInput {
+	margin: 8px 0 4px 0;
+	height: 22px;
+	padding: 0 4px;
+}
+
+.regButton {
+	
+	margin: 12px 0 0 0;
+	height: 30px;
+  	padding: 5px 20px;
+  
+	background: none #115577;
+	color: #ebebeb;
+}
+
+.required:after {
+	color: red;
+	content: "*";
+}
+
+.info {
+	font-size: 10px;
+	color: #303030;
+}
+
+.info:before {
+	content: "! ";
+}
+
+.error {
+	list-style: none;
+	font-size: 10px;
+	color: #c43434;
+	margin: 0;
+  	padding: 0;
+}
+
+.error li {
+	font-size: 10px;
+	color: red;
+}
+
+.usersBtn {
+	
+	width: 120px;
+	height: auto;
+	margin: 0 auto;
+}
+
+.messageWrapper {
+	
+	padding: 20px 60px;
+	width: 70%;
+	line-height: 1.8em;
+	font-size: 14px;
+}
+
+.returnLink {
+	text-align: right;
+	padding-right: 60px;
+	color: #303030;
+    font-size: 12px;
+}
+
+.returnLink:hover {
+	font-size: 12px;
+}

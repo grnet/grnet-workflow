@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:ldap="http://www.springframework.org/schema/ldap"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/ldap http://www.springframework.org/schema/ldap/spring-ldap.xsd">
+
+	<ldap:context-source username="${ldapUsername}" password="${ldapPassword}"
+    	url="${ldapURL}" base="${ldapBase}" />
+
+	<ldap:ldap-template id="ldapTemplate"/>
+	
+	<bean id="usersDAO" class="gr.cyberstream.auth.dao.UsersDAOLdap" 
+		p:ldapTemplate-ref="ldapTemplate" />
+		
+	<bean id="rolesDAO" class="gr.cyberstream.auth.dao.RolesDAOLdap" 
+		p:ldapTemplate-ref="ldapTemplate" />
+	
+	<bean id="passwordUtil" class="gr.cyberstream.auth.util.PasswordUtilLdap" />
+	
+</beans>

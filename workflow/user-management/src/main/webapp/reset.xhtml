@@ -1,0 +1,84 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a4j="http://richfaces.org/a4j"
+	template="layout/usersTemplate.xhtml">
+
+
+	<ui:define name="mainArea">
+		<h:outputStylesheet name="/css/users.css" />
+
+		<f:view beforePhase="#{usersBackend.checkUser}" >
+		
+			<h:form id="resetForm">
+
+				<h:panelGroup id="resetArea" styleClass="usersForm" layout="block">
+
+					<div class="headerWrapper">
+						<div class="header">
+							<div class="header-icon">
+							</div>
+							<div class="header-text">
+								<h:outputText value="#{show.resetForm}" />
+							</div>
+							<div style="clear: both;"></div>
+						</div>
+					</div>
+					
+					<h:panelGrid columns="2" styleClass="usersPanel" columnClasses="labelCol, inputCol"
+						rendered="#{usersBackend.resetStatus == 'valid'}">
+
+						<h:outputLabel id="pwd" value="#{show.resetPwd}:"
+							styleClass="required" />
+						<h:inputSecret id="password" value="#{usersBackend.resetPassword}"
+							size="20" styleClass="regInput" />
+
+						<h:outputLabel value="" />
+						<h:message for="password" styleClass="error" />
+
+						<h:outputLabel value="" />
+						<h:outputText id="pwdRules" value="#{show.pwdRules}"
+							styleClass="info" />
+
+						<h:outputLabel id="pwdConfirm" value="#{show.regConfPassword}:"
+							styleClass="required" />
+						<h:inputSecret id="confPassword"
+							value="#{usersBackend.confResetPassword}" size="20"
+							styleClass="regInput">
+							<a4j:ajax event="keyup" execute="password pwdConfirm"
+								render="matchPassword resetBtn" />
+						</h:inputSecret>
+
+						<h:outputLabel value="" />
+						<h:panelGroup id="matchPassword">
+							<h:outputText styleClass="error" value="#{show.pwdNotMatch}"
+								rendered="#{usersBackend.confResetPassword != usersBackend.resetPassword}" />
+						</h:panelGroup>
+
+						<h:outputLabel value="" />
+						<h:commandButton value="#{show.reset}"
+							action="#{usersBackend.resetPwd}" styleClass="regInput"
+							disabled="#{usersBackend.confResetPassword != usersBackend.resetPassword}" />
+
+					</h:panelGrid>
+					
+					<h:panelGroup id="resetAreaExpired" layout="block" styleClass="messageWrapper"
+						rendered="#{usersBackend.resetStatus == 'expired'}">
+						<h:outputText id="expiredReset" value="#{show.expiredReset_msg}" />
+					</h:panelGroup>
+	
+					<h:panelGroup id="invalidRequest" layout="block" styleClass="messageWrapper"
+						rendered="#{usersBackend.resetStatus == 'invalid'}">
+						<h:outputText id="invalidReset" value="#{show.invalidReset_msg}" />
+					</h:panelGroup>
+
+				</h:panelGroup>
+
+			</h:form>
+		</f:view>
+	</ui:define>
+
+</ui:composition>

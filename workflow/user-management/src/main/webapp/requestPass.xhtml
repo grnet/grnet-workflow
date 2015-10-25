@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a4j="http://richfaces.org/a4j"
+	template="layout/usersTemplate.xhtml">
+
+	<ui:define name="mainArea">
+		<h:outputStylesheet name="/css/users.css" />
+
+		<h:form id="requestPassForm">
+
+			<h:panelGroup layout="block" styleClass="usersForm">
+			
+				<div class="headerWrapper">
+					<div class="header">
+						<div class="header-icon">
+						</div>
+						<div class="header-text">
+							<h:outputText value="#{show.reqPassForm}" />
+						</div>
+						<div style="clear: both;"></div>
+					</div>
+				</div>
+
+				<h:panelGrid columns="2" styleClass="usersPanel" columnClasses="labelCol, inputCol">
+
+					<h:outputLabel value="#{show.regEmail}:" styleClass="required" />
+					<h:inputText id="email" value="#{usersBackend.passEmail}" size="40" styleClass="regInput"/>
+					
+					<h:outputLabel value="" />
+					<h:message for="email" styleClass="error" />
+
+					<h:outputLabel value="" />
+					<h:commandButton value="#{show.requestPwd}" styleClass="regButton"
+						action="#{usersBackend.requestPwdReset}" />
+				</h:panelGrid>
+
+			</h:panelGroup>
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>

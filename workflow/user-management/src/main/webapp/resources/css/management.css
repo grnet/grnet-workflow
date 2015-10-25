@@ -1,0 +1,330 @@
+.managementWrapper {
+	
+	width: 100%;
+	margin: 0 auto;
+	background-color: #dedede;
+	border: 1px solid #dedede;
+}
+
+.usersWrapper {
+	
+	width: 100%;
+	min-height: 320px;
+	margin-top: 15px;
+	padding-bottom: 20px;
+	background-color: #ffffff;
+}
+
+.popupHeaderGrid {
+	width: 100%;
+}
+
+.popupHeaderTitle {
+	font-size: 16px;
+    padding: 5px 0;
+}
+
+.popupHeaderControls {
+	text-align: right;
+	padding-right: 20px;
+	vertical-align: middle;
+}
+
+.popupHeaderControls input {
+	cursor: pointer;
+}
+
+.rf-pp-hdr {
+	
+	background: none #ffffff;
+}
+
+.rf-pp-shade {
+	
+	background: #000000;
+	opacity: 0.7;
+}
+
+.modalPanelTitle {
+	
+	display: inline-block;
+    margin-top: 5px;
+	text-decoration: underline;
+}
+
+.modalPanelGrid {
+	margin: 10px 20px;
+}
+
+.modalPanelGridLeft {
+	width: 100px;
+	padding-bottom: 7px;
+	vertical-align: top;
+}
+
+.modalPanelGridRight {
+	width: 420px;
+	padding-bottom: 7px;
+}
+
+.modalPanelInput {
+	width: 150px;
+}
+
+.toolbar {
+	
+	margin: 20px 0 10px;
+}
+
+.actions {
+	
+	text-align: right;
+	height: 26px;
+}
+
+.rolesWrapper {
+	
+	float: left;
+	width: 470px;
+	min-height: 320px;
+	margin-top: 15px;
+	padding-bottom: 20px;
+	background-color: #ffffff;
+}
+
+.membersWrapper {
+	
+	float: left;
+	margin-left: 20px;
+	width: 470px;
+	min-height: 320px;
+	margin-top: 15px;
+	padding-bottom: 20px;
+	background-color: #ffffff;
+}
+
+.rolesTableWrapper {
+	
+	padding: 0 20px;
+}
+
+.managementControls {
+	
+	margin: 10px auto;
+    width: 825px;
+}
+
+.searchControls {
+	
+	float: left;
+}
+
+.searchInput {
+	
+}
+
+.tabPanel {
+	
+	margin: 15px auto 0;
+    width: 930px;
+}
+
+.tabPanel .rf-tab-lbl {
+	
+	font-family: 'Ubuntu', sans-serif;
+	font-size: 11px;
+    font-weight: bold;
+    color: #303030;
+	
+	display: block;
+	width: 100px;
+	height: 17px;
+	line-height: 16px;
+}
+
+.tabPanel .rf-tab-hdr-tabline-top {
+	
+	height: 30px;
+	background: transparent;
+	border: none;
+	margin-bottom: 5px;
+}
+
+.tabPanel .rf-tab-hdr-top {
+	
+	background: none #dedede;
+	border: 1px solid #dedede;
+	border-bottom: none;
+	padding: 6px 15px;
+}
+
+.tabPanel .rf-tab-hdr-act {
+	
+	background-color: #ffffff;
+}
+
+.tabPanel .rf-tab-hortab-tabspcr-wdh {
+
+	padding: 0;
+}
+
+.tabPanel .rf-tab-hdr-dis .rf-tab-lbl {
+	
+	color: #666666;
+}
+
+.tabPanel .rf-tab-hdr-brd {
+	
+	display: none;
+}
+
+.tabActiveHeader {
+	
+}
+
+.tabContent {
+	
+	background: transparent;
+	border: none;
+	padding: 0 5px;
+}
+
+.tabHeader {
+	
+	margin-right: 4px;
+	
+	z-index: 50;
+}
+
+.tabHeader span {
+	
+}
+
+.tabHeader:hover span {
+	
+}
+
+.tabDisabledHeader span {
+	
+	color: #666666;
+}
+
+.tabInactiveHeader span {
+	
+}
+
+.rolesPickList {
+	
+	margin: 40px 20px 10px;
+}
+
+.rolesPickList .rf-pick-src {
+	
+	margin-right: 10px;
+	margin-top: -20px;
+}
+
+.rolesPickList .rf-pick-tgt {
+	
+	margin-left: 10px;
+	margin-top: -20px;
+}
+
+.rolesPickList .rf-pick-src-cptn, .rolesPickList .rf-pick-tgt-cptn, .rolesPickList .rf-pick-opt {
+	
+	font-family: 'Ubuntu', sans-serif;
+	font-size: 11px;
+	font-weight: 400;
+	color: #303030;
+	line-height: 16px;
+}
+
+.rolesPickList .rf-pick-sel {
+	
+	border: none;
+	background-color: #dedede;
+}
+
+.rolesPickList .rf-pick-btn {
+	
+	border: none;
+	border-bottom: 1px dotted #8f8d85;
+	background: transparent;
+	color: #8f8d85
+}
+
+.rolesPickList .rf-pick-btn:hover {
+	
+	border: none;
+	border-bottom: 1px solid #8f8d85;
+}
+
+.rolesPickList .rf-pick-btn-dis {
+	
+	border: none;
+	border-bottom: 1px dotted #8f8d85;
+	background: transparent;
+}
+
+.managementTable {
+	
+	border: 1px solid transparent;
+}
+
+.managementTable .rf-edt-c-title .rf-edt-hdr-c-cnt {
+	text-align: left;
+}
+
+.managementTable .rf-edt-r-sel {
+    background-color: #dedede;
+}
+
+.managementTable .rf-edt-hdr {
+	background: transparent;
+	border-bottom: 1px solid #1E1E1E;
+}
+
+.managementTable .rf-edt-ftr, .managementTable .rf-edt-tbl-ftr {
+    background-color: transparent;
+}
+
+.managementTable .rf-edt-c, .managementTable .rf-edt-hdr-c, .managementTable .rf-edt-ftr-c, .managementTable .rf-edt-flt-c {
+    border-bottom: 1px solid transparent;
+    border-right: 1px solid transparent;
+}
+
+.managementTableRow td {
+	
+	height: 25px;
+	vertical-align: middle;
+}
+
+.dataScroller {
+	float: right;
+	background: transparent;
+	padding: 0 0 0 10px;
+	margin: 0;
+}
+
+.dataScroller .rf-ds-btn, .dataScroller .rf-ds-nmb-btn {
+	background: transparent;
+	padding: 0;
+	margin: 0;
+}
+
+.dataScroller .rf-ds-btn, .dataScroller .rf-ds-btn img {
+	border: none;	
+}
+
+.dataScroller .rf-ds-nmb-btn {
+	font-size: 12px;
+	vertical-align: top;
+}
+
+.dataScroller .rf-ds-dis {
+	opacity: 0.5;
+}
+
+.dataScroller .rf-ds-act, .dataScroller .rf-ds-act:hover {
+	font-weight: bold;	
+}
