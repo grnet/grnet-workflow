@@ -1,0 +1,171 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a4j="http://richfaces.org/a4j"
+	template="/layout/managementTemplate.xhtml">
+
+	<ui:define name="mainArea">
+	
+		<f:view beforePhase="#{userManagementBackend.initRoles}" >
+			<h:outputStylesheet name="/css/management.css" />
+			
+			<h:form id="rolesForm">
+							
+				<h:panelGroup layout="block" styleClass="rolesWrapper">
+					
+					<div class="headerWrapper">
+						<div class="header">
+							<div class="header-icon">
+							</div>
+							<div class="header-text">
+								<h:outputText value="#{show.roles}" />
+							</div>
+							<div style="clear: both;"></div>
+						</div>
+					</div>
+					
+					<div class="rolesTableWrapper">
+				
+						<h:panelGroup id="rolesActions" layout="block" styleClass="actions">
+						
+							<a4j:commandButton id="addRoleBtn" value="#{show.add}" execute="@this"
+								action="#{userManagementBackend.addRole}" image="/resources/img/add.png"
+								render="rolePopup" oncomplete="#{rich:component('rolePopup')}.show()"/>
+							<rich:tooltip id="addRoleBtnTooltip" target="addRoleBtn" followMouse="true" 
+								showDelay="250" styleClass="tooltip">
+								<h:outputLabel value="#{show.add}" />
+							</rich:tooltip>
+							
+							<a4j:commandButton id="removeRoleBtn" value="#{show.remove}" execute="@this"
+								disabled="#{userManagementBackend.rolesSelection.size() == 0}"
+								action="#{userManagementBackend.removeRoles}" image="/resources/img/remove.png"
+								onclick="if (!confirm('#{show.removeRole_message}')) return false"
+								render="rolesTable rolesTableScroller" />
+							<rich:tooltip id="removeRoleBtnTooltip" target="removeRoleBtn" followMouse="true" 
+								showDelay="250" styleClass="tooltip">
+								<h:outputLabel value="#{show.remove}" />
+							</rich:tooltip>
+							
+						</h:panelGroup>
+					
+						<rich:extendedDataTable value="#{userManagementBackend.rolesList}"
+							var="role" id="rolesTable" sortMode="single"
+							selection="#{userManagementBackend.rolesSelection}" rows="20"
+							styleClass="managementTable" columnClasses="firstnameCol, emailCol"
+							noDataLabel="#{show.no_data}" rowClass="managementTableRow" >
+							
+							<a4j:ajax execute="@this" event="selectionchange"
+								render="rolesActions membersTable membersTableScroller"
+								listener="#{userManagementBackend.roleSelectionListener}"/>
+			
+							<rich:column sortBy="#{role.name}" width="120px">
+								<f:facet name="header">
+									<h:outputText value="#{show.role}" />
+								</f:facet>
+								<h:outputText value="#{role.name}" />
+							</rich:column>
+							
+							<rich:column width="305px">
+								<f:facet name="header">
+									<h:outputText value="#{show.desc}" />
+								</f:facet>
+								<h:outputText value="#{role.description}" />
+							</rich:column>
+							
+						</rich:extendedDataTable>
+						<h:panelGroup styleClass="scroller" layout="block">
+							<rich:dataScroller id="rolesTableScroller" for="rolesTable"
+								fastControls="hide" styleClass="dataScroller">
+								<f:facet name="first">
+									<h:graphicImage value="/resources/img/action.first.png" />
+								</f:facet>
+								<f:facet name="previous">
+									<h:graphicImage value="/resources/img/action.previous.small.png" />
+								</f:facet>
+								<f:facet name="next">
+									<h:graphicImage value="/resources/img/action.next.small.png" />
+								</f:facet>
+								<f:facet name="last">
+									<h:graphicImage value="/resources/img/action.last.png" />
+								</f:facet>
+							</rich:dataScroller>
+							<div style="clear: both"/>
+						</h:panelGroup>
+					
+					</div>
+					
+				</h:panelGroup>
+				
+				<h:panelGroup layout="block" styleClass="membersWrapper">
+				
+					<div class="headerWrapper">
+						<div class="header">
+							<div class="header-icon">
+							</div>
+							<div class="header-text">
+								<h:outputText value="#{show.users}" />
+							</div>
+							<div style="clear: both;"></div>
+						</div>
+					</div>
+					
+					<div class="rolesTableWrapper">
+					
+						<h:panelGroup layout="block" styleClass="actions">
+						</h:panelGroup>
+						<rich:extendedDataTable value="#{userManagementBackend.roleMembersList}"
+							var="member" id="membersTable" sortMode="single"
+							selection="#{userManagementBackend.membersSelection}" rows="20"
+							styleClass="managementTable" columnClasses="firstnameCol, emailCol"
+							noDataLabel="#{show.no_data}" rowClass="managementTableRow" >
+							
+							<rich:column sortBy="#{member.lastname}" width="195px">
+								<f:facet name="header">
+									<h:outputText value="#{show.name}" />
+								</f:facet>
+								<h:outputText value="#{member.lastname} #{member.firstname}" />
+							</rich:column>
+							
+							<rich:column sortBy="#{member.email}" width="230px">
+								<f:facet name="header">
+									<h:outputText value="#{show.email}" />
+								</f:facet>
+								<h:outputText value="#{member.email}" />
+							</rich:column>
+							
+						</rich:extendedDataTable>
+						<h:panelGroup styleClass="scroller" layout="block">
+							<rich:dataScroller id="membersTableScroller" for="membersTable"
+								fastControls="hide" styleClass="dataScroller">
+								<f:facet name="first">
+									<h:graphicImage value="/resources/img/action.first.png" />
+								</f:facet>
+								<f:facet name="previous">
+									<h:graphicImage value="/resources/img/action.previous.small.png" />
+								</f:facet>
+								<f:facet name="next">
+									<h:graphicImage value="/resources/img/action.next.small.png" />
+								</f:facet>
+								<f:facet name="last">
+									<h:graphicImage value="/resources/img/action.last.png" />
+								</f:facet>
+							</rich:dataScroller>
+							<div style="clear: both"/>
+						</h:panelGroup>
+					</div>
+					
+				</h:panelGroup>
+				<div style="clear: both"></div>
+				
+				<ui:include src="rolePanel.xhtml" />
+				
+			</h:form>
+		</f:view>
+	</ui:define>
+
+</ui:composition>

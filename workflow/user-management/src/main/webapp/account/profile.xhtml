@@ -1,0 +1,71 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a4j="http://richfaces.org/a4j"
+	template="/layout/usersTemplate.xhtml">
+
+	<ui:define name="mainArea">
+	
+		<f:metadata>
+		    <f:viewParam name="return_url" value="#{usersBackend.returnURL}"/>
+		</f:metadata>
+		
+		<h:outputStylesheet name="/css/users.css" />
+
+		<f:view beforePhase="#{usersBackend.setUser}" >
+			<h:form id="profileForm">
+	
+				<h:panelGroup layout="block" styleClass="usersForm">
+	
+					<div class="headerWrapper">
+						<div class="header">
+							<div class="header-icon">
+							</div>
+							<div class="header-text">
+								<h:outputText value="#{show.editProfile}" />
+							</div>
+							<div style="clear: both;"></div>
+						</div>
+					</div>
+				
+					<h:panelGrid columns="2" styleClass="usersPanel"
+						columnClasses="labelCol, inputCol">
+	
+						<h:outputLabel value="" />
+						<h:messages globalOnly="true" styleClass="error" />
+	
+						<h:outputLabel value="#{show.firstname}:" />
+						<h:inputText id="firstname"
+							value="#{usersBackend.user.firstname}" size="40"
+							styleClass="regInput" />
+						<h:outputLabel value="" />
+						<h:message for="firstname" styleClass="error" />
+	
+						<h:outputLabel value="#{show.lastname}:" />
+						<h:inputText id="lastname"
+							value="#{usersBackend.user.lastname}" size="40"
+							styleClass="regInput" />
+						<h:outputLabel value="" />
+						<h:message for="lastname" styleClass="error" />
+	
+						<h:outputLabel value="" />
+						<h:panelGroup layout="block" styleClass="regInput">
+							<h:commandLink action="#{usersBackend.changePassword}"
+								value="#{show.changePwd}" styleClass="returnLink" />
+						</h:panelGroup>
+	
+						<h:outputLabel value="" />
+						<h:commandButton id="editBtn" action="#{usersBackend.saveProfile}"
+							value="#{show.save}" styleClass="regButton" />
+	
+					</h:panelGrid>
+	
+				</h:panelGroup>
+	
+			</h:form>
+		</f:view>
+	</ui:define>
+</ui:composition>

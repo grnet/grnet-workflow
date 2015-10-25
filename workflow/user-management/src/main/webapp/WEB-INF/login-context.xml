@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:sec="http://www.springframework.org/schema/security"
+	xmlns:p="http://www.springframework.org/schema/p"
+		xsi:schemaLocation="http://www.springframework.org/schema/security/oauth2 http://www.springframework.org/schema/security/spring-security-oauth2-2.0.xsd
+        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.0.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+	<http xmlns="http://www.springframework.org/schema/security" >
+		
+		<intercept-url pattern="/admin/*" access="hasRole('ROLE_ADMIN')"/>
+		
+		<intercept-url pattern="/account/*" access="hasAnyRole('ROLE_ADMIN', 'ROLE_USER')"/>
+		
+		<intercept-url pattern="/resources/**" access="permitAll()" />
+		<intercept-url pattern="/*" access="isAnonymous()" />
+		
+		<csrf disabled="true"/>
+		
+		<form-login />
+    	<logout />
+	</http>
+	
+	<authentication-manager xmlns="http://www.springframework.org/schema/security">
+		<authentication-provider ref='authenticationProvider' />
+	</authentication-manager>
+	
+	<bean id="authenticationProvider" class="gr.cyberstream.auth.service.AuthenticationProviderImpl" 
+		p:usersDAO-ref="usersDAO" />
+	
+</beans>

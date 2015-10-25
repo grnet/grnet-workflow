@@ -1,0 +1,80 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a4j="http://richfaces.org/a4j">
+
+	<ui:component>
+
+		<h:inputHidden id="hasMessages"
+			value="#{userManagementBackend.messagesExist}" />
+
+		<a4j:region>
+			<rich:popupPanel id="rolePopup" modal="true"
+				styleClass="modalPanelStyle" headerClass="modalPanelHeader"
+				top="75" width="470" height="220" domElementAttachment="form">
+
+				<f:facet name="header">
+					<h:panelGrid columns="2" styleClass="popupHeaderGrid"
+						columnClasses="popupHeaderTitle, popupHeaderControls">
+						
+						<h:panelGroup layout="block">
+								<div class="header">
+									<div class="header-icon">
+									</div>
+									<div class="header-text">
+										<h:outputText value="#{show.add}"/>
+									</div>
+									<div style="clear: both;"></div>
+								</div>
+						</h:panelGroup>
+						
+						<h:panelGroup layout="block">
+							
+							<a4j:commandButton id="saveBtn" execute="@region" render="hasMessages rolesTable rolesTableScroller"
+								action="#{userManagementBackend.saveRole}" image="/resources/img/save.png"
+								oncomplete="if (document.getElementById('rolesForm:hasMessages').value == 'false') {
+									#{rich:component('rolePopup')}.hide();
+									#{rich:component('saveBtnTooltip')}.hide();}"/>
+							<rich:tooltip id="saveBtnTooltip"
+								target="saveBtn" followMouse="true"
+								showDelay="250" styleClass="tooltip">
+								<h:outputLabel value="#{show.save}" />
+							</rich:tooltip>
+
+							<a4j:commandButton id="closeBtn" execute="@this" image="/resources/img/remove.png"
+								oncomplete="#{rich:component('rolePopup')}.hide();
+									#{rich:component('closeBtnTooltip')}.hide();" />
+							<rich:tooltip id="closeBtnTooltip"
+								target="closeBtn" followMouse="true"
+								showDelay="250" styleClass="tooltip">
+								<h:outputLabel value="#{show.close}" />
+							</rich:tooltip>
+						</h:panelGroup>
+					</h:panelGrid>
+
+				</f:facet>
+
+				<h:panelGrid id="modalInfo" columns="2" styleClass="modalPanelGrid"
+					columnClasses="modalPanelGridLeft, modalPanelGridRight">
+
+					<h:outputLabel value="" />
+					<rich:messages globalOnly="true" styleClass="errormessage" />
+
+					<h:outputLabel value="#{show.name}:" styleClass="required" />
+					<h:inputText id="name" value="#{userManagementBackend.role.name}" size="40" styleClass="regInput"/>
+					
+					<h:outputLabel value="#{show.desc}:" styleClass="required" />
+					<h:inputTextarea id="desc" value="#{userManagementBackend.role.description}" size="40" styleClass="regInput"
+						cols="40" />
+					
+				</h:panelGrid>		
+				
+			</rich:popupPanel>
+		</a4j:region>
+		
+	</ui:component>
+</ui:composition>

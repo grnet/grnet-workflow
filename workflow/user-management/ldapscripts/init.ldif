@@ -1,0 +1,15 @@
+dn: dc=cyberstream,dc=gr
+dc: cyberstream 
+objectClass: top
+objectClass: domain
+
+dn: ou=Users,dc=cyberstream,dc=gr
+ou: Users
+objectClass: top
+objectClass: organizationalUnit
+
+dn: ou=Roles,dc=cyberstream,dc=gr
+ou: Roles
+objectClass: top
+objectClass: organizationalUnit
+

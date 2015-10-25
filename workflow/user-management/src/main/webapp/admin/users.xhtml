@@ -1,0 +1,401 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a4j="http://richfaces.org/a4j"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+	template="/layout/managementTemplate.xhtml">
+
+	<ui:define name="mainArea">
+	
+		<f:view beforePhase="#{userManagementBackend.initUsers}" >
+			<h:outputStylesheet name="/css/management.css" />
+			
+			<h:form id="usersForm">
+				
+				<h:panelGroup layout="block" styleClass="usersWrapper">
+					
+					<div class="headerWrapper">
+						<div class="header">
+							<div class="header-icon">
+							</div>
+							<div class="header-text">
+								<h:outputText value="#{show.users}" />
+							</div>
+							<div style="clear: both;"></div>
+						</div>
+					</div>
+					
+					<rich:tabPanel id="tabPanel" styleClass="tabPanel" tabActiveHeaderClass="tabActiveHeader"
+						tabContentClass="tabContent" tabHeaderClass="tabHeader" >
+						
+						<rich:tab name="#{show.users_all}" id="allUsersTab">
+							
+							<h:panelGroup styleClass="toolbar" layout="block">
+								
+								<h:panelGroup layout="block" styleClass="searchControls">
+									<h:inputText id="keyword" styleClass="searchInput" value="#{userManagementBackend.keyword}" />
+									<a4j:commandButton value="#{show.add}" execute="keyword"
+										action="#{userManagementBackend.searchUsers}" image="/resources/img/search.png"
+										render="allUsersTable allUsersTableScroller" />
+									<a4j:commandButton value="#{show.clear}" execute="@this"
+										action="#{userManagementBackend.clearSearchUsers}" image="/resources/img/remove.png"
+										render="allUsersTable allUsersTableScroller keyword" />
+								</h:panelGroup>
+						
+								<h:panelGroup id="allUsersActions" layout="block" styleClass="actions">
+							
+									<a4j:commandButton id="addUserBtn" value="#{show.add}" execute="@this"
+										action="#{userManagementBackend.addUser}" image="/resources/img/add.png"
+										render="userPopup" oncomplete="#{rich:component('userPopup')}.show()"/>
+									<rich:tooltip id="addUserBtnTooltip" target="addUserBtn" followMouse="true" 
+										showDelay="250" styleClass="tooltip">
+										<h:outputLabel value="#{show.add}" />
+									</rich:tooltip>
+									
+									<a4j:commandButton id="editUserBtn" value="#{show.edit}"
+										disabled="#{userManagementBackend.allUsersSelection.size() == 0}"
+										action="#{userManagementBackend.editUser}" image="/resources/img/edit.png"
+										render="userPopup" oncomplete="#{rich:component('userPopup')}.show()"/>
+									<rich:tooltip id="editUserBtnTooltip" target="editUserBtn" followMouse="true" 
+										showDelay="250" styleClass="tooltip">
+										<h:outputLabel value="#{show.edit}" />
+									</rich:tooltip>
+									
+									<a4j:commandButton id="approveUserBtn" value="#{show.approve}" execute="@this"
+										disabled="#{userManagementBackend.allUsersSelection.size() == 0}"
+										action="#{userManagementBackend.approveUsers}" image="/resources/img/ok.png"
+										onclick="if (!confirm('#{show.approve_message}')) return false"
+										render="allUsersTable allUsersTableScroller" />
+									<rich:tooltip id="approveUserBtnTooltip" target="approveUserBtn" followMouse="true" 
+										showDelay="250" styleClass="tooltip">
+										<h:outputLabel value="#{show.approve}" />
+									</rich:tooltip>
+									
+									<a4j:commandButton id="resendVerifyBtn" value="#{show.resend}" execute="@this"
+										disabled="#{userManagementBackend.allUsersSelection.size() == 0}"
+										action="#{userManagementBackend.resendVerify}" image="/resources/img/verify_email.png"
+										onclick="if (!confirm('#{show.resend_message}')) return false"
+										render="allUsersTable allUsersTableScroller" />
+									<rich:tooltip id="resendVerifyBtnTooltip" target="resendVerifyBtn" followMouse="true" 
+										showDelay="250" styleClass="tooltip">
+										<h:outputLabel value="#{show.resend}" />
+									</rich:tooltip>
+									
+									<a4j:commandButton id="banUserBtn" value="#{show.ban}" execute="@this"
+										disabled="#{userManagementBackend.allUsersSelection.size() == 0}"
+										action="#{userManagementBackend.banUsers}" image="/resources/img/ban.png"
+										onclick="if (!confirm('#{show.ban_message}')) return false"
+										render="allUsersTable allUsersTableScroller" />
+									<rich:tooltip id="banUserBtnTooltip" target="banUserBtn" followMouse="true" 
+										showDelay="250" styleClass="tooltip">
+										<h:outputLabel value="#{show.ban}" />
+									</rich:tooltip>
+									
+									<a4j:commandButton id="disableUserBtn" value="#{show.disable}" execute="@this"
+										disabled="#{userManagementBackend.allUsersSelection.size() == 0}"
+										action="#{userManagementBackend.disableUsers}" image="/resources/img/disable.png"
+										onclick="if (!confirm('#{show.disable_message}')) return false"
+										render="allUsersTable allUsersTableScroller" />
+									<rich:tooltip id="disableUserBtnTooltip" target="disableUserBtn" followMouse="true" 
+										showDelay="250" styleClass="tooltip">
+										<h:outputLabel value="#{show.disable}" />
+									</rich:tooltip>
+										
+									<a4j:commandButton id="removeUserBtn" value="#{show.remove}" execute="@this"
+										disabled="#{userManagementBackend.allUsersSelection.size() == 0}"
+										action="#{userManagementBackend.removeUsers}" image="/resources/img/remove.png"
+										onclick="if (!confirm('#{show.remove_message}')) return false"
+										render="allUsersTable allUsersTableScroller" />
+									<rich:tooltip id="removeUserBtnTooltip" target="removeUserBtn" followMouse="true" 
+										showDelay="250" styleClass="tooltip">
+										<h:outputLabel value="#{show.remove}" />
+									</rich:tooltip>
+					
+								</h:panelGroup>
+							</h:panelGroup>
+							
+							<rich:extendedDataTable value="#{userManagementBackend.allUsersList}"
+								var="user" id="allUsersTable" sortMode="single" 
+								selection="#{userManagementBackend.allUsersSelection}" rows="10"
+								styleClass="managementTable" columnClasses="firstnameCol, lastnameCol, emailCol"
+								noDataLabel="#{show.no_data}" rowClass="managementTableRow" >
+								
+								<a4j:ajax execute="@this" event="selectionchange"
+									render="allUsersActions"/>
+				
+								<rich:column sortBy="#{user.lastname}" width="190px">
+									<f:facet name="header">
+										<h:outputText value="#{show.lastname}" />
+									</f:facet>
+									<h:outputText value="#{user.lastname}" />
+								</rich:column>
+								
+								<rich:column sortBy="#{user.firstname}" width="174px">
+									<f:facet name="header">
+										<h:outputText value="#{show.firstname}" />
+									</f:facet>
+									<h:outputText value="#{user.firstname}" />
+								</rich:column>
+								
+								<rich:column sortBy="#{user.email}" width="284px">
+									<f:facet name="header">
+										<h:outputText value="#{show.email}" />
+									</f:facet>
+									<h:outputText value="#{user.email}" />
+								</rich:column>
+								
+								<rich:column sortBy="#{user.creationDate}" width="140px">
+									<f:facet name="header">
+										<h:outputText value="#{show.createDate}" />
+									</f:facet>
+									<h:outputText value="#{user.creationDate}" >
+										<f:convertDateTime type="date" pattern="dd/MM/yyyy HH:mm" timeZone="EET" />
+									</h:outputText>
+								</rich:column>
+								
+								<rich:column sortBy="#{user.status}" width="125px">
+									<f:facet name="header">
+										<h:outputText value="#{show.status}" />
+									</f:facet>
+									<h:outputText value="#{show[user.status]}" />
+								</rich:column>
+								
+							</rich:extendedDataTable>
+							<h:panelGroup styleClass="scroller" layout="block">
+								<rich:dataScroller id="allUsersTableScroller" for="allUsersTable"
+									fastControls="hide" styleClass="dataScroller">
+									<f:facet name="first">
+										<h:graphicImage value="/resources/img/action.first.png" />
+									</f:facet>
+									<f:facet name="previous">
+										<h:graphicImage value="/resources/img/action.previous.small.png" />
+									</f:facet>
+									<f:facet name="next">
+										<h:graphicImage value="/resources/img/action.next.small.png" />
+									</f:facet>
+									<f:facet name="last">
+										<h:graphicImage value="/resources/img/action.last.png" />
+									</f:facet>
+								</rich:dataScroller>
+								<div style="clear: both"/>
+							</h:panelGroup>
+							
+						</rich:tab>
+						
+						<rich:tab name="#{show.users_banned}" id="bannedTab">
+						
+							<h:panelGroup styleClass="toolbar" layout="block">
+								<h:panelGroup id="bannedUsersActions" layout="block" styleClass="actions">
+							
+									<a4j:commandButton id="unbanUserBtn" value="#{show.unban}"  execute="@this"
+										disabled="#{userManagementBackend.bannedUsersSelection.size() == 0}"
+										action="#{userManagementBackend.unbanUsers}" image="/resources/img/unban.png"
+										onclick="if (!confirm('#{show.unban_message}')) return false"
+										render="bannedUsersTable bannedUsersTableScroller" />
+									<rich:tooltip id="unbanUserBtnTooltip" target="unbanUserBtn" followMouse="true" 
+										showDelay="250" styleClass="tooltip">
+										<h:outputLabel value="#{show.unban}" />
+									</rich:tooltip>
+									
+									<a4j:commandButton id="disableBannedUserBtn" value="#{show.disable}"  execute="@this"
+										disabled="#{userManagementBackend.bannedUsersSelection.size() == 0}"
+										action="#{userManagementBackend.disableBannedUsers}" image="/resources/img/disable.png"
+										onclick="if (!confirm('#{show.disable_message}')) return false"
+										render="bannedUsersTable bannedUsersTableScroller" />
+									<rich:tooltip id="disableBannedUserBtnTooltip" target="disableBannedUserBtn" followMouse="true" 
+										showDelay="250" styleClass="tooltip">
+										<h:outputLabel value="#{show.disable}" />
+									</rich:tooltip>
+										
+									<a4j:commandButton id="removeBannedUserBtn" value="#{show.remove}" execute="@this"
+										disabled="#{userManagementBackend.bannedUsersSelection.size() == 0}"
+										action="#{userManagementBackend.removeBannedUsers}" image="/resources/img/remove.png"
+										onclick="if (!confirm('#{show.remove_message}')) return false"
+										render="bannedUsersTable bannedUsersTableScroller" />
+									<rich:tooltip id="removeBannedUserBtnTooltip" target="removeBannedUserBtn" followMouse="true" 
+										showDelay="250" styleClass="tooltip">
+										<h:outputLabel value="#{show.remove}" />
+									</rich:tooltip>
+				
+								</h:panelGroup>
+							</h:panelGroup>
+							
+							<rich:extendedDataTable value="#{userManagementBackend.bannedUsersList}"
+								var="user" id="bannedUsersTable" sortMode="single"
+								selection="#{userManagementBackend.bannedUsersSelection}" rows="10"
+								styleClass="managementTable" columnClasses="firstnameCol, lastnameCol, emailCol"
+								noDataLabel="#{show.no_data}" rowClass="managementTableRow" >
+				
+								<a4j:ajax execute="@this" event="selectionchange"
+									render="bannedUsersActions"/>
+									
+								<rich:column sortBy="#{user.lastname}" width="170px">
+									<f:facet name="header">
+										<h:outputText value="#{show.lastname}" />
+									</f:facet>
+									<h:outputText value="#{user.lastname}" />
+								</rich:column>
+								
+								<rich:column sortBy="#{user.firstname}" width="164px">
+									<f:facet name="header">
+										<h:outputText value="#{show.firstname}" />
+									</f:facet>
+									<h:outputText value="#{user.firstname}" />
+								</rich:column>
+								
+								<rich:column sortBy="#{user.email}" width="234px">
+									<f:facet name="header">
+										<h:outputText value="#{show.email}" />
+									</f:facet>
+									<h:outputText value="#{user.email}" />
+								</rich:column>
+								
+								<rich:column sortBy="#{user.creationDate}" width="140px">
+									<f:facet name="header">
+										<h:outputText value="#{show.createDate}" />
+									</f:facet>
+									<h:outputText value="#{user.creationDate}" >
+										<f:convertDateTime type="date" pattern="dd/MM/yyyy HH:mm" timeZone="EET" />
+									</h:outputText>
+								</rich:column>
+								
+								<rich:column width="100px">
+									<f:facet name="header">
+										
+									</f:facet>
+									
+								</rich:column>
+								
+							</rich:extendedDataTable>
+							<h:panelGroup styleClass="scroller" layout="block">
+								<rich:dataScroller id="bannedUsersTableScroller" for="bannedUsersTable"
+									fastControls="hide" styleClass="dataScroller">
+									<f:facet name="first">
+										<h:graphicImage value="/resources/img/action.first.png" />
+									</f:facet>
+									<f:facet name="previous">
+										<h:graphicImage value="/resources/img/action.previous.small.png" />
+									</f:facet>
+									<f:facet name="next">
+										<h:graphicImage value="/resources/img/action.next.small.png" />
+									</f:facet>
+									<f:facet name="last">
+										<h:graphicImage value="/resources/img/action.last.png" />
+									</f:facet>
+								</rich:dataScroller>
+								<div style="clear: both"/>
+							</h:panelGroup>
+						</rich:tab>
+						
+						<rich:tab name="#{show.users_disabled}" id="disabledTab">
+						
+							<h:panelGroup styleClass="toolbar" layout="block">
+							
+								<h:panelGroup id="disabledUsersActions" layout="block" styleClass="actions">
+							
+									<a4j:commandButton id="enableUserBtn" value="#{show.enable}" execute="@this"
+										disabled="#{userManagementBackend.disabledUsersSelection.size() == 0}"
+										action="#{userManagementBackend.enableUsers}" image="/resources/img/ok.png"
+										onclick="if (!confirm('#{show.enable_message}')) return false"
+										render="disabledUsersTable disabledUsersTableScroller" />
+									<rich:tooltip id="enableUserBtnTooltip" target="enableUserBtn" followMouse="true" 
+										showDelay="250" styleClass="tooltip">
+										<h:outputLabel value="#{show.enable}" />
+									</rich:tooltip>
+										
+									<a4j:commandButton id="removeDisabledUserBtn" value="#{show.remove}" execute="@this"
+										disabled="#{userManagementBackend.disabledUsersSelection.size() == 0}"
+										action="#{userManagementBackend.removeDisabledUsers}" image="/resources/img/remove.png"
+										onclick="if (!confirm('#{show.remove_message}')) return false"
+										render="disabledUsersTable disabledUsersTableScroller" />
+									<rich:tooltip id="removeDisabledUserBtnTooltip" target="removeDisabledUserBtn" followMouse="true" 
+										showDelay="250" styleClass="tooltip">
+										<h:outputLabel value="#{show.remove}" />
+									</rich:tooltip>
+					
+								</h:panelGroup>
+							</h:panelGroup>
+							
+							<rich:extendedDataTable value="#{userManagementBackend.disabledUsersList}"
+								var="user" id="disabledUsersTable" sortMode="single"
+								selection="#{userManagementBackend.disabledUsersSelection}" rows="10"
+								styleClass="managementTable" columnClasses="firstnameCol, lastnameCol, emailCol"
+								noDataLabel="#{show.no_data}" rowClass="managementTableRow" >
+				
+								<a4j:ajax execute="@this" event="selectionchange"
+									render="disabledUsersActions"/>
+									
+								<rich:column sortBy="#{user.lastname}" width="170px">
+									<f:facet name="header">
+										<h:outputText value="#{show.lastname}" />
+									</f:facet>
+									<h:outputText value="#{user.lastname}" />
+								</rich:column>
+								
+								<rich:column sortBy="#{user.firstname}" width="164px">
+									<f:facet name="header">
+										<h:outputText value="#{show.firstname}" />
+									</f:facet>
+									<h:outputText value="#{user.firstname}" />
+								</rich:column>
+								
+								<rich:column sortBy="#{user.email}" width="234px">
+									<f:facet name="header">
+										<h:outputText value="#{show.email}" />
+									</f:facet>
+									<h:outputText value="#{user.email}" />
+								</rich:column>
+								
+								<rich:column sortBy="#{user.creationDate}" width="140px">
+									<f:facet name="header">
+										<h:outputText value="#{show.createDate}" />
+									</f:facet>
+									<h:outputText value="#{user.creationDate}" >
+										<f:convertDateTime type="date" pattern="dd/MM/yyyy HH:mm" timeZone="EET" />
+									</h:outputText>
+								</rich:column>
+								
+								<rich:column width="100px">
+									<f:facet name="header">
+									
+									</f:facet>
+									
+								</rich:column>
+								
+							</rich:extendedDataTable>
+							<h:panelGroup styleClass="scroller" layout="block">
+								<rich:dataScroller id="disabledUsersTableScroller" for="disabledUsersTable"
+									fastControls="hide" styleClass="dataScroller">
+									<f:facet name="first">
+										<h:graphicImage value="/resources/img/action.first.png" />
+									</f:facet>
+									<f:facet name="previous">
+										<h:graphicImage value="/resources/img/action.previous.small.png" />
+									</f:facet>
+									<f:facet name="next">
+										<h:graphicImage value="/resources/img/action.next.small.png" />
+									</f:facet>
+									<f:facet name="last">
+										<h:graphicImage value="/resources/img/action.last.png" />
+									</f:facet>
+								</rich:dataScroller>
+								<div style="clear: both"/>
+							</h:panelGroup>
+						</rich:tab>
+						
+					</rich:tabPanel>
+				
+				</h:panelGroup>
+				
+				<ui:include src="userPanel.xhtml" />
+				
+			</h:form>
+		</f:view>
+	</ui:define>
+
+</ui:composition>

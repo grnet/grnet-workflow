@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a4j="http://richfaces.org/a4j"
+	template="layout/usersTemplate.xhtml">
+
+	<ui:define name="mainArea">
+		<h:outputStylesheet name="/css/users.css" />
+		
+		<f:view beforePhase="#{usersBackend.checkFacebookUser}">
+
+			<h:form id="regFacebookForm">
+				<h:panelGroup id="unregistered" layout="block"
+					rendered="#{!usersBackend.registeredFacebook}">
+
+					<h:outputText value="#{show.regGoogleDenial}" />
+
+				</h:panelGroup>
+
+				<h:panelGroup id="registered" layout="block"
+					rendered="#{usersBackend.registeredFacebook}">
+
+					<h:inputText id="infoReg" rendered="false" />
+					<h:message for="regFacebookForm:infoReg" styleClass="googleInfo" />
+
+
+					<h:inputText id="errorReg" rendered="false" />
+					<h:message for="regFacebookForm:errorReg" styleClass="googleError" />
+
+
+				</h:panelGroup>
+
+			</h:form>
+		</f:view>
+
+	</ui:define>
+
+</ui:composition>
