@@ -7,7 +7,20 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>workflow-sso</artifactId>
-	<packaging>war</packaging>
 	<name>workflow-sso</name>
 
+    <packaging>jar</packaging>
+
+    <build>
+    	<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+    	</plugins>
+        <finalName>sso-workflow-theme</finalName>
+    </build> 
 </project>
