@@ -1,0 +1,6 @@
+{
+    "themes": [{
+        "name" : "workflow",
+        "types": [ "login" ]
+    }]
+}
