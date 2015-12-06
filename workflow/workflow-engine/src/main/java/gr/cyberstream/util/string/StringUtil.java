@@ -1,3 +1,6 @@
+/**
+ * @author nlyk
+ */
 package gr.cyberstream.util.string;
 
 import java.io.BufferedReader;

@@ -1,3 +1,6 @@
+/**
+ * @author nlyk
+ */
 package gr.cyberstream.workflow.engine.persistence;
 
 import gr.cyberstream.workflow.engine.model.DefinitionVersion;

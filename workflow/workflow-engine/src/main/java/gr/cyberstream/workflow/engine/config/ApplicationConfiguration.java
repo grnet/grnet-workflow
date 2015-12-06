@@ -1,8 +1,15 @@
+/**
+ * @author nlyk
+ */
 package gr.cyberstream.workflow.engine.config;
 
 import gr.cyberstream.workflow.engine.cmis.CMISSession;
 import gr.cyberstream.workflow.engine.cmis.OpenCMISSessionFactory;
+import gr.cyberstream.workflow.engine.customtypes.ConversationFormType;
+import gr.cyberstream.workflow.engine.customtypes.DocumentFormType;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManagerFactory;
@@ -15,6 +22,7 @@ import org.activiti.engine.ManagementService;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
+import org.activiti.engine.form.AbstractFormType;
 import org.activiti.spring.ProcessEngineFactoryBean;
 import org.activiti.spring.SpringProcessEngineConfiguration;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -138,6 +146,12 @@ public class ApplicationConfiguration {
 		speconfig.setTransactionManager(txManager);
 		speconfig.setDatabaseSchemaUpdate("true");
 		speconfig.setJobExecutorActivate(false);
+		
+		// add the custom types to the Activiti engine configuration
+		List<AbstractFormType> customFormTypes = new ArrayList<AbstractFormType>();
+		customFormTypes.add(new DocumentFormType());
+		customFormTypes.add(new ConversationFormType());
+		speconfig.setCustomFormTypes(customFormTypes);
 
 		return speconfig;
 	}
