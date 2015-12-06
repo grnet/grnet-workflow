@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/test">
+  <collaboration id="Collaboration">
+    <participant id="temp-public-tender" name="Temporary Public Tender" processRef="process_pool"></participant>
+  </collaboration>
+  <process id="process_pool" name="process_pool" isExecutable="true">
+    <laneSet id="laneSet_process_pool">
+      <lane id="lane-project-manager" name="Project Manager">
+        <flowNodeRef>startevent</flowNodeRef>
+        <flowNodeRef>create-rfp-task</flowNodeRef>
+        <flowNodeRef>espa-gateway</flowNodeRef>
+        <flowNodeRef>espa-check-task</flowNodeRef>
+        <flowNodeRef>espaok-gateway</flowNodeRef>
+        <flowNodeRef>endevent</flowNodeRef>
+      </lane>
+      <lane id="lane-board" name="Board of Directors">
+        <flowNodeRef>project-decision-task</flowNodeRef>
+      </lane>
+      <lane id="lane-secretary" name="Secretary"></lane>
+    </laneSet>
+    <startEvent id="startevent" name="Start">
+      <extensionElements>
+        <activiti:formProperty id="project-name" name="Project Name" type="string" required="true"></activiti:formProperty>
+        <activiti:formProperty id="espa" name="ESPA funding" type="boolean" default="false" required="true"></activiti:formProperty>
+        <activiti:formProperty id="short-list" name="Short-List for tenderers" type="boolean" required="true"></activiti:formProperty>
+      </extensionElements>
+    </startEvent>
+    <userTask id="create-rfp-task" name="RFP" activiti:assignee="${initiator}">
+      <extensionElements>
+        <activiti:formProperty id="rfp-document" name="RFP Document" required="true"></activiti:formProperty>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway id="espa-gateway" name="ESPA check"></exclusiveGateway>
+    <userTask id="espa-check-task" name="ESPA check">
+      <extensionElements>
+        <activiti:formProperty id="espa-check-reference" name="ESPA check reference" type="string"></activiti:formProperty>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway id="espaok-gateway" name="ESPA checked Gateway"></exclusiveGateway>
+    <sequenceFlow id="rfp-checkespagw-flow" name="rfp to check espa" sourceRef="create-rfp-task" targetRef="espa-gateway"></sequenceFlow>
+    <userTask id="project-decision-task" name="Decision">
+      <documentation>Submit the RFP document</documentation>
+      <extensionElements>
+        <activiti:formProperty id="rfpTitle" name="Document Title" type="string" required="true" readable="true"></activiti:formProperty>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="start-decision-flow" name="start to decision" sourceRef="startevent" targetRef="project-decision-task"></sequenceFlow>
+    <sequenceFlow id="decision-to-rfp-flow" name="decision to rfp" sourceRef="project-decision-task" targetRef="create-rfp-task"></sequenceFlow>
+    <sequenceFlow id="espacheckgw-espacheck-flow" name="to ESPA check" sourceRef="espa-gateway" targetRef="espa-check-task"></sequenceFlow>
+    <sequenceFlow id="espacheckgw-bypass-flow" name="bypass ESPA check" sourceRef="espa-gateway" targetRef="espaok-gateway"></sequenceFlow>
+    <sequenceFlow id="exit-espacheck-flow" name="exit ESPA check" sourceRef="espa-check-task" targetRef="espaok-gateway"></sequenceFlow>
+    <endEvent id="endevent" name="End"></endEvent>
+    <sequenceFlow id="toend-flow" name="to end" sourceRef="espaok-gateway" targetRef="endevent"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Collaboration">
+    <bpmndi:BPMNPlane bpmnElement="Collaboration" id="BPMNPlane_Collaboration">
+      <bpmndi:BPMNShape bpmnElement="temp-public-tender" id="BPMNShape_temp-public-tender">
+        <omgdc:Bounds height="740.0" width="1780.0" x="10.0" y="10.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="lane-project-manager" id="BPMNShape_lane-project-manager">
+        <omgdc:Bounds height="260.0" width="1760.0" x="30.0" y="10.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="lane-board" id="BPMNShape_lane-board">
+        <omgdc:Bounds height="200.0" width="1760.0" x="30.0" y="270.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="lane-secretary" id="BPMNShape_lane-secretary">
+        <omgdc:Bounds height="280.0" width="1760.0" x="30.0" y="470.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="startevent" id="BPMNShape_startevent">
+        <omgdc:Bounds height="37.0" width="37.0" x="94.0" y="170.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="create-rfp-task" id="BPMNShape_create-rfp-task">
+        <omgdc:Bounds height="55.0" width="105.0" x="164.0" y="161.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="espa-gateway" id="BPMNShape_espa-gateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="196.0" y="87.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="espa-check-task" id="BPMNShape_espa-check-task">
+        <omgdc:Bounds height="55.0" width="105.0" x="268.0" y="80.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="espaok-gateway" id="BPMNShape_espaok-gateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="400.0" y="87.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="project-decision-task" id="BPMNShape_project-decision-task">
+        <omgdc:Bounds height="55.0" width="105.0" x="60.0" y="340.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent" id="BPMNShape_endevent">
+        <omgdc:Bounds height="35.0" width="35.0" x="485.0" y="90.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="rfp-checkespagw-flow" id="BPMNEdge_rfp-checkespagw-flow">
+        <omgdi:waypoint x="216.0" y="161.0"></omgdi:waypoint>
+        <omgdi:waypoint x="216.0" y="127.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="85.0" x="98.0" y="135.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="start-decision-flow" id="BPMNEdge_start-decision-flow">
+        <omgdi:waypoint x="112.0" y="207.0"></omgdi:waypoint>
+        <omgdi:waypoint x="112.0" y="340.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="77.0" x="117.0" y="290.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="decision-to-rfp-flow" id="BPMNEdge_decision-to-rfp-flow">
+        <omgdi:waypoint x="165.0" y="367.0"></omgdi:waypoint>
+        <omgdi:waypoint x="216.0" y="366.0"></omgdi:waypoint>
+        <omgdi:waypoint x="216.0" y="216.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="69.0" x="209.0" y="342.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="espacheckgw-espacheck-flow" id="BPMNEdge_espacheckgw-espacheck-flow">
+        <omgdi:waypoint x="236.0" y="107.0"></omgdi:waypoint>
+        <omgdi:waypoint x="268.0" y="107.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="71.0" x="235.0" y="133.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="espacheckgw-bypass-flow" id="BPMNEdge_espacheckgw-bypass-flow">
+        <omgdi:waypoint x="216.0" y="87.0"></omgdi:waypoint>
+        <omgdi:waypoint x="216.0" y="52.0"></omgdi:waypoint>
+        <omgdi:waypoint x="420.0" y="52.0"></omgdi:waypoint>
+        <omgdi:waypoint x="420.0" y="87.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="98.0" x="257.0" y="31.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="exit-espacheck-flow" id="BPMNEdge_exit-espacheck-flow">
+        <omgdi:waypoint x="373.0" y="107.0"></omgdi:waypoint>
+        <omgdi:waypoint x="400.0" y="107.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="79.0" x="371.0" y="130.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="toend-flow" id="BPMNEdge_toend-flow">
+        <omgdi:waypoint x="440.0" y="107.0"></omgdi:waypoint>
+        <omgdi:waypoint x="485.0" y="107.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="30.0" x="453.0" y="73.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

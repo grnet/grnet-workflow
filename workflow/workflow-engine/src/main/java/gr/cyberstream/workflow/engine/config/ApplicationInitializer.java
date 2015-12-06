@@ -1,3 +1,6 @@
+/**
+ * @author nlyk
+ */
 package gr.cyberstream.workflow.engine.config;
 
 import org.slf4j.Logger;

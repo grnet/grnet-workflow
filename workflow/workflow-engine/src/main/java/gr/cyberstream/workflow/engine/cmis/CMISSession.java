@@ -1,3 +1,6 @@
+/**
+ * @author nlyk
+ */
 package gr.cyberstream.workflow.engine.cmis;
 
 import org.apache.chemistry.opencmis.client.api.Session;

@@ -1,3 +1,6 @@
+/**
+ * @author nlyk
+ */
 package gr.cyberstream.workflow.engine.cmis;
 
 import java.util.HashMap;

@@ -19,6 +19,7 @@
 		<module>user-management</module>
 		<module>file-repository</module>
 		<module>workflow-sso</module>
+		<module>workflow-designer</module>
 	</modules>
 
 	<build>

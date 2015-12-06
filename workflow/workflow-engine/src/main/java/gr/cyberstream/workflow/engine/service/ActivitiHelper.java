@@ -1,3 +1,6 @@
+/**
+ * @author nlyk
+ */
 package gr.cyberstream.workflow.engine.service;
 
 import gr.cyberstream.util.string.StringUtil;
