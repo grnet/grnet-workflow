@@ -1,6 +1,5 @@
 (function () {
-    angular.module('wfmanagerServices').service(
-        'processService', ['$http', 'CONFIG',
+    angular.module('wfmanagerServices').service('processService', ['$http', 'CONFIG',
 
             /**
              * @class ProcessService
@@ -28,6 +27,17 @@
                         headers: {'Content-Type': undefined}
                     });
                 };
+                
+                
+    	    	/**
+		    	 * Returns all groups from realm
+		    	 * 
+		    	 * @name RealmService#getGroups
+		    	 */
+			
+			    this.getGroups = function () {
+			        return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/group');
+			    };
 
                 /**
                  * Creates a new process version
@@ -94,6 +104,22 @@
                         '/process'
                     );
                 };
+                
+                /**
+                 * Return a promise object for the list of processes by selected owners (workflow definition)
+                 * @return {HttpPromise}
+                 *
+                 * @name ProcessService#getProcessesByOwners
+                 */
+                this.getProcessesByOwners = function (selectedOwners) {
+                	
+                	if(selectedOwners.length == 0){
+                		return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/filter/all');
+                	}else{
+                		return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/filter/owners;owners=' + selectedOwners );
+                	}
+                	
+                };
 
                 /**
                  * Return a promise object for the process (workflow definition) object
@@ -122,11 +148,19 @@
                         process
                     );
                 };
+                
+                /**
+                 * Returns a list of wftasks based on instance id
+                 */
+                this.getTasksByInstanceId = function (instanceId){
+                	return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/instance/' + instanceId)
+                }
+                
 
                 /**
                  * Updates the process definition version
                  * @param {number} processId
-                 * @param {DefinitionVersion} version
+                 * @param {ProcessVersion} version
                  * @return {HttpPromise}
                  *
                  * @name ProcessService#updateProcessDefinitionVersion
@@ -137,6 +171,28 @@
                         + processId
                         + '/version',
                         version
+                    );
+                };
+                
+                /**
+                 * Get the task
+                 * @name ProcessService#getTask
+                 *
+                 * @param {string} taskId
+                 * @return {HttpPromise}
+                 */
+                this.getTask = function (taskId) {
+                    return $http.get(config.WORKFLOW_SERVICE_ENTRY
+                        + '/task/'
+                        + taskId
+                    );
+                };
+                
+                this.getCompletedTask = function (taskId) {
+                    return $http.get(config.WORKFLOW_SERVICE_ENTRY
+                        + '/task/'
+                        + taskId
+                        + '/completed'
                     );
                 };
 
@@ -183,7 +239,7 @@
                  * @name ProcessService#isProcessActive
                  */
                 this.isProcessActive = function (process) {
-                    var versions = process.definitionVersions;
+                    var versions = process.processVersions;
                     for (var index = 0; index < versions.length; index++) {
                         if (versions[index].deploymentId === process.activeDeploymentId) {
                             return (versions[index].status === 'active');
@@ -191,7 +247,231 @@
                     }
                     return false;
                 };
+               
+                /**
+                 * Returns a promise object for the list of the task details of the 
+                 * process specified version
+                 */
+                this.getVersionTaskDetails = function (versionid) {
+                    return $http.get(config.WORKFLOW_SERVICE_ENTRY +
+                        '/process/version/' 
+                    	+ versionid
+                    );
+                };
+                
+                /**
+                 * Update a UserTaskDetails object.
+                 */
+                this.updateTaskDetails = function (task) {
+                    return $http.put(config.WORKFLOW_SERVICE_ENTRY
+                        + '/process/taskdetails',
+                        task
+                    );
+                };
+                
+                /**
+                 * Cancel a running instance.
+                 */
+                this.cancelInstance = function(instanceid){
+                	return $http.delete(config.WORKFLOW_SERVICE_ENTRY
+                			+ '/process/instance/' 
+                			+ instanceid
+                	);
+                };
 
+                /**
+                 * Suspend / Resume a running instance.
+                 */
+                this.actOnInstance = function(instanceid, action){
+                	return $http.put(config.WORKFLOW_SERVICE_ENTRY
+                			+ '/process/instance/' 
+                			+ instanceid
+                			+ "/"
+                			+ action
+                	);
+                };
+
+                
+                /**
+                 * Retrieve all ended instances
+                 */
+                this.getEndedInstancesTasks = function(title, after, before, anonymous){              	
+                	
+                	var url = config.WORKFLOW_SERVICE_ENTRY
+        			+ '/process/instance/ended/search:'           			
+        			+ title
+        			+ ","
+        			+ after
+        			+ ","
+        			+ before
+        			+ ","
+        			+ anonymous
+        			;
+                	
+                	return $http.get(url);
+                };
+
+                
+                /**
+                 * Get user activity, all tasks having the specified user as assignee.
+                 */
+                this.getUserActivity = function(after, before, userId){           	
+                	
+                	var url = config.WORKFLOW_SERVICE_ENTRY
+        			+ '/task/search:'           			
+        			+ after
+        			+ ","
+        			+ before
+        			+ "/assignee/"
+        			+ userId
+        			;
+                	
+                	return $http.get(url);
+                };
+                
+                
+                
+                /**
+                 * Retrieve all active tasks
+                 */
+                this.getActiveTasks = function(){
+                	return $http.get(config.WORKFLOW_SERVICE_ENTRY
+                			+ '/task' 
+                	);
+                };
+                
+                
+                /**
+                 * Retrieve all users
+                 */
+                this.getUsers = function(){
+                	return $http.get(config.WORKFLOW_SERVICE_ENTRY 
+                			+ '/user'
+                	);
+                };
+                
+                
+                /**
+                 * Get all registries
+                 */
+                this.getRegistries = function(){
+                	return $http.get(config.WORKFLOW_SERVICE_ENTRY 
+                			+ '/registry'
+                	);
+                };
+                
+                
+                /**
+                 * Get the current settings
+                 */
+                this.getSettings = function(){
+                	return $http.get(config.WORKFLOW_SERVICE_ENTRY 
+                			+ '/settings'
+                	);
+                };
+                
+                
+                /**
+                 * Update settings
+                 */
+                this.updateSettings = function(settings){
+                	return $http.put(config.WORKFLOW_SERVICE_ENTRY 
+                			+ '/settings',
+                			settings
+                	);
+                };
+                
+                /**
+                 * Update registry
+                 */
+                this.updateRegistry = function (registry){
+                	return $http.put(config.WORKFLOW_SERVICE_ENTRY 
+                			+ '/registry', registry
+                	);
+                };
+                
+                /**
+                 * create registry
+                 */
+                this.createRegistry = function (registry){
+                	return $http.post(config.WORKFLOW_SERVICE_ENTRY 
+                			+ '/registry', registry
+                	);
+                };
+                
+                /**
+                 * Delete registry
+                 */
+                this.deleteRegistry = function (registryId){
+                	return $http.delete(config.WORKFLOW_SERVICE_ENTRY 
+                			+ '/registry/' + registryId
+                			);
+                };
+                
+                /**
+                 * Get external forms of the process specified by its id
+                 */
+                this.getExternalForms = function(id){
+                	return $http.get(config.WORKFLOW_SERVICE_ENTRY 
+                			+ '/process/'
+                			+ id
+                			+ '/externalform'
+                	);
+                };
+                
+                
+                /**
+                 * Create new external form
+                 */
+                this.saveExternalForm = function(xform){
+                	return $http.post(config.WORKFLOW_SERVICE_ENTRY 
+                			+ '/externalform', xform             			
+                	);
+                }
+                
+                
+                /**
+                 * Update external form
+                 */
+                this.updateExternalForm = function(xform){
+                	return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/externalform/update', xform);
+                }
+ 
+                
+                /**
+                 * Delete external form
+                 */
+                this.deleteExternalForm = function(id){
+                	return $http.delete(config.WORKFLOW_SERVICE_ENTRY 
+                			+ '/externalform/'
+                			+ id                			
+                	);
+                }
+                
+                
+                /**
+                 * Suspend / Resume an external form.
+                 */
+                this.actOnExternalForm = function(xformId, action){
+                	return $http.put(config.WORKFLOW_SERVICE_ENTRY
+                			+ '/externalform/' 
+                			+ xformId
+                			+ "/"
+                			+ action
+                	);
+                };                
+                             
+                
+                /**
+                 * Returns a promise object for the list of workflow instances
+                 */
+                this.getWorkflowInstances = function (workflowId) {
+                    return $http.get(config.WORKFLOW_SERVICE_ENTRY +
+                    		'/process/'
+                    		+ workflowId
+                    		+'/instance'
+                    );
+                };
             }]
     );
 })(angular);

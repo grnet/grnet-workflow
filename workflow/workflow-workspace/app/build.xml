@@ -1,0 +1,23 @@
+<project name="WorkflowWorkspace" default="deploy" basedir=".">
+	
+    <description>
+        Workflow workspace
+    </description>
+	
+	<property name="dest" location="C:/Apache2.4/htdocs/workflow-workspace"/>
+		
+	<target name="deploy" description="deploy project" >
+		<!-- Create the distribution directory -->
+		<mkdir dir="${dest}"/>
+		
+		<copy todir="${dest}">
+			<fileset dir=".">
+				<exclude name="build.xml"/>
+			</fileset>
+		</copy>
+	</target>
+	
+	<target name="clean" description="clean up" >
+		<delete dir="${dest}"/>
+	</target>
+</project>

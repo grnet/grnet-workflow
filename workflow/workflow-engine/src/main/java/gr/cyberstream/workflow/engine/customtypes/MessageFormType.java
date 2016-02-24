@@ -9,9 +9,9 @@ import org.activiti.engine.form.AbstractFormType;
 
 public class MessageFormType extends AbstractFormType {
 
-	public static final String TYPE_NAME = "document";
-
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -8955839243713097969L;
+	
+	public static final String TYPE_NAME = "message";
 
 	@Override
 	public String getName() {
@@ -21,16 +21,16 @@ public class MessageFormType extends AbstractFormType {
 	@Override
 	public Object convertFormValueToModelValue(String propertyValue) {
 
-		MessageType msg;
+		MessageType message;
 
 		try {
-			msg = MessageType.fromString(propertyValue);
+			message = MessageType.fromString(propertyValue);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
 		}
 
-		return msg;
+		return message;
 	}
 
 	@Override

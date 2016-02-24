@@ -11,7 +11,7 @@ public class DocumentFormType extends AbstractFormType {
 
 	public static final String TYPE_NAME = "document";
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -7478012268318441014L;
 
 	@Override
 	public String getName() {

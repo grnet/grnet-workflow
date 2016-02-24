@@ -7,24 +7,32 @@
                 <md-icon md-svg-icon="img/icons/back.svg"></md-icon>
             </md-button>
 
-            <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-lg>
+          	<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
                 <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
             </md-button>
 
             <md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
 
-            <span class="md-title" hide-sm layout-padding>workflow::manager</span>
+            <div hide-sm layout-padding>
+            	<h1 class="md-title application-title">workflow::workspace</h1>
+            	<h2 class="md-subhead page-title">{{ 'processDetail' | translate }} : {{workflowDefinition.name}}</h2>
+           	</div>
+            
             <span flex></span>
 
             <md-button class="md-icon-button" aria-label="Show Diagram" ng-click="showDiagram()">
                 <md-icon md-svg-icon="img/icons/bpmn.svg"></md-icon>
             </md-button>
 
-            <md-button class="md-icon-button" aria-label="Add Version" ng-click="showAddVersion()">
+            <md-button class="md-icon-button" aria-label="Add Version" ng-click="showAddVersion()" ng-if="selectedTab == 'process'">
+                <md-icon md-svg-icon="img/icons/add.svg"></md-icon>
+            </md-button>
+            
+             <md-button class="md-icon-button" aria-label="Add Version" ng-click="addXForm()" ng-if="selectedTab == 'externalForms'">
                 <md-icon md-svg-icon="img/icons/add.svg"></md-icon>
             </md-button>
 
-            <md-button class="md-icon-button" aria-label="Delete Process" ng-click="askDeleteProcess($event)">
+            <md-button class="md-icon-button" aria-label="Delete Process" ng-click="askDeleteProcess($event)" ng-if="selectedTab == 'process'">
                 <md-icon md-svg-icon="img/icons/delete.svg"></md-icon>
             </md-button>
         </div>
@@ -33,70 +41,69 @@
     <md-tabs md-dynamic-height>
 
         <!--Process Definition Details ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-        <md-tab label="Definition">
+       <md-tab label="{{ 'process' | translate }}" md-on-select="onTabSelected('process')">
             <md-content class="md-padding" layout="row" layout-sm="column">
 
                 <section layout="column" flex>
                     <ng-form name="processForm">
 
-                        <md-input-container>
-                            <label for="processName">Name</label>
+                        <md-input-container class="md-block">
+                            <label for="processName">{{ 'processTitle' | translate }}</label>
                             <input id="processName" ng-model="workflowDefinition.name">
                         </md-input-container>
 
-                        <md-input-container>
-                            <label for="processKey">Code</label>
-                            <input id="processKey" readonly ng-model="workflowDefinition.key">
+                        <md-input-container class="md-block">
+                            <label for="registry">{{ 'processRegistry' | translate }}</label>
+                            <md-select id="registry" ng-model="workflowDefinition.registryId">
+                                    <md-option ng-repeat="registry in registries" ng-value="registry.id">
+                                    <span>{{registry.id}}</span></md-option>
+                            </md-select>
                         </md-input-container>
 
                         <section layout="row" layout-sm="column">
-                            <md-input-container flex ng-style="{'max-width':'400px'}">
-                                <label for="processVersion">Active version</label>
-                                <md-select id="processVersion" ng-model="workflowDefinition.activeDeploymentId"
-                                           ng-if="recreateSelect">
-                                    <md-option ng-repeat="deployment in workflowDefinition.definitionVersions"
-                                               ng-value="deployment.deploymentId">
-                                    <span>
-                                        v{{deployment.version}} {{(deployment.deploymentdate | date: '(d/M/yyyy)')}}
-                                    </span>
-                                    <span ng-style="{'color': deployment.status==='active'?'default':'red'}">
-                                        ({{deployment.status}})
-                                    </span>
+                            <md-input-container flex ng-style="{'max-width':'400px'}" class="md-block">
+                            	<label for="processVersion">{{ 'processActiveVersion' | translate }}</label>
+                                
+                                <md-select id="processVersion" ng-model="workflowDefinition.activeDeploymentId">
+                                    <md-option ng-repeat="deployment in workflowDefinition.processVersions" ng-value="deployment.deploymentId" ng-if="recreateSelect">
+                                    <span>v{{deployment.version}} ({{deployment.deploymentdate | date:'d/M/yyyy'}})</span>
+                                    
+                                    <span ng-style="{'color': deployment.status==='active'?'default':'red'}">({{deployment.status | translate}})</span>
                                     </md-option>
                                 </md-select>
+                                
                             </md-input-container>
 
                             <section layout="row">
-                                <md-input-container>
+                                <md-input-container class="md-block" style="padding-left:0px">
                                     <md-button class="md-raised" aria-label="Change Status"
                                                ng-click="changeStatus($event)"
                                                ng-show="workflowDefinition !== null
                                 && workflowDefinition.activeDeploymentId !== null
                                 && findActiveVersion() !== null">
-                                        {{newStatusButtonLabel()}}
+                                        {{newStatusButtonLabel() | translate}}
                                     </md-button>
+                                    
+                                    <md-button class="md-icon-button" aria-label="Delete" ng-click="askDeleteVersion($event)" 
+                                	ng-disabled="workflowDefinition.activeDeploymentId === null">
+                                   	 <md-icon md-svg-icon="img/icons/delete.svg"></md-icon>
+                                	</md-button>
                                 </md-input-container>
-
-                                <md-button class="md-icon-button" aria-label="Delete"
-                                           ng-click="askDeleteVersion($event)"
-                                           ng-disabled="workflowDefinition.activeDeploymentId === null">
-                                    <md-icon md-svg-icon="img/icons/delete.svg"></md-icon>
-                                </md-button>
                             </section>
                         </section>
 
-                        <md-input-container flex>
-                            <label for="processDescription">Description</label>
+                        <md-input-container flex class="md-block">
+                            <label for="processDescription">{{ 'description' | translate }}</label>
                             <textarea id="processDescription" ng-model="workflowDefinition.description"
                                       md-maxlength="250"></textarea>
                         </md-input-container>
 
                         <section layout="row">
-                            <md-input-container style="width: 100px">
-                                <label for="processIcon">Icon</label>
+                            <md-input-container style="width: 100px" class="md-block">
+                                <label for="processIcon">{{ 'icon' | translate }}</label>
                                 <input id="processIcon" readonly ng-model="iconName">
                             </md-input-container>
-                            <md-input-container>
+                            <md-input-container class="md-block">
                                 <md-button class="md-avatar" aria-label="Process Icon"
                                            ng-click="showIconSelect($event)">
                                     <md-icon md-svg-src="img/avatars/{{workflowDefinition.icon}}" class="avatar"></md-icon>
@@ -104,27 +111,120 @@
                             </md-input-container>
                         </section>
                         <input id="icon" hidden readonly name="icon" ng-model="workflowDefinition.icon">
-
+                        
+						 <md-checkbox ng-model="workflowDefinition.assignBySupervisor">{{ 'assignmentsByCoordinator' | translate }}</md-checkbox>  
+						 
+						 <md-input-container class="md-block">
+						 	<label>{{ 'owner' | translate }}</label>
+						 	<md-select ng-model="workflowDefinition.owner" ng-required="true">
+						 		<md-option ng-repeat="group in groups" value="{{group}}">
+						 			{{group}}
+						 		</md-option>
+						 	</md-select>
+      					</md-input-container>
+						  
                     </ng-form>
 
                     <section layout="row">
-                        <md-button class="md-primary" ng-click="save()"
-                                   ng-class="{'md-raised md-hue-1': (processForm.$dirty && processForm.$valid) }"
-                                   aria-label="Save Process Definition">Save
+                        <md-button class="md-primary" ng-click="save()" ng-class="{'md-raised md-hue-1': (processForm.$dirty && processForm.$valid) }" 
+		                        	ng-disabled="!processForm.$dirty || !processForm.$valid" 
+		                        	aria-label="Save Process Definition">{{ 'save' | translate }}
                         </md-button>
+                        
+                      <md-button class="md-warn md-raised md-hue-2" ng-click="goTo('/process')">{{ 'cancel' | translate }}</md-button>
                     </section>
+                     
                 </section>
-
+				
                 <section flex="33">
                 </section>
             </md-content>
         </md-tab>
 
         <!--Process Definition Tasks metadata ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-        <md-tab label="Tasks"></md-tab>
+        <md-tab label="{{ 'tasks' | translate }}" ng-click="clickedOnTaskDetailsTab()" md-on-select="onTabSelected('tasks')">
+           <md-content flex class="mainList" layout-padding ng-style="{position: 'relative'}">
+        		<div ng-if="taskDetails === null || taskDetails.length==0" layout-padding>{{ 'noTasksFoundSelectedOrActivated' | translate }}</div>
+	            	<md-list flex>
+	            		<md-card ng-repeat="task in taskDetails">
+	            			<md-list-item class="md-2-line" ng-click="editTaskDescription(task.id)">
+	            				    
+								<div class="md-list-item-text">
+									<h3>{{ task.name }}
+										<md-icon ng-if="task.description.length > 0" md-svg-src="img/icons/description.svg" aria-label="task description" 
+											style="width:15px; padding-left:10px"></md-icon>
+										<md-icon ng-if="task.assign == true" md-svg-src="img/icons/assigned-coordinator.svg" aria-label="assigned by coordinator" 
+											style="width:15px; padding-left:10px"></md-icon>
+									</h3>
+								</div>
+		                </md-list-item>
+	                </md-card>
+	           	</md-list>
+        	</md-content>       		
+        </md-tab>
 
         <!--Tasks in Progress ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-        <md-tab label="In Progress"></md-tab>
+        <md-tab label="{{ 'inProgress' | translate }}" ng-click="clickedInProgressTab()" md-on-select="onTabSelected('inProgress')">
+        	<md-content flex class="mainList" layout-padding ng-style="{position: 'relative'}" >
+        		<div ng-if="instances === null || instances.length == 0" layout-padding>{{ 'noInstancesForProcess' | translate }}</div>
+        		<md-list>
+        			<md-card ng-repeat="instance in instances" layout-padding>
+        				<md-list-item class="md-2-line">
+							<div class="md-list-item-text" layout="column">
+						 		<h3>{{instance.title}} v.{{ instance.version }}</h3>
+						 		
+						 		<p style="padding-top:10px;">{{ 'supervisor' | translate }} : {{instance.supervisor}}</p>
+						 		<p>{{ 'startedAt' | translate }} : {{ instance.startDate | date:'d/M/yyyy'}} 
+									<span>
+										<md-button class="md-icon-button" aria-label="instance-cancel" ng-click="cancelInstance(instance)">
+											<md-icon md-svg-icon="img/icons/delete.svg"></md-icon>
+										</md-button>
+										
+					                    <md-button class="md-icon-button" aria-label="instance-suspend" ng-show="instance.status == 'running'" 
+					                    	ng-click="actOnInstance(instance,'suspend')">
+					                    		<md-icon md-svg-icon="img/icons/suspend.svg"></md-icon>
+					                    </md-button>
+					                    	
+					                    <md-button class="md-icon-button" aria-label="instance-resume" ng-show="instance.status == 'suspended'"
+					                    	 ng-click="actOnInstance(instance,'resume')">
+				                    		<md-icon md-svg-icon="img/icons/resume.svg"></md-icon>	 
+				                    	</md-button>
+				                    	
+									</span>
+							 	</p>
+						</div>
+					</md-list-item>
+        			</md-card>
+        		</md-list>
+        	</md-content>
+        	
+        </md-tab>
+        
+        <md-tab label="{{ 'externalForms' | translate }}" ng-click="clickedExtFormsTab()" md-on-select="onTabSelected('externalForms')">
+        	<md-content flex class="mainList" layout-padding ng-style="{position: 'relative'}">
+        		<div ng-if="xforms === null || xforms.length == 0">{{ 'noExternalForms' | translate }}</div>
+        		<md-list>
+        			<md-card ng-repeat="xform in xforms" layout-padding>
+	        			<md-list-item class="md-2-line secondary-button-padding" ng-click="editXForm(xform)">
+	        				<div class="md-list-item-text" layout="column">	
+	        					<h3> {{'externalFormId' | translate }} : {{xform.id}}</h3>
+	        					<p style="padding-top:10px;">{{ 'supervisor' | translate }} : {{xform.supervisor}}
+		        				</p>	
+	        				</div>
+	        				
+				        <md-button class="md-icon-button md-secondary" aria-label="externalform-suspend" ng-show="xform.enabled" ng-click="askSuspendXForm(xform)">
+				             <md-icon md-svg-icon="img/icons/suspend.svg"></md-icon>
+				         </md-button>
+				         
+				         <md-button class="md-icon-button md-secondary" aria-label="externalform-resume" ng-show="!xform.enabled" ng-click="askResumeXForm(xform)"
+				         	style="padding-right:50px;">
+			                 <md-icon md-svg-icon="img/icons/resume.svg"></md-icon>	 
+			             </md-button>
+			             
+	        			</md-list-item>
+        			</md-card>
+        		</md-list>
+        	</md-content>  
+        </md-tab>
     </md-tabs>
-
 </section>

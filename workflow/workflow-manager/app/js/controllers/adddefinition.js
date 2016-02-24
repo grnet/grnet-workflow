@@ -57,9 +57,8 @@
                             function (response) {
                                 $mdDialog.hide(response);
                                 var newVersion = response.data;
-
                                 // add the new version to the open process definition
-                                $scope.process.definitionVersions.unshift(newVersion);
+                                $scope.process.processVersions.unshift(newVersion);
                                 $scope.process.activeDeploymentId = newVersion.deploymentId;
                             },
                             // error callback
@@ -73,15 +72,23 @@
 
                 // helper function to show an error alert
                 function errorAlert(response) {
-                    $mdDialog.show(
-                        $mdDialog.alert()
-                            .parent(document.body)
-                            .clickOutsideToClose(true)
-                            .title('Upload BPMN error')
-                            .content('Failed to upload the BPMN file.<br><pre>' + response.data.message + '</pre>')
-                            .ariaLabel('Failed to upload the BPMN file')
-                            .ok('Ok!')
-                    );
+                	$mdDialog.show({
+                		controller: function ($scope, $mdDialog, error) {
+                			$scope.error = error;
+                			
+                            $scope.cancel = function () {
+                            	$mdDialog.hide();
+                            };
+                        },
+                        scope: $scope,
+                        preserveScope: true,
+                        templateUrl: 'templates/exception.tmpl.html',
+                        parent: angular.element(document.body),
+                        targetEvent: event,
+                        locals: {
+                        	'error': response.data
+                        }
+                	})
                 }
             }
         ]);

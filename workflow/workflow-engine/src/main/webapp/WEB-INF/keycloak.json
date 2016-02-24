@@ -1,0 +1,12 @@
+{
+  "realm": "workflow",
+  "resource": "workflow-engine",
+  "realm-public-key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAg2V95qtQjO2pJ4ncTkmtwnJB+wdZMZlYR1dRjPhnU1UIJ7Wgh4t9BTRsMwXsX/KUzfMv+8qLVOAOX4kE5QApmJo0rKDLr6X8ixnXKh1cC31etkgvRUcjHVeI9t+bWFOEYj5oliWEBRXUSLBgGIxBDKbq9fyzzsITkY/z6rimM0lP5POtbobqRk9AFoqv8dk8WDg7exKZzkcXqpkPwbeDr+6uQjoRzoAwpV4m68neQ1gZIHlS0pX3/LG/uP1PTcKePsIE3nYMRooI4o9WMw4ngo7Rf3G9QyLFt1gIlDLpAY1Im8ixaR7xiRs/xcBb/rdP4pBj5xf1DRu+XAgjk/BkrwIDAQAB",
+  
+  "bearer-only": true,
+  
+  "auth-server-url": "http://10.0.0.179:8080/auth",
+  "ssl-required": "none",
+  
+  "enable-cors" : true
+}

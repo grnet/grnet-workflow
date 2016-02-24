@@ -13,11 +13,11 @@
  * @property {string} description
  * @property {string} name
  * @property {string} activeDeploymentId
- * @property {DefinitionVersion[]} definitionVersions
+ * @property {ProcessVersion[]} processVersions
  */
 
 /**
- * @typedef {Object} DefinitionVersion
+ * @typedef {Object} ProcessVersion
  * @property {number} id
  * @property {string} deploymentId
  * @property {number} version

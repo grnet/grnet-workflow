@@ -72,9 +72,7 @@ public class CMISFolder {
 		Session session = cmisSession.getSession();
 
 		try {
-			Folder folder;
-
-			folder = (Folder) session.getObjectByPath(folderPath);
+			Folder folder = (Folder) session.getObjectByPath(folderPath);
 			folder.delete();
 		} catch (CmisObjectNotFoundException e) {
 			// no need to delete
@@ -98,9 +96,7 @@ public class CMISFolder {
 		Session session = cmisSession.getSession();
 
 		try {
-			Folder folder;
-
-			folder = (Folder) session.getObject(folderId);
+			Folder folder = (Folder) session.getObject(folderId);
 			folder.delete();
 		} catch (CmisObjectNotFoundException e) {
 			// no need to delete
@@ -161,10 +157,27 @@ public class CMISFolder {
 		Session session = cmisSession.getSession();
 
 		try {
-			Folder folder = null;
-			CmisObject object = session.getObjectByPath(path);
-			folder = (Folder) object;
-			return folder;
+			
+			return (Folder) session.getObjectByPath(path);
+
+		} catch (CmisObjectNotFoundException e) {
+			return null;
+		}
+	}
+	
+	/**
+	 * Return the folder corresponding to the given id
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public Folder getFolderById(String id) {
+
+		Session session = cmisSession.getSession();
+
+		try {
+			
+			return (Folder) session.getObject(id);
 
 		} catch (CmisObjectNotFoundException e) {
 			return null;
@@ -189,5 +202,31 @@ public class CMISFolder {
 		}
 
 		return docs;
+	}
+	
+	/**
+	 * Get all documents of a folder
+	 * @param folder
+	 * @return
+	 */
+	public boolean updateFolderName(String folderId, String name) {
+
+		Session session = cmisSession.getSession();
+
+		try {
+			
+			Folder folder = (Folder) session.getObject(folderId);
+			
+			Map<String, Object> properties = new HashMap<String, Object>();
+			properties.put(PropertyIds.NAME, name);
+			
+			folder.updateProperties(properties);
+			
+			return true;
+
+		} catch (CmisObjectNotFoundException e) {
+			
+			return false;
+		}
 	}
 }

@@ -2,11 +2,11 @@
  * @author nlyk
  */
 (function (angular) {
-
-    'use strict';
+	
+	'use strict';
 
     angular.module('wfworkspaceControllers')
-        .controller('TaskAssignListCtrl', ['$scope', '$http', '$location', '$mdDialog', 'processService', 'CONFIG',
+        .controller('TaskAssignListCtrl', ['$scope', '$http', '$location', '$mdDialog', '$filter', 'processService', 'CONFIG',
 
             /**
              * Controller for the tasks-to-assign view
@@ -18,81 +18,173 @@
              * @param {ProcessService} processService
              * @param config
              */
-                function ($scope, $http, $location, $mdDialog, processService, config) {
+                function ($scope, $http, $location, $mdDialog, $filter, processService, config) {
 
-                $scope.processesSupervised = null;
-                $scope.processesSelected = null;
-                $scope.tasksToAssign = null;
                 $scope.imagePath = config.AVATARS_PATH;
-
-                // get supervised processes
-                processService.getSupervisedProcesses()
-                    .then(
-                    // success callback
-                    function (response) {
-                        $scope.processesSupervised = response.data;
-                    },
-                    // error callback
-                    function (response) {
-                    }
-                );
-
-                $scope.$watch('processesSelected', function (newValue, oldValue) {
-                    if (newValue !== oldValue) {
-
-                        if (newValue == null || newValue.length == 0) {
-                            $scope.tasksToAssign = null;
-                            return;
-                        }
-
-                        // process selected changed
-                        // get all tasks of unassigned tasks for these processes
-                        processService.getUnassignedTasks($scope.processesSelected)
-                            .then(
-                            // success callback
-                            function (response) {
-                                console.log(response.data);
-
-                                $scope.tasksToAssign = response.data;
-                                for (var i = 0; i < $scope.tasksToAssign.length; i++) {
-                                    $scope.tasksToAssign[i].process =
-                                        getProcessById($scope.tasksToAssign[i].processId);
+                $scope.status = { selectAll: true };
+                
+                $scope.tasks = null;
+                $scope.assignedTasks = null;
+                $scope.unAssignedTasks = null;
+                $scope.assignedFiltered = null;
+                $scope.unAssignedFiltered = null;
+                $scope.processes = null;
+                
+                $scope.sortOptions = { title: null, id: null };
+                
+                $scope.orderByOption = null;
+                
+                /**
+                 * Returns the difference between due date and current date
+                 */
+                $scope.taskDelay = function (dueDate) {
+                	if (dueDate === null)
+                		return Infinity;
+                	
+                	var currentDate = new Date();
+                	var diff = dueDate - currentDate.getTime();
+        			var diffInDays = diff / (1000 * 3600 * 24);
+        			
+        			return diffInDays;
+                };
+                
+                /**
+                 * Get all supervised tasks
+                 */
+                processService.getSupervisedTasks().then(
+                		//success
+                		function (response){
+                			$scope.tasks = response.data;
+                			
+                			if(response.data.length == 0){
+                            	$mdDialog.show($mdDialog.alert()
+              		                   .parent(document.body)
+              		                   .title($filter('translate')('noAvailableTasks'))
+              		                   .content($filter('translate')('noAvailableTasks'))
+              		                   .ok($filter('translate')('confirm')))
+                             	$location.path('/task');
+                			}
+                			
+                			//separate assigned tasks from list
+                			$scope.assignedTasks = $scope.tasks.filter(function(element){return element.assignee});
+                			
+                			//separate unassigned tasks from list
+                			$scope.unAssignedTasks = $scope.tasks.filter(function(element){return !element.assignee});
+                			
+                			$scope.processes = {};
+                			$scope.tasks.forEach( function( o ) {
+                				var group = (o.processId || "_empty_").toString();
+                				if ( !$scope.processes.hasOwnProperty(group) ) {
+                					$scope.processes[group] = $scope.processes[group] || {
+                							id: o.processId,
+                							title: o.definitionName,
+                							selected: true
+                					}
+                				}
+                			});
+                			
+                			//filter list with selected definitions
+                			//in this case all available definitions are selected
+                			$scope.updateFilteredTasks();
+                		},
+                		//fail
+                		function (response){
+                			$mdDialog.show({
+                        		controller: function ($scope, $mdDialog, error) {
+                        			$scope.error = error;
+                        			
+                                    $scope.cancel = function () {
+                                    	$mdDialog.hide();
+                                    };
+                                },
+                                scope: $scope,
+                                preserveScope: true,
+                                templateUrl: 'templates/exception.tmpl.html',
+                                parent: angular.element(document.body),
+                                targetEvent: event,
+                                locals: {
+                                	'error': response.data
                                 }
-                            },
-                            // error callback
-                            function (response) {
-                            }
-                        );
-                    }
-                });
-
+                        	})
+                		}
+                );
+                
                 /**
-                 * Find the process using the Process Definition Id
-                 * @param {string} defId
-                 * @return {WfProcess}
+                 * Select/De-select all
                  */
-                function getProcessByDefinitionId(defId) {
-                    for (var i = 0; i < $scope.processesSupervised.length; i++) {
-                        if (defId == $scope.processesSupervised[i].processDefinitionId) {
-                            return $scope.processesSupervised[i];
-                        }
-                    }
-                    return null;
-                }
-
+                $scope.selectAll = function () {
+                	
+                	if ($scope.status.selectAll === true) {
+                		$scope.assignedFiltered = $scope.assignedTasks;
+                		$scope.unAssignedFiltered = $scope.unAssignedTasks;
+                		
+                		//Select all
+                		for(var key in $scope.processes) {
+                			if ($scope.processes.hasOwnProperty(key)){
+                				$scope.processes[key].selected = true;
+                			}
+                		}
+                	}
+                	else {
+                		$scope.assignedFiltered = [];
+                		$scope.unAssignedFiltered = [];
+                		
+                		//De-select all
+                		for(var key in $scope.processes) {
+                			if ($scope.processes.hasOwnProperty(key)){
+                				$scope.processes[key].selected = false;
+                			}
+                		}
+                	}
+                };
+                
                 /**
-                 * Find the process by Id
-                 * @param {number} id
-                 * @return {WfProcess}
+                 * Filter assigned/unassigned lists by selected definitions
                  */
-                function getProcessById(id) {
-                    for (var i = 0; i < $scope.processesSupervised.length; i++) {
-                        if (id == $scope.processesSupervised[i].id) {
-                            return $scope.processesSupervised[i];
-                        }
-                    }
-                    return null;
-                }
+				$scope.updateFilteredTasks = function () {
+					
+					var selectedDefinitions = Object.keys($scope.processes)
+												.filter(function (e) {return $scope.processes[e].selected === true;});
+					
+					$scope.assignedFiltered = $scope.assignedTasks.filter(function (e) {
+						return selectedDefinitions.indexOf(e.processId + "") >= 0 ;});
+					
+					$scope.unAssignedFiltered = $scope.unAssignedTasks.filter(function (e) {
+						return selectedDefinitions.indexOf(e.processId + "") >= 0 ; });
+				};
+				
+				/**
+				 * Tab change event
+				 */
+				$scope.onTabSelected = function (tab){
+					$scope.options = [];
+					
+					if(tab == 'new'){
+						$scope.sortOptions = {title: 'dueTo', id: 'dueDate'};
+						$scope.options.push($scope.sortOptions);
+						
+						$scope.sortOptions = {title: 'taskName', id: 'name'};
+						$scope.options.push($scope.sortOptions);
+						
+					}else if(tab == 'assigned'){
+						$scope.sortOptions = {title: 'dueTo', id: 'dueDate'};
+						$scope.options.push($scope.sortOptions);
+						
+						$scope.sortOptions = {title: 'taskName', id: 'name'};
+						$scope.options.push($scope.sortOptions);
+						
+						$scope.sortOptions = {title: 'worker', id: 'assignee'};
+						$scope.options.push($scope.sortOptions);
+					}
+					
+				};
+				
+				/**
+				 * Sorting function
+				 */
+				$scope.sortBy = function (optionId){
+					$scope.orderByOption = optionId;
+				};
 
             }]
     );

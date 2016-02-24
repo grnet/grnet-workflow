@@ -1,0 +1,129 @@
+<section layout="column">
+	 <md-toolbar>
+	     <div class="md-toolbar-tools">
+	         <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
+	             <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+	         </md-button>
+	
+	         <md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
+	
+	         <div hide-sm layout-padding>
+	         	<h1 class="md-title application-title">workflow::workspace</h1>
+	         	<h2 class="md-subhead page-title">{{'userActivity' | translate}}</h2>
+	         </div>
+	         <span flex></span>
+	     </div>
+	 </md-toolbar>
+
+	 
+	 <section layout="row" layout-padding>
+		<section layout="column" style="margin-bottom: 32px" flex="40">
+		
+			<section layout="row" class="md-block">
+				<label for="date-from" flex="35" class="wf-label">{{'startedAfter' | translate}}</label>
+				<md-datepicker id="date-from" ng-model="after" ng-change="datesChanged()" md-placeholder="started after"></md-datepicker>
+				
+				<md-button class="md-icon-button" aria-label="Clear">
+					<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 10px;color: red;"></md-icon>
+				</md-button>
+			</section>
+			
+			<section layout="row" class="md-block" style="padding-bottom:20px">
+				<label for="date-to" flex="35" class="wf-label">{{'startedBefore' | translate}}</label>
+				<md-datepicker id="date-to" ng-model="before" ng-change="datesChanged()" md-placeholder="started before"></md-datepicker>
+				
+				<md-button class="md-icon-button" aria-label="Clear">
+					<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 10px;color: red;"></md-icon>
+				</md-button>
+			</section>
+		
+			<md-autocomplete md-selected-item="selectedUser" md-search-text="searchText" 
+			md-items="user in filteredUsers" 
+			md-selected-item-change = "userSelected()"
+			md-search-text-change="getMatches(searchText)"		
+			md-no-cache = "noCache"
+			md-min-length="2"
+			placeholder="{{'searchForUser' | translate}}"
+			md-item-text="selectedUser.firstName + ' ' + selectedUser.lastName">
+			  <span>{{user.username}} :: {{user.lastName}}</span>
+		</md-autocomplete>
+	</section>
+	
+	
+	<div class="animate-switch-container" ng-switch on="executionActiveView">
+	
+	<section layout="row" class="animate-switch" ng-switch-when="list" >
+	<md-list flex>
+		<md-card ng-repeat="task in userTasks">
+			<md-list-item class="md-2-line" ng-click="goToDetails(task)">
+				<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
+				<div class="md-list-item-text" layout="column">
+					<h3>{{task.processInstance.title}}</h3>
+					<p> {{task.name}}
+						<span class="cardInline" ng-if="task.endDate != null">{{'completedOn' | translate }} : {{task.endDate | date:'d/M/yyyy'}}</span>
+						<span class="cardInLine" ng-if="task.endDate == null">{{'running' | translate }}</span>
+					</p>
+				</div>
+			</md-list-item>
+		</md-card>
+	</md-list>
+	</section>
+	
+	<section layout="row" layout-padding class="animate-switch" ng-switch-when="form">
+		 			<ng-form name="taskForm" style="width:100%">
+		 			
+		 				<div class="card-header">
+		 					<md-icon md-svg-src="img/avatars/{{task.icon}}" class="md-avatar"
+	                               style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
+	       					<h2 class="md-title after-icon">process name: {{task.processInstance.title}}</h2>
+	                     	<p class="md-subhead">{{'taskName' | translate }} {{task.name}}</p>
+	                   	</div>
+		                    
+		                    <section layout="row" layout-sm="column" layout-align="left center" layout-wrap>
+			                    <md-input-container>
+				                   	<label for="startDate">{{'startDate' | translate }}</label>
+				                  	<input id="startDate" ng-model="startDate" readonly style="width:100px; margin-right:20px"></input>
+				                </md-input-container>
+				                
+				                 <md-input-container ng-if="task.dueDate" style="margin-right:20px"">
+				                   	<label for="dueDate">{{'dueTo' | translate }}</label>
+				                  	<input id="dueDate" ng-model="dueDate" readonly style="width:100px"></input>
+				                  	
+				                  	<md-icon ng-class="taskDelay(task.dueDate) < 1 ? (taskDelay(task.dueDate) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'" 
+				                  		md-svg-icon="img/icons/delayed-notification.svg">
+									</md-icon>
+				                </md-input-container>
+				                
+				                 <md-input-container ng-if="task.endDate">
+				                 	<label for="endDate">{{'completedOn' | translate }}</label>
+				                  	<input id="endDate" ng-model="endDate" readonly style="width:100px"></input>
+				                  	
+				                 </md-input-container>
+				            </section>		                    
+								
+		                    <md-input-container ng-if="task.description" class="md-block">
+		                        <label for="processDescription">{{'description' | translate }}</label>
+		                        <textarea id="processDescription" ng-model="task.description" readonly></textarea>
+		                    </md-input-container>
+		                    
+		                 
+		                   <nlk-process-form-item ng-repeat="item in task.taskForm" 
+		                   	ng-model="item" wf-document-path="{{documentPath}}"
+		                   	wf-position-center-lat="38.037496" wf-position-center-lng="23.836321" wf-preview="true">
+		                   </nlk-process-form-item>
+	                
+	                	<md-divider></md-divider>
+	                	
+		                 <div class="md-actions" layout="row" layout-align="start center" style="margin-top:10px">
+		                    <md-button class="md-raised" ng-click="goBack()" arial-label="close">{{'close' | translate }}</md-button>
+		                </div>
+	                </ng-form>
+		
+	</section>
+	
+	
+	</div>
+ 	
+ 	
+ 	</section>
+ </section>

@@ -3,16 +3,19 @@
     <md-toolbar>
         <div class="md-toolbar-tools">
 
-            <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-lg>
+            <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
                 <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
             </md-button>
 
             <md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
 
-            <span class="md-title" hide-sm layout-padding>workflow::workspace</span>
+            <div hide-sm layout-padding>
+            	<h1 class="md-title application-title">workflow::workspace</h1>
+            	<h2 class="md-subhead page-title">{{ 'assignTasks' | translate }}</h2>
+            </div>
             <span flex></span>
-
-            <md-button class="md-icon-button" ng-click="showProcessFilterDialog($event)" aria-label="filter" hide-gt-sm>
+            
+             <md-button class="md-icon-button" ng-click="showProcessFilterDialog($event)" aria-label="filter" hide-gt-sm>
                 <md-icon md-svg-icon="img/icons/filter.svg"></md-icon>
             </md-button>
 
@@ -23,51 +26,93 @@
                         <md-icon md-menu-origin md-svg-icon="img/icons/sort-by.svg"></md-icon>
                     </md-button>
                     <md-menu-content width="4">
-                        <md-menu-item ng-repeat="sortOption in ['by Process', 'by Task', 'by Date']">
+                        <md-menu-item ng-repeat="option in options" ng-click="sortBy(option.id)">
                             <md-button>
                                 <div layout="row">
-                                    <p flex>{{sortOption}}</p>
+                                    <p flex>{{ option.title | translate }}</p>
                                 </div>
                             </md-button>
                         </md-menu-item>
                     </md-menu-content>
                 </md-menu>
             </div>
+            
         </div>
     </md-toolbar>
 
     <section layout="row">
+	    <md-list>
+	    	<md-list-item class="wf-selectAll">
+	    		<md-checkbox ng-change="selectAll()" ng-model="status.selectAll"></md-checkbox>
+	    		<p>{{ 'showAll' | translate }}</p>
+	    	</md-list-item>
+	     	
+	   		<md-divider ng-if="!$last"></md-divider>
+	   	
+	   		<md-list-item ng-repeat="process in processes">
+	   			<md-checkbox ng-model="process.selected" ng-change="updateFilteredTasks()" ng-value="process.id"></md-checkbox>
+	   			<p>{{process.title}}</p>
+	   			<md-divider ng-if="!$last"></md-divider>
+	   		</md-list-item>
+	   		
+	     </md-list>
+	     
+	     <md-content flex class="mainList" layout-padding ng-style="{position: 'relative'}">
+	     
+	     <md-tabs md-dynamic-height md-border-bottom md-autoselect>
+	     	<md-tab label="{{ 'new' | translate }}" md-on-select="onTabSelected('new')">
+	     	
+        	<section layout="column" class="wait-icon" ng-if="fetchingTasks.state">
+         		<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+         	</section>
+         	
+			<section>
+				<md-list flex>
+					<md-card ng-repeat="task in unAssignedFiltered | orderBy:orderByOption">
+						<md-list-item class="md-2-line" ng-click="goTo('/assign/' + task.id)">
+							 <img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}"/>
+							 <div  class="md-list-item-text" layout="column">
+							 	<h3>{{task.processInstance.title}}</h3>
+							 	<p>{{task.name}} 
+									<span ng-if="task.dueDate" class="cardInline">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
+							 			<md-icon ng-class="taskDelay(task.dueDate) < 1 ? (taskDelay(task.dueDate) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"
+							 				md-svg-icon="img/icons/delayed-notification.svg">
+							 			</md-icon>
+							 		</span>
+								 	</p>
+								 </div>
+							</md-list-item>
+						</md-card>					
+					</md-list>
+				</section>
+			</md-tab>
+			
+			<md-tab label="{{ 'assigned' | translate }}" md-on-select="onTabSelected('assigned')">
+			
+				<section layout="column" class="wait-icon" ng-if="fetchingTasks.state">
+					<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+ 				</section>
 
-        <!-- Process filtering ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-        <nlk-checklist all-label="All Processes"
-                       checklist-model="processesSupervised"
-                       checklist-selected="processesSelected"
-                       checklist-value-field="id"
-                       all-selected="true">
-        </nlk-checklist>
-
-        <!-- Task to claim list ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-        <md-content flex class="mainList" layout-padding ng-style="{position: 'relative'}">
-
-            <section layout="column" class="wait-icon" ng-if="!tasksToAssign">
-                <md-progress-circular md-mode="indeterminate"></md-progress-circular>
-            </section>
-
-            <md-list flex>
-                <md-list-item class="md-2-line" ng-repeat="task in tasksToAssign"
-                              ng-click="goTo('/assign/' + task.id)">
-                    <img ng-src="{{imagePath + task.process.icon}}" class="md-avatar" alt="{{task.process.name}}"/>
-
-                    <div class="md-list-item-text" layout="column">
-                        <h3>{{ task.process.name }}</h3>
-
-                        <p>{{task.name}}</p>
-                    </div>
-
-                    <md-divider ng-if="!$last"></md-divider>
-                </md-list-item>
-            </md-list>
-        </md-content>
-    </section>
-
+				<md-list flex>
+					<md-card ng-repeat="task in assignedFiltered | orderBy:orderByOption">
+						<md-list-item class="md-2-line" ng-click="goTo('/assign/' + task.id)">
+							 <img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}"/>
+						 	 <div  class="md-list-item-text" layout="column">
+						 		<h3>{{task.processInstance.title}}</h3>
+						 		<p>{{task.name}} 
+								<span ng-if="task.dueDate" class="cardInline" >{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
+						 			<md-icon ng-class="taskDelay(task.dueDate) < 1 ? (taskDelay(task.dueDate) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"
+						 				md-svg-icon="img/icons/delayed-notification.svg">
+						 			</md-icon>
+						 		</span>
+						 		<span class="cardInline">{{task.assignee}}</span>
+							 	</p>
+							 </div>
+						</md-list-item>
+					</md-card>					
+				</md-list>
+			</md-tab>
+		</md-tabs>
+	</md-content>
+   </section>
 </section>

@@ -3,13 +3,17 @@
     <md-toolbar>
         <div class="md-toolbar-tools">
 
-            <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-lg>
+            <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
                 <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
             </md-button>
 
             <md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
 
-            <span class="md-title" hide-sm layout-padding>workflow::workspace</span>
+            <div hide-sm layout-padding>
+            	<h1 class="md-title application-title">workflow::workspace</h1>
+            	<h2 class="md-subhead page-title">{{ 'startNewProcess' | translate }}</h2>
+            </div>
+            
             <span flex></span>
         </div>
     </md-toolbar>
@@ -17,29 +21,57 @@
     <section layout="row">
         <!-- Process to start ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
         <md-content flex layout-padding ng-if="process !== null">
-            <md-card style="width: 100%">
-                <md-card-content style="max-width: 600px">
+        
+        	<div layout="row" layout-sm="column" layout-align="space-around" ng-if="showProgress">
+              	<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+           	</div>
+           	
+            <md-card style="width: 100%" ng-if="!showProgress">
+            
+                <md-card-content>
                     <div class="card-header">
                         <md-icon md-svg-src="{{'img/avatars/'+process.icon}}" class="md-avatar"
                                  style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
                         <h2 class="md-title after-icon">{{process.name}}</h2>
                     </div>
 
-                    <md-input-container>
-                        <label for="processDescription">Description</label>
-                        <textarea id="processDescription" ng-model="process.description" readonly></textarea>
-                    </md-input-container>
-
+					<div>{{instanceTitle}}</div>
+					
                     <ng-form name="startForm">
-                        <nlk-process-form-item ng-repeat="item in process.processForm" ng-model="item">
-                        </nlk-process-form-item>
+                    
+	           			<md-input-container ng-if="process.description" class="md-block">
+	                        <label for="processDescription">{{ 'description' | translate }}</label>
+	                        <textarea id="processDescription" ng-model="process.description" readonly></textarea>
+	                    </md-input-container>
+	
+						<md-input-container class="md-block" >
+                        	<label for="title">{{ 'executionTitle' | translate }}</label>
+                        	<textarea ng-model="instance.title" ng-required="true"></textarea>
+                    	</md-input-container>
+                    	
+						<md-input-container class="md-block">
+	        				<label>{{ 'coordinator' | translate }}</label>
+						    <md-select ng-model="instance.supervisor" ng-required="true">
+						        <md-option ng-repeat="supervisor in supervisors" ng-value="supervisor.email">{{supervisor.lastName}} {{supervisor.firstName}}</md-option>
+						    </md-select>
+						    
+						    <nlk-process-form-item ng-repeat="item in process.processForm" ng-model="item" wf-document-path="{{documentPath}}"
+                   				wf-position-center-lat="38.037496" wf-position-center-lng="23.836321">
+                   			</nlk-process-form-item>
+	      				</md-input-container>
+	      				
                     </ng-form>
-
-                    <div class="md-actions" layout="row" layout-align="start center" layout-padding>
-                        <md-button class="md-raised" ng-class="{'md-accent': (startForm.$dirty && startForm.$valid) }"
+					
+					<md-divider></md-divider>
+					
+					<div layout="row" layout-align="start center" style="margin-top:10px">
+                        <md-button class="md-raised" ng-class="{'md-accent': (startForm.$valid) }"
                                    ng-disabled="!startForm.$valid"
-                                   ng-click="startProcess()">Start
+                                   ng-click="startProcess()"
+                                   style="margin-left: 0px;">{{ 'start' | translate }}
                         </md-button>
+                        
+                        <md-button class="md-raised" ng-click="goTo('/process')">{{ 'cancel' | translate }}</md-button>  
                     </div>
                 </md-card-content>
             </md-card>

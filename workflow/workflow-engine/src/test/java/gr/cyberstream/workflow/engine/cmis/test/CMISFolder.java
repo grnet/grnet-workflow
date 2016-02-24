@@ -2,12 +2,11 @@ package gr.cyberstream.workflow.engine.cmis.test;
 
 import static org.junit.Assert.*;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.chemistry.opencmis.commons.PropertyIds;
+import org.apache.chemistry.opencmis.client.util.FileUtils;
+
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import gr.cyberstream.workflow.engine.cmis.CMISSession;
 import gr.cyberstream.workflow.engine.config.test.ApplicationConfiguration;
 
 @ContextConfiguration(classes = ApplicationConfiguration.class)
@@ -27,70 +25,106 @@ public class CMISFolder {
 	final static Logger logger = LoggerFactory.getLogger(CMISFolder.class);
 
 	@Autowired
-	private CMISSession cmisSession;
+	private gr.cyberstream.workflow.engine.cmis.CMISFolder cmisFolder;
+	
+	@Autowired
+	private gr.cyberstream.workflow.engine.cmis.CMISSession cmisSession;
 
 	@Test
 	public void shouldCreateFolder() {
-		Session session = cmisSession.getSession();
 		
-		Folder root = session.getRootFolder();
-
-		// properties
-		// (minimal set: name and object type id)
-		Map<String, Object> properties = new HashMap<String, Object>();
-		properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
-		properties.put(PropertyIds.NAME, "test-folder");
-
-		// create the folder
-		Folder newFolder = root.createFolder(properties);		
+		Folder root = FileUtils.getFolder("/", cmisSession.getSession());
 		
-		assertNotNull("new folder creation failed", newFolder);
+		Folder newFolder = FileUtils.createFolder(root, "Test Folder", BaseTypeId.CMIS_FOLDER.value());
+		
+		//Folder newFolder = cmisFolder.createFolder(null, "Test Folder");
+		
+		assertNotNull("New folder creation failed", newFolder);
 		logger.info("New folder Id: " + newFolder.getId() + ", name: " + newFolder.getName() + ", path: " + newFolder.getPath());
 		
-		newFolder.delete();
+		//cmisFolder.deleteFolderByPath("Test Folder");
+	}
+	
+	@Test
+	public void shouldCreateSubFolder() {
+		
+		Folder folder = FileUtils.getFolder("/Test Workflow Definition", cmisSession.getSession());
+		
+		//Folder newFolder = FileUtils.createFolder(folder, "Test Folder", BaseTypeId.CMIS_FOLDER.value());
+		
+		Folder newFolder = cmisFolder.createFolder(folder, "Test Folder");
+		
+		assertNotNull("New folder creation failed", newFolder);
+		logger.info("New folder Id: " + newFolder.getId() + ", name: " + newFolder.getName() + ", path: " + newFolder.getPath());
+		
+		//cmisFolder.deleteFolderByPath("Test Folder");
 	}
 
 	@Test(expected=CmisObjectNotFoundException.class)
 	public void shouldDeleteFolder() {
+		
 		Session session = cmisSession.getSession();
 		
 		Folder folder;
 		
 		try {
-			folder = (Folder)session.getObjectByPath("/test-folder");
-		}
-		catch (CmisObjectNotFoundException e) {
-			Folder root = session.getRootFolder();
-
-			Map<String, Object> properties = new HashMap<String, Object>();
-			properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
-			properties.put(PropertyIds.NAME, "test-folder");
-
-			// create the folder
-			folder = root.createFolder(properties);
+			
+			folder = FileUtils.getFolder("/Test Folder", session);
+			
+			//folder = cmisFolder.getFolderByPath("/Test Folder");
+			
+		} catch (CmisObjectNotFoundException e) {
+			
+			Folder root = FileUtils.getFolder("/", cmisSession.getSession());
+			
+			folder = FileUtils.createFolder(root, "Test Folder", BaseTypeId.CMIS_FOLDER.value());
+			
+			//folder = cmisFolder.createFolder(null, "Test Folder");
 		}
 		
-		folder.delete();
-		folder = (Folder)session.getObjectByPath("/test-folder");
+		FileUtils.delete(folder.getId(), session);
+				
+		//cmisFolder.deleteFolderByPath(folder.getId());
+		
+		folder = FileUtils.getFolder("/Test Folder", session);
+		
+		//folder = cmisFolder.getFolderByPath("/Test Folder");	
 	}
 
 	@Test
-	public void shouldFindFoder() {
+	public void shouldFindFolder() {
+		
 		Session session = cmisSession.getSession();
 		
-		Folder root = session.getRootFolder();
-
-		Map<String, Object> properties = new HashMap<String, Object>();
-		properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
-		properties.put(PropertyIds.NAME, "test-folder");
-
-		// create the folder
-		Folder folder = root.createFolder(properties);
-		folder = (Folder)session.getObjectByPath("/test-folder");
-		assertNotNull("folder test-folder not found", folder);
-		logger.info("folder test-folder Id: " + folder.getId() + ", name: " + folder.getName() + ", path: " + folder.getPath());
+		Folder folder = null;
 		
-		folder.delete();
+		try {
+			
+			FileUtils.getFolder("/Test Folder", session);
+			
+			//folder = cmisFolder.getFolderByPath("/Test Folder");
+			
+		} catch (CmisObjectNotFoundException e) {
+			
+			Folder root = FileUtils.getFolder("/", cmisSession.getSession());
+			
+			folder = FileUtils.createFolder(root, "Test Folder", BaseTypeId.CMIS_FOLDER.value());
+			
+			//folder = cmisFolder.createFolder(null, "Test Folder");
+		}
+		
+		try {
+			
+			FileUtils.getFolder(folder.getId(), session);
+			
+			//folder = cmisFolder.getFolderById(folder.getId());
+		
+			cmisFolder.deleteFolderById(folder.getId());
+			
+		} catch (CmisObjectNotFoundException e) {
+			
+			assert false;
+		}
 	}
 
 }

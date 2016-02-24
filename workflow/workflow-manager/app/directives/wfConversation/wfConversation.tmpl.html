@@ -1,0 +1,16 @@
+<section layout="row" layout-align="center center"
+	class="{{ngRequired ? 'wf-required' : ''}}">
+	<md-input-container flex style="width: 100%; height: 100%">
+		<label class="md-no-float">{{wfConversationLabel}}</label>
+		<div ng-repeat="item in ngModel.messages">
+			<div class="md-input">{{item.authorId}} - {{getDateString(item.submittedDate)}}</div>
+			<md-input-container class="md-block">
+				{{item.message}}
+			</md-input-container>
+		</div>
+		<md-input-container class="md-block">
+			<label for="comment">{{ 'addComment' | translate }}</label>
+			<textarea id="comment" ng-model="ngModel.comment"></textarea>
+		</md-input-container>
+	</md-input-container>
+</section>

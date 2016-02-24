@@ -1,5 +1,5 @@
 html, body {
-    font-family: Roboto, sans-serif;
+    font-family: "Open Sans", sans-serif;
 }
 
 md-icon:focus {
@@ -12,7 +12,7 @@ md-icon:focus {
 }
 
 .mainList {
-    height: 600px;
+   /*height: 600px; */
 }
 
 .noselect {
@@ -87,3 +87,106 @@ div.card-header {
         }
 }
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+/* Start new process selected item */
+
+.process-selected {
+	color: #660033;	
+}
+
+
+/*Task's style class according to due date*/
+.delayed{
+	color: red;
+}
+
+.nearDelayed{
+	color: #ffbb00;
+}
+
+.removeIcon{
+	display: none;
+}
+
+.cardInline {
+	display: inline-block;
+	margin-left: 20px;
+	padding-left: 10px;
+	border-left: 1px solid #e0e0e0;
+}
+
+/* Application title / page title */
+.application-title {
+    padding-bottom: 0px;
+    padding-top: 2px;
+    font-size: 18px !important;
+}
+
+.page-title {
+    padding-top: 2px;
+    padding-bottom: 0px;
+    font-size: 16px !important;
+}
+
+/* md-container custom classes with buttons*/
+
+.wf-with-confirm {
+    margin-right: 35px;
+}
+
+.wf-with-confirm.md-has-icon {
+	left: 0px !important;
+	padding-left: 0px;
+}
+
+.wf-with-confirm.md-has-icon > label{
+	left: 0px !important;
+}
+
+.wf-label{
+	padding-top: 15px;
+	font-size: 13px;
+	padding-left: 2px;
+}
+
+/* Select all checkboxes/etc */
+
+.wf-selectAll {
+	font-size: 18px;
+}
+
+.md-sidenav-backdrop {
+	position: fixed;
+}
+
+.md-sidenav-left {
+	position: fixed;
+}
+
+.animate-switch-container {
+	position: relative;
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+}
+
+.animate-switch.ng-animate {
+	transition: 0.8s;
+	background-color: white;
+	position: relative;
+	left: 0;
+	top: 0;
+	position: relative;
+}
+
+.animate-switch.ng-leave.ng-leave-active, .animate-switch.ng-enter {
+	position: relative;
+	left: 100%;
+	top: 0;
+}
+
+.animate-switch.ng-leave, .animate-switch.ng-enter.ng-enter-active {
+	position: absolute;
+	left: 0;
+	top: 0;
+}

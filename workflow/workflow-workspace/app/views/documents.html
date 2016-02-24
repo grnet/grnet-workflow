@@ -1,0 +1,43 @@
+<section layout="column">
+
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+
+            <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
+                <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+            </md-button>
+
+            <md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
+
+            <span class="md-title" hide-sm layout-padding>workflow::workspace</span>
+            <span flex></span>
+
+            <md-button class="md-icon-button" ng-click="showProcessSelectDialog($event)" aria-label="choose process"
+                       hide-gt-sm>
+                <md-icon md-svg-icon="img/icons/filter.svg"></md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+
+	 <section layout="column">
+		<md-list flex>
+			<md-card ng-repeat="document in documents" ng-if="documents.length > 0">
+				<md-list-item class="md-2-line" ng-href="{{documentPath}}{{document.documentId}}" target="_blank">
+				 	 <div class="md-list-item-text" layout="column">
+				 		<h3>{{document.title}} v.{{document.version}}</h3>
+				 		<p>{{document.author}}
+				 			<span>{{document.submittedDate}}</span>
+				 		</p>
+					 </div>
+				</md-list-item>
+			</md-card>					
+		</md-list>
+		
+		<div ng-if="documents.length == 0" layout-padding>{{ 'noDocumentsAvailable' | translate }}</div>
+		
+		<div class="md-primary md-raised" layout="row" layout-align="left bottom" layout-padding>
+			<md-button class="md-accent md-raised" ng-click="back()">{{ 'back' | translate }}</md-button>
+		</div>
+		
+    </section>
+</section>

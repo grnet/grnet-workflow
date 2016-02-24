@@ -8,6 +8,9 @@
             function ($scope, $mdSidenav, $location, $log, $mdDialog, authProvider) {
 
                 $scope.inputFile = null;
+                
+                $scope.pages = [];
+        		$scope.page = {title: null, path: null, icon: null, color: null, disabled: null};
 
                 $scope.toggle = function () {
                     $mdSidenav('navbar').toggle()
@@ -38,6 +41,25 @@
                 $scope.logout = function () {
                     authProvider.logout();
                 };
+                
+                $scope.initializePages = function (){
+                    
+                	$scope.page = {title: 'processes', path: '/process', icon: 'processDefinitions.svg', color: null, disabled: false };
+            		$scope.pages.push($scope.page);
+            		
+            		$scope.page = {title: 'processesHistory', path: '/history', icon: 'logout.svg', color: null, disabled: false };
+            		$scope.pages.push($scope.page);
+            		
+            		$scope.page = {title: 'pendingTasks', path: '/pending', icon: 'logout.svg', color: 'purple', disabled: false };
+            		$scope.pages.push($scope.page);
+            		
+            		$scope.page = {title: 'userActivity', path: '/activity', icon: 'activity.svg', color: 'purple', disabled: false };
+            		$scope.pages.push($scope.page);
+            		
+            		$scope.page = {title: 'settings', path: '/settings', icon: 'settings.svg', color: 'grey', disabled: false };
+            		$scope.pages.push($scope.page);
+                };
+                
 
                 $scope.showOwnerFilterDialog = function (ev) {
                     $mdDialog.show({
