@@ -4,15 +4,14 @@
 package gr.cyberstream.workflow.engine.customtypes;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.activiti.engine.form.AbstractFormType;
 
 public class ConversationFormType extends AbstractFormType {
 
+	private static final long serialVersionUID = 8048010334636363640L;
+	
 	public static final String TYPE_NAME = "conversation";
-
-	private static final long serialVersionUID = 1L;
 
 	@Override
 	public String getName() {
@@ -22,10 +21,10 @@ public class ConversationFormType extends AbstractFormType {
 	@Override
 	public Object convertFormValueToModelValue(String propertyValue) {
 
-		List<MessageType> conversation;
+		ConversationType conversation;
 
 		try {
-			conversation = MessageType.listFromString(propertyValue);
+			conversation = ConversationType.fromString(propertyValue);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;

@@ -19,7 +19,7 @@
                     expanded: '@expanded'
                 },
                 templateUrl: 'templates/nlkchecklist.tmpl.html',
-                controller: function ($scope, $element) {
+                controller: function ($scope, $element,processService) {
 
                     $scope.checklistValueField = $scope.checklistValueField || 'value';
                     $scope.expanded = ($scope.expanded === undefined) ? true : $scope.expanded;
@@ -54,7 +54,7 @@
                             update();
                         }
                     });
-
+            
                     $scope.$watch('selectionStatus', function (newValue, oldValue) {
                         var selectedCount = (newValue || []).length === 0 ?
                             0 :

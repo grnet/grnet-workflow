@@ -3,7 +3,9 @@
  */
 package gr.cyberstream.workflow.engine.model.api;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import gr.cyberstream.workflow.engine.model.DefinitionVersion;
 
@@ -17,9 +19,10 @@ public class WfProcessVersion {
 	private int id;
 	private int version;
 	private String status;
+	private Date deploymentdate;
 	private String deploymentId;
 	private String processDefinitionId;
-	private Date deploymentDate;
+	private int workflowDefinitionId;
 
 	public WfProcessVersion() {
 	}
@@ -28,9 +31,18 @@ public class WfProcessVersion {
 		this.setId(version.getId());
 		this.setVersion(version.getVersion());
 		this.setStatus(version.getStatus());
+		this.setDeploymentdate(version.getDeploymentdate());
 		this.setDeploymentId(version.getDeploymentId());
-		this.setDeploymentDate(version.getDeploymentdate());
 		this.setProcessDefinitionId(version.getProcessDefinitionId());
+		this.setWorkflowDefinitionId(version.getWorkflowDefinition().getId());
+	}
+
+	public static List<WfProcessVersion> fromDefinitionVersions(List<DefinitionVersion> versions) {
+		List<WfProcessVersion> returnVersions = new ArrayList<WfProcessVersion>();
+		for (DefinitionVersion version : versions) {
+			returnVersions.add(new WfProcessVersion(version));
+		}
+		return returnVersions;
 	}
 
 	public int getId() {
@@ -65,12 +77,12 @@ public class WfProcessVersion {
 		this.deploymentId = deploymentId;
 	}
 
-	public Date getDeploymentDate() {
-		return deploymentDate;
+	public Date getDeploymentdate() {
+		return deploymentdate;
 	}
 
-	public void setDeploymentDate(Date deploymentDate) {
-		this.deploymentDate = deploymentDate;
+	public void setDeploymentdate(Date deploymentdate) {
+		this.deploymentdate = deploymentdate;
 	}
 
 	public String getProcessDefinitionId() {
@@ -80,4 +92,13 @@ public class WfProcessVersion {
 	public void setProcessDefinitionId(String processDefinitionId) {
 		this.processDefinitionId = processDefinitionId;
 	}
+
+	public int getWorkflowDefinitionId() {
+		return workflowDefinitionId;
+	}
+
+	public void setWorkflowDefinitionId(int workflowDefinitionId) {
+		this.workflowDefinitionId = workflowDefinitionId;
+	}
+
 }

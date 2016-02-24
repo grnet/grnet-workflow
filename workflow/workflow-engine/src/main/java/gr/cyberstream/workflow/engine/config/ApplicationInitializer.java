@@ -5,6 +5,7 @@ package gr.cyberstream.workflow.engine.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.Order;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 /**
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatche
  * @author nlyk
  *
  */
+@Order(1)
 public class ApplicationInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
 	final static Logger logger = LoggerFactory.getLogger(ApplicationInitializer.class);
@@ -34,7 +36,7 @@ public class ApplicationInitializer extends AbstractAnnotationConfigDispatcherSe
 
 	@Override
 	protected String[] getServletMappings() {
-		return new String[] { "/*" };
+		return new String[] { "/api/*" };
 	}
 
 }

@@ -3,14 +3,27 @@
     <md-toolbar>
         <div class="md-toolbar-tools">
 
-            <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-lg>
+            <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
                 <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
             </md-button>
 
             <md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
-
-            <span class="md-title" hide-sm layout-padding>workflow::workspace</span>
+			
+			<div hide-sm layout-padding>
+            	<h1 class="md-title application-title">workflow::workspace</h1>
+            	<h2 class="md-subhead page-title">{{ 'assignTask' | translate }}</h2>
+            </div>
+            
             <span flex></span>
+            
+            <md-button id="menu-button" ng-if="task.taskDetails.description" class="md-icon-button" aria-label="task details" ng-click="showTaskDetails()">
+                <md-icon md-svg-icon="img/icons/info.svg"></md-icon>
+            </md-button>
+      		
+      		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="goTo('/documents/assign/' + task.id)">
+                <md-icon md-svg-icon="img/icons/folder.svg"></md-icon>
+            </md-button>
+      		
         </div>
     </md-toolbar>
 
@@ -18,28 +31,62 @@
         <!-- Task to assign ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
         <md-content flex layout-padding ng-if="process !== null">
             <md-card style="width: 100%">
-                <md-card-content style="max-width: 600px">
+               <ng-form name="taskForm">
+                <md-card-content>
                     <div class="card-header">
-                        <h2 class="md-title after-icon">{{task.name}}</h2>
+           				<md-icon md-svg-src="img/avatars/{{task.icon}}" class="md-avatar"
+                               style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
+         					<h2 class="md-title after-icon">{{ 'executionName' | translate }}: {{task.processInstance.title}}</h2>
+                     	<p class="md-subhead">{{ 'taskName' | translate }}: {{task.name}}</p>
                     </div>
-
-                    <md-input-container>
-                        <label for="processDescription">Description</label>
+                    
+                    <section layout="row" layout-sm="column" layout-align="left center" layout-wrap>
+	                    <md-input-container>
+		                   	<label for="startDate">{{ 'startDate' | translate }}</label>
+		                  	<input id="startDate" ng-model="startDate" readonly  style="width:100px; margin-right:20px"></input>
+		                </md-input-container>
+		                
+		                 <md-input-container ng-if="task.dueDate">
+		                   	<label for="dueDate">{{ 'dueTo' | translate }}</label>
+		                  	<input id="dueDate" ng-model="dueDate" readonly style="width:100px"></input>
+		                  	
+		                  	<md-icon ng-class="taskDelay(task.dueDate) < 1 ? (taskDelay(task.dueDate) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'" 
+		                  		md-svg-icon="img/icons/delayed-notification.svg">
+		                  	</md-icon>
+		                </md-input-container>
+		            </section>
+                    
+                    <section layout="row" layout-sm="column" layout-align="left center" layout-wrap>
+						<md-input-container>
+	                       	<label for="taskAssignee">{{ 'assignTo' | translate }}</label>
+	                       	<input id="taskAssignee" ng-model="task.assignee" readonly style="width:350px" ng-required="false"></input>
+	                   	</md-input-container>
+	                   	
+	                   	<md-button ng-if="!isAssigned" class="md-raised" ng-click="selectAssigneeModal()">{{ 'choose' | translate }}</md-button>
+	                   	<md-button ng-if="isAssigned" class="md-raised" ng-click="unclaimTask()">{{ 'remove' | translate }}</md-button>
+	                   	
+	                </section>   	
+						
+                    <md-input-container ng-if="task.description" class="md-block">
+                        <label for="processDescription">{{ 'description' | translate }}</label>
                         <textarea id="processDescription" ng-model="task.description" readonly></textarea>
                     </md-input-container>
-
-                    <ng-form name="taskForm">
-                        <nlk-process-form-item ng-repeat="item in task.taskForm" ng-model="item">
-                        </nlk-process-form-item>
-                    </ng-form>
-
-                    <div class="md-actions" layout="row" layout-align="start center" layout-padding>
-                        <md-button class="md-raised" ng-class="{'md-accent': (taskForm.$dirty && taskForm.$valid) }"
-                                   ng-disabled="!taskForm.$valid"
-                                   ng-click="assignTask()">Assign
-                        </md-button>
-                    </div>
+                    
+                    <nlk-process-form-item ng-repeat="item in task.taskForm" ng-model="item" wf-document-path="{{documentPath}}"
+                    	wf-position-center-lat="38.037496" wf-position-center-lng="23.836321">
+                   </nlk-process-form-item>
+                   
                 </md-card-content>
+                
+	                <div class="md-actions" layout="row" layout-align="start center" layout-padding>
+	                
+	                	<md-button class="md-raised md-primary" ng-class="{'md-accent': (taskForm.$dirty && taskForm.$valid)}"
+	                		ng-disabled="!taskForm.$valid" ng-click="confirmAction()">{{ 'confirm' | translate }}
+						</md-button>
+						
+	                    <md-button class="md-raised" ng-click="goTo('/assign')">{{ 'cancel' | translate }}</md-button>
+	                </div>
+                </ng-form>
             </md-card>
         </md-content>
     </section>

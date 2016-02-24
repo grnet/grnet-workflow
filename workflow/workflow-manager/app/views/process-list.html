@@ -3,15 +3,18 @@
     <md-toolbar>
         <div class="md-toolbar-tools">
 
-            <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-lg>
+           <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
                 <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
             </md-button>
 
             <md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
 
-            <span class="md-title" hide-sm layout-padding>workflow::manager</span>
+            <div hide-sm layout-padding>
+            	<h1 class="md-title application-title">workflow::workspace</h1>
+            	<h2 class="md-subhead page-title">{{ 'processes' | translate }}</h2>
+           	</div>
+           	
             <span flex></span>
-
 
             <md-button class="md-icon-button" ng-click="showOwnerFilterDialog($event)" aria-label="filter" hide-gt-sm>
                 <md-icon md-svg-icon="img/icons/filter.svg"></md-icon>
@@ -21,21 +24,16 @@
                 <md-icon md-svg-icon="img/icons/add.svg"></md-icon>
             </md-button>
 
-            <div layout="column">
+       	 	<div layout="column">
                 <md-menu md-position-mode="target-right target">
-                    <md-button aria-label="Sort-By" class="md-icon-button"
-                               ng-click="$mdOpenMenu($event)">
-                        <!--ng-click="NavBarCtrl.openMenu($mdOpenMenu, $event)">-->
+                    <md-button aria-label="Sort-By" class="md-icon-button" ng-click="$mdOpenMenu($event)">
                         <md-icon md-menu-origin md-svg-icon="img/icons/sort-by.svg"></md-icon>
                     </md-button>
                     <md-menu-content width="4">
-                        <md-menu-item ng-repeat="sortOption in ['by Name', 'by Key', 'by Owner']">
+                        <md-menu-item ng-repeat="option in options" ng-click="sortBy(option.id)">
                             <md-button>
-                                <!--ng-click="ctrl.announceClick($index)">-->
                                 <div layout="row">
-                                    <p flex>{{sortOption}}</p>
-                                    <!--<md-icon md-menu-align-target md-svg-icon="img/icons/sort-by.svg"-->
-                                    <!--style="margin: auto 3px auto 0;"></md-icon>-->
+                                    <p flex>{{option.title | translate }}</p>
                                 </div>
                             </md-button>
                         </md-menu-item>
@@ -49,48 +47,41 @@
     <section layout="row">
 
         <!-- Process Owner filtering ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-        <section layout="column" flex="30" layout-align="start center" hide-sm>
-            <md-list>
+        <section layout="column" layout-align="start center" hide-sm>
+        	<md-list>
                 <md-list-item>
-                    <md-checkbox ng-model="ownerChoice.selected"></md-checkbox>
-                    <p class="md-subhead">All Owners</p>
-                    <md-divider ng-if="!$last"></md-divider>
+                     <md-checkbox ng-change="updateOwnerSelection()" ng-model="status.allSelected"></md-checkbox>   
+                    <p class="md-subhead wf-selectAll" >{{ 'allOwners' | translate }}</p>
+                    <md-divider></md-divider>
                 </md-list-item>
-                <md-list-item
-                        ng-repeat="ownerChoise in [
-                    {selected: true, name: 'R&D'},
-                    {selected: true, name: 'low department'},
-                    {selected: true, name: 'logistics'}]">
-                    <md-checkbox ng-model="ownerChoice.selected"></md-checkbox>
-                    <p>{{ownerChoise.name}}</p>
-                </md-list-item>
-            </md-list>
+               
+                <md-list-item ng-repeat="g in groups">
+               		<md-checkbox ng-model="g.selected" ng-change="showProcessByOwners()"></md-checkbox>
+                    <p>{{g.group}}</p>
+                </md-list-item>  
+           	</md-list>
         </section>
-
+       
         <!-- Process Definitions List ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
         <md-content flex class="mainList" layout-padding ng-style="{position: 'relative'}">
-
-            <div class="spinner" ng-if="workflowDefinitions === null"></div>
-
-            <md-list flex>
-                <md-list-item class="md-2-line" ng-repeat="definition in workflowDefinitions"
-                              ng-click="goTo('/process/' + definition.id)">
-                    <img ng-src="{{imagePath + definition.icon}}" class="md-avatar" alt="{{definition.name}}"/>
-
-                    <div class="md-list-item-text" layout="column">
-                        <h3>{{ definition.name }}</h3>
-                        <!--<h4>{{ definition.key || "without key" }}</h4>-->
-
-                        <p>owner name
-                            <md-icon ng-if="!isActive(definition)" md-svg-src="img/icons/status/powered-off.svg"
-                                     ng-style="{color: '#990000'}"
-                                     class="s24" aria-label="Cake"></md-icon>
-                        </p>
-                    </div>
-
-                    <md-divider ng-if="!$last"></md-divider>
-                </md-list-item>
-            </md-list>
+        
+           	<section layout="column" class="wait-icon wf-wait" ng-if="!workflowDefinitions">
+				<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+			</section>
+        
+	   		<md-list flex>
+				<md-card ng-repeat="definition in workflowDefinitions | orderBy:orderByOption">
+					<md-list-item class="md-2-line" ng-click="goTo('/process/' + definition.id)">
+						<img ng-src="{{imagePath + definition.icon}}" class="md-avatar" alt="{{definition.name}}" />
+						<div class="md-list-item-text" layout="column">
+							<h3>{{definition.name}}</h3>
+							 <p>owner name {{definition.owner}}
+							 	<md-icon ng-if="!isActive(definition)" md-svg-src="img/icons/status/powered-off.svg" ng-style="{color: '#990000'}" class="s24" aria-label="Cake"></md-icon>
+                        	</p>
+						</div>
+					</md-list-item>
+				</md-card>
+			</md-list>
         </md-content>
     </section>
 

@@ -8,7 +8,7 @@
     angular.module('wfworkspaceControllers')
 
         .controller('ProcessDetailCtrl',
-        ['$scope', '$location', '$mdDialog', 'processService', 'CONFIG',
+        ['$scope', '$location', '$mdDialog', '$filter', 'processService', 'CONFIG',
 
             /**
              * Controller for the Process Details view
@@ -18,31 +18,60 @@
              * @param {ProcessService} processService
              * @param config
              */
-                function ($scope, $location, $mdDialog, processService, config) {
+                function ($scope, $location, $mdDialog, $filter, processService, config) {
 
                 /** @type {WorkflowDefinition[]} */
-                $scope.processes = null;
-                $scope.selectedProcessIndex = null;
+        		$scope.workflowDefinitions = null;
+                $scope.groupProcesses = null;
                 $scope.process = null;
-
+                $scope.selectedIndex = null;
+                $scope.activeVersion = null;
+                
+                
                 // get the processes
                 processService.getProcesses()
                     .then(
                     // success callback
                     function (response) {
-                        $scope.processes = response.data;
-                        if ($scope.processes.length > 0) {
-                            $scope.selectedProcessIndex = 0;
-                            $scope.process = $scope.processes[0];
+                        $scope.groupProcesses  = ArrayUtil.mapByProperty(response.data, "owner");
+
+                        if(response.data.length == 0){
+                        	$mdDialog.show($mdDialog.alert()
+         		                   .parent(document.body)
+         		                   .title($filter('translate')('noAvailableProcess'))
+         		                   .content($filter('translate')('noAvailableProcess'))
+         		                   .ok($filter('translate')('confirm')))
+                        	$location.path('/task');
                         }
+                        
+                        if (response.data.length > 0)
+                        	$scope.processSelectionChanged(response.data[0].id);
                     },
                     // error callback
+                    function (response) {}
+                );                
+                
+                $scope.processSelectionChanged = function (processId) {
+                	$scope.selectedIndex = processId;
+                    processService.getProcess(processId)
+                    .then(
+                    // success callback
                     function (response) {
-                    }
-                );
-
-                $scope.processSelectionChanged = function () {
-                    $scope.process = $scope.processes[$scope.selectedProcessIndex];
+                    	$scope.process = response.data;
+                    	
+                    	for (var processVersion in $scope.process.processVersions) {
+                    		  if ($scope.process.processVersions.hasOwnProperty(processVersion)) {
+                    			  if($scope.process.processVersions[processVersion].status == "active"){
+                    				  $scope.activeVersion = $scope.process.processVersions[processVersion].version;
+                    			  }
+                    			  
+                			  }
+                    		  
+                    	}
+                    },
+                    // error callback
+                    function (response) {}
+                    );
                 };
 
                 /**
@@ -68,7 +97,15 @@
                         }
                     })
                 };
-
+                
+                /**
+                 * Returns true if the selected version is active
+                 * @param {WorkflowDefinition} process
+                 */
+                $scope.isActive = function (process) {
+                    return processService.isProcessActive(process);
+                };
+                
                 /**
                  * Shows the UI to start a new instance of the selected process
                  */

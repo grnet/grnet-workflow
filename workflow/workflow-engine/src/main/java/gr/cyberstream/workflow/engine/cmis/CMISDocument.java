@@ -218,6 +218,44 @@ public class CMISDocument {
 			throw e;
 		}
 	}
+	
+	/**
+	 * Update document identified by its id, creating a new version 
+	 * @param path
+	 * @param newName
+	 * @param mimeType
+	 * @param inputStream
+	 * @return
+	 */
+	public Document updateDocumentById(String id, String newName) {
+
+		Session session = cmisSession.getSession();
+
+		try {
+			Document document = (Document) session.getObject(id);
+			
+			if (document == null) {
+				throw new CmisRuntimeException();
+			}
+
+			// prepare document properties - change name
+			Map<String, String> props = null;
+
+			if (newName != null && !newName.isEmpty()) {
+				props = new HashMap<String, String>();
+				props.put(PropertyIds.NAME, newName);
+			}
+
+			document.updateProperties(props);
+			
+			return document;
+
+		} catch (CmisObjectNotFoundException e) {
+			
+			logger.error("Document is not found: id(" + id + ")");
+			throw e;
+		}
+	}
  
 	/**
 	 * Return all document versions

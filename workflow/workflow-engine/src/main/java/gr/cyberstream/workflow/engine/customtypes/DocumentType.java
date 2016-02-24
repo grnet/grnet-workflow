@@ -4,31 +4,60 @@
 package gr.cyberstream.workflow.engine.customtypes;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Date;
 
-import org.apache.chemistry.opencmis.client.api.Document;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import gr.cyberstream.workflow.engine.cmis.CMISDocument;
+public class DocumentType implements Serializable {
+		private static final long serialVersionUID = 6967189692701470467L;
 
-public class DocumentType {
-
-	private Document document;
+	private String title;
+	private String version;
 	private String documentId;
 	private String authorId;
+	private String author;
 	private Date submittedDate;
 	private String refNo;
+	
+	public DocumentType() {
+	}
+	
+	public DocumentType(String title, String version, String documentId, String author, String authorId, Date submittedDate, String refNo) {
+		
+		this.title = title;
+		this.version = version;
+		this.documentId = documentId;
+		this.authorId = authorId;
+		this.author = author;
+		this.submittedDate = submittedDate;
+		this.refNo = refNo;
+	}
+	
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public String getVersion() {
+		return version;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
+	}	
 
 	public String getDocumentId() {
 		return documentId;
 	}
 
-	public void setDocuemntId(String documentId) {
+	public void setDocumentId(String documentId) {
 		this.documentId = documentId;
 	}
 
@@ -55,15 +84,13 @@ public class DocumentType {
 	public void setRefNo(String refNo) {
 		this.refNo = refNo;
 	}
-
-	@JsonIgnore
-	public Document getDocument() {
-		return document;
+	
+	public String getAuthor() {
+		return author;
 	}
 
-	@JsonIgnore
-	public void setDocument(Document document) {
-		this.document = document;
+	public void setAuthor(String author) {
+		this.author = author;
 	}
 
 	public String toString() {
@@ -95,11 +122,6 @@ public class DocumentType {
 		ObjectMapper mapper = new ObjectMapper();
 		DocumentType doc = mapper.readValue(jsonSerialization, DocumentType.class);
 
-		// get the CMIS document using the documentId
-		CMISDocument cmisDoc = new CMISDocument();
-		doc.setDocument(cmisDoc.getDocumentById(doc.getDocumentId()));
-
 		return doc;
-	}
-
+	}	
 }

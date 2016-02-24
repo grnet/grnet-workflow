@@ -4,8 +4,8 @@
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // system constants
-    var WORKFLOW_SERVICE_ENTRY = 'http://localhost:12080/workflow-engine/api';
-    var HOME_URL = 'http://localhost:63342/workflow-manager/app/index.html';
+    var WORKFLOW_SERVICE_ENTRY = 'http://10.0.0.156:8085/workflow-engine/api';
+    var HOME_URL = 'http://10.0.0.156/workflow-manager/index.html';
     var AVATARS_PATH = 'img/avatars/';
     var DEFAULT_AVATAR = 'like.svg';
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -15,6 +15,9 @@
 
     /* create directives module */
     angular.module('nlkDirectives', []);
+    
+    /* create directives module */
+    angular.module('wfDirectives', []);
 
     /* create services module */
     angular.module('wfmanagerServices', []);
@@ -25,7 +28,9 @@
         'ngMaterial',
         'wfmanagerControllers',
         'wfmanagerServices',
-        'nlkDirectives'
+        'nlkDirectives',
+        'wfDirectives',
+        'pascalprecht.translate'
     ]);
 
     /**
@@ -74,11 +79,14 @@
                 return response;
             },
             responseError: function (response) {
+            	if(response.status === 400 || response.status === 500) {
+            		return $q.reject(response);
+            	}
                 return authProvider.authErrorHandler($q, response);
             }
         };
     }]);
-
+    
     /*
      * Application configuration
      */
@@ -88,8 +96,17 @@
             'AVATARS_PATH': AVATARS_PATH,
             'DEFAULT_AVATAR': DEFAULT_AVATAR
         })
-        .config(['$routeProvider', '$httpProvider', 'authProvider',
-            function ($routeProvider, $httpProvider, authProvider) {
+        .config(['$routeProvider', '$httpProvider', 'authProvider', '$translateProvider',
+            function ($routeProvider, $httpProvider, authProvider, $translateProvider) {
+        	
+	    		$translateProvider.preferredLanguage('el');
+	    		$translateProvider.useSanitizeValueStrategy(null);
+	    		
+		    	$translateProvider.useStaticFilesLoader({
+		    		  prefix: 'lang/',
+		    		  suffix: '.json'
+		    		});
+	    	
                 $routeProvider.
                     when('/process', {
                         templateUrl: 'views/process-list.html',
@@ -106,6 +123,14 @@
                     when('/history', {
                         templateUrl: 'views/history.html',
                         controller: 'HistoryCtrl'
+                    }).
+                    when('/history/:instanceId', {
+                        templateUrl: 'views/instance-details.html',
+                        controller: 'InstanceDetailCtrl'
+                    }).
+                    when('/task/details/:taskId', {
+                        templateUrl: 'views/task-details.html',
+                        controller: 'TaskDetailsCtrl'
                     }).
                     when('/pending', {
                         templateUrl: 'views/pending.html',
@@ -125,6 +150,8 @@
 
                 // configure $http to use the new Promise interface
                 $httpProvider.useLegacyPromiseExtensions(false);
+                $httpProvider.defaults.useXDomain=true;
+                $httpProvider.defaults.cache = false;
 
                 // configure authentication interceptors
                 $httpProvider.interceptors.push('errorInterceptor');

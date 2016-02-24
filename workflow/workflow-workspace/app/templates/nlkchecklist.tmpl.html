@@ -11,8 +11,9 @@
 
     <section ng-hide="!expanded">
         <md-list-item ng-repeat="choiceItem in checklistModel">
-            <md-checkbox md-primary ng-model="selectionStatus[$index]"></md-checkbox>
-            <p>{{choiceItem.name}}</p>
+            <md-checkbox md-primary ng-model="selectionStatus[$index]" ng-value="choiceItem.id"></md-checkbox>
+            <p>{{choiceItem.title}}</p>
         </md-list-item>
+        
     </section>
 </md-list>

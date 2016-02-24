@@ -3,7 +3,7 @@
  */
 package gr.cyberstream.workflow.engine.service;
 
-import gr.cyberstream.workflow.engine.model.ErrorResponse;
+import gr.cyberstream.workflow.engine.model.api.ErrorResponse;
 
 /**
  * Abstract exception class used as base for creating the specialized application Exceptions

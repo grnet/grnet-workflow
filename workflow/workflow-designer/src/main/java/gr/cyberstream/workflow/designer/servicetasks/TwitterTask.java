@@ -26,7 +26,7 @@ public class TwitterTask extends AbstractCustomServiceTask {
 
 	@Override
 	public String contributeToPaletteDrawer() {
-		return "GRNET-Workflow Service Tasks";
+		return "WorkStream Service Tasks";
 	}
 
 	@Override
