@@ -38,6 +38,7 @@
                     },
                     // error callback
                     function (response) {
+                    	exceptionModal(response);
                     }
                 );
                 
@@ -48,7 +49,9 @@
                         $scope.supervisors = response.data;
                     },
                     // error callback
-                    function (response) {}
+                    function (response) {
+                    	exceptionModal(response);
+                    }
                 );
 
                 /**
@@ -77,26 +80,28 @@
                         },
                         // error callback
                         function (response) {
-                        	$mdDialog.show({
-                        		controller: function ($scope, $mdDialog, error) {
-                        			$scope.error = error;
-                        			
-                                    $scope.cancel = function () {
-                                    	$mdDialog.hide();
-                                    };
-                                },
-                                scope: $scope,
-                                preserveScope: true,
-                                templateUrl: 'templates/exception.tmpl.html',
-                                parent: angular.element(document.body),
-                                targetEvent: event,
-                                locals: {
-                                	'error': response.data
-                                }
-                        	})
+                        	exceptionModal(response);
+                        	$scope.showProgress = false;
                         }
                     );
                 };
+                
+                function exceptionModal(response,event){
+                	$mdDialog.show({
+                		controller: function ($scope, $mdDialog) {
+                			$scope.error = response.data;
+                			
+                            $scope.cancel = function () {
+                            	 $mdDialog.hide();
+                            };
+                        },
+                        
+                        templateUrl: 'templates/exception.tmpl.html',
+                        parent: angular.element(document.body),
+                        targetEvent: event,
+                        clickOutsideToClose: false
+                	})
+                }
         }]);
 
 })(angular);

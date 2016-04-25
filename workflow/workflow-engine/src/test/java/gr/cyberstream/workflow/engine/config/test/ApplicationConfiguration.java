@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.persistence.EntityManagerFactory;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
 import org.activiti.engine.FormService;
@@ -42,6 +44,12 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+import org.springframework.web.servlet.mvc.WebContentInterceptor;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import gr.cyberstream.workflow.engine.cmis.CMISSession;
 import gr.cyberstream.workflow.engine.config.SettingsStatus;
@@ -59,20 +67,51 @@ import gr.cyberstream.workflow.engine.customtypes.DocumentFormType;
 // @EnableWebMvc
 @EnableTransactionManagement
 @ComponentScan(basePackages = { 
-		"gr.cyberstream.workflow.engine.controller",
+		"gr.cyberstream.workflow.engine.controller.v2",
 		"gr.cyberstream.workflow.engine.service",
 		"gr.cyberstream.workflow.engine.persistence",
 		"gr.cyberstream.workflow.engine.cmis",
 		},
 		basePackageClasses = KeycloakSecurityComponents.class)
 @PropertySource("classpath:workflow-engine.properties")
-public class ApplicationConfiguration {
+public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
 	final static Logger logger = LoggerFactory.getLogger(ApplicationConfiguration.class);
 
 	@Autowired
 	private Environment env;
 
+	@Override
+	public RequestMappingHandlerMapping requestMappingHandlerMapping() {
+		
+		RequestMappingHandlerMapping handlerMapping = super.requestMappingHandlerMapping();
+	    handlerMapping.setAlwaysUseFullPath(true);
+	    handlerMapping.setRemoveSemicolonContent(false); // In order to enable matrix variables
+	    return handlerMapping;
+	}
+	
+	@Override
+	protected void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(new WebContentInterceptor() {
+			
+			@Override
+			public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+					ModelAndView modelAndView) throws Exception {
+				
+				response.setHeader("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate");
+				response.setHeader("Pragma", "no-cache");
+				response.setDateHeader("Expires", 0);
+				//setCacheControl(CacheControl.noCache());
+				//setCacheControl(CacheControl.noStore());
+			}
+			
+			@Override
+			public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+					throws Exception {
+			}
+		});
+	}
+	
 	@Bean
 	public DataSource dataSource() {
 
@@ -127,6 +166,14 @@ public class ApplicationConfiguration {
 		transactionManager.setEntityManagerFactory(entityManagerFactory);
 
 		return transactionManager;
+	}
+	
+	@Bean
+	public CommonsMultipartResolver multipartResolver() {
+		CommonsMultipartResolver resolver = new CommonsMultipartResolver();
+		resolver.setDefaultEncoding("utf-8");
+		resolver.setMaxUploadSize(20 * 1024 * 1024);
+		return resolver;
 	}
 	
 	@Bean

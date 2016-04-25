@@ -23,18 +23,18 @@
 				$scope.options.push($scope.sortOptions);
 				$scope.sortOptions = {title: 'taskName', id: 'name'};
 				$scope.options.push($scope.sortOptions);
-				$scope.sortOptions = {title: 'execution', id: 'instance.title'};
+				$scope.sortOptions = {title: 'execution', id: 'processInstance.title'};
 				$scope.options.push($scope.sortOptions);
 
 				/**
                  * Get completed definitions for user
                  */
-                processService.getProcesses().then(
+                processService.getActiveProcessDefinitions().then(
                 // success callback
                 function (response) {
                 	$scope.definitions = response.data;
                 	
-                	$scope.selectAllDefinitions = {name:"showAll", processDefinitionId: "null"};
+                	$scope.selectAllDefinitions = {name:"showAll", processDefinitionId: "all"};
                 	$scope.definitions.push($scope.selectAllDefinitions);
                 	
                 	$scope.initializeCriteria();
@@ -42,7 +42,7 @@
                 },
                 // error callback
                 function (response) {
-                	
+                	exceptionModal(response);
                 });
                 
                 /**
@@ -89,7 +89,7 @@
 							},
 							
 							function(response){
-								
+								exceptionModal(response);
 							});
 					};
 	                
@@ -101,7 +101,7 @@
 	                	$scope.searchFilter.dateAfter = new Date();
 	                	$scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth()-3);
 	                	$scope.searchFilter.dateBefore.setDate($scope.searchFilter.dateBefore.getDate()+1);
-	                	$scope.searchFilter.definitionId = "null";
+	                	$scope.searchFilter.definitionId = "all";
 	                	$scope.searchFilter.instanceTitle = "";
 	                };
 	                
@@ -127,6 +127,26 @@
 					$scope.sortBy = function (optionId){
 						$scope.orderByOption = optionId;
 					};
+					
+					/**
+					 * Exception modal
+					 */
+					 function exceptionModal(response,event){
+		                	$mdDialog.show({
+		                		controller: function ($scope, $mdDialog) {
+		                			$scope.error = response.data;
+		                			
+		                            $scope.cancel = function () {
+		                            	 $mdDialog.hide();
+		                            };
+		                        },
+		                        
+		                        templateUrl: 'templates/exception.tmpl.html',
+		                        parent: angular.element(document.body),
+		                        targetEvent: event,
+		                        clickOutsideToClose: false
+		                	})
+		                }
 	                
 	            }]
     );

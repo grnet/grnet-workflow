@@ -10,6 +10,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.access.channel.ChannelProcessingFilter;
@@ -22,6 +23,7 @@ import org.springframework.web.filter.CorsFilter;
 @Configuration
 @EnableWebSecurity
 @ComponentScan(basePackageClasses = KeycloakSecurityComponents.class)
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter {
 
 	final Logger logger = LoggerFactory.getLogger(SecurityConfiguration.class);
@@ -69,7 +71,9 @@ public class SecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter 
 				.csrf().disable()
 				.authorizeRequests()
 				.regexMatchers(HttpMethod.GET, "/api/process/[0-9]+/diagram").permitAll()
+				.regexMatchers(HttpMethod.GET, "/api/instance/[0-9]+/diagram").permitAll()
 				.antMatchers("/api/public/**").permitAll()
-				.antMatchers("/api/**").hasRole("ProcessAdmin");
+				.antMatchers("/api/v2/public/**").permitAll()
+				.antMatchers("/api/**").authenticated();
 	}
 }

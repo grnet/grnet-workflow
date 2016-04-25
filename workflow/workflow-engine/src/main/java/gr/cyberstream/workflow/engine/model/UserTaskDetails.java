@@ -1,14 +1,18 @@
 package gr.cyberstream.workflow.engine.model;
 
 import java.io.Serializable;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -16,36 +20,43 @@ import gr.cyberstream.workflow.engine.model.api.WfTaskDetails;
 
 /**
  * The persistence class for the usertasksdetails table
+ * 
  * @author vpap
  *
  */
 
 @Entity
-public class UserTaskDetails implements Serializable{
+public class UserTaskDetails implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
+	public static final String USER_TASK = "USER_TASK";
+	public static final String START_EVENT_TASK = "START_EVENT";
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	
+
 	@Column(name = "task_id")
 	private String taskId;
-	
-	private String description;	
+
+	private String description;
 	private String name;
-	
+
 	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "definitionversion_id")
 	private DefinitionVersion definitionVersion;
-	
-	//TODO: REFACTOR RENAME TO assignBySuperVisor
+
+	// TODO: REFACTOR RENAME TO assignBySuperVisor
 	private boolean assign;
 	
 	
+	@OneToMany(mappedBy = "userTaskDetail", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<UserTaskFormElement> userTaskFormElements;
 	
-	
+	private String type;
+
 	public int getId() {
 		return id;
 	}
@@ -78,7 +89,6 @@ public class UserTaskDetails implements Serializable{
 		this.definitionVersion = definitionVersion;
 	}
 
-
 	public boolean isAssign() {
 		return assign;
 	}
@@ -94,11 +104,26 @@ public class UserTaskDetails implements Serializable{
 	public void setName(String name) {
 		this.name = name;
 	}
-	
-	
-	public void updateFrom(WfTaskDetails wfTaskDetails){
+
+	public List<UserTaskFormElement> getUserTaskFormElements() {
+		return userTaskFormElements;
+	}
+
+	public void setUserTaskFormElements(List<UserTaskFormElement> userTaskFormElements) {
+		this.userTaskFormElements = userTaskFormElements;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public void updateFrom(WfTaskDetails wfTaskDetails) {
 		this.setDescription(wfTaskDetails.getDescription());
 		this.setAssign(wfTaskDetails.isAssign());
 	}
-	
+
 }

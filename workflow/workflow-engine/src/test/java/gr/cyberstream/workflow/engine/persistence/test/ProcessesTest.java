@@ -9,7 +9,6 @@ import java.util.function.Consumer;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import gr.cyberstream.workflow.engine.config.test.ApplicationConfiguration;
 import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
 import gr.cyberstream.workflow.engine.persistence.Processes;
 
@@ -23,7 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-@ContextConfiguration(classes = ApplicationConfiguration.class)
+@ContextConfiguration(classes = PersistenceConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ProcessesTest {
 

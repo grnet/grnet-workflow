@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.persistence.EntityManagerFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,9 +41,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -67,6 +70,7 @@ import gr.cyberstream.workflow.engine.customtypes.PositionFormType;
 import gr.cyberstream.workflow.engine.customtypes.TextareaFormType;
 import gr.cyberstream.workflow.engine.listeners.CustomTaskFormFields;
 import gr.cyberstream.workflow.engine.listeners.ProcessEventListener;
+import gr.cyberstream.workflow.engine.listeners.StartEventFormFields;
 
 
 /**
@@ -82,7 +86,7 @@ import gr.cyberstream.workflow.engine.listeners.ProcessEventListener;
 @ComponentScan(basePackages = { "gr.cyberstream.workflow.engine.config",
 		"gr.cyberstream.workflow.engine.controller", "gr.cyberstream.workflow.engine.service",
 		"gr.cyberstream.workflow.engine.persistence", "gr.cyberstream.workflow.engine.cmis",
-		"gr.cyberstream.workflow.engine.listeners"})
+		"gr.cyberstream.workflow.engine.listeners","gr.cyberstream.workflow.engine.customservicetasks"})
 @PropertySource("classpath:workflow-engine.properties")
 public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
@@ -90,6 +94,11 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
 	@Autowired
 	private Environment env;
+	
+	@Bean
+	public static PropertySourcesPlaceholderConfigurer propertyConfig() {
+		return new PropertySourcesPlaceholderConfigurer();
+	}
 	
 	@Override
 	public RequestMappingHandlerMapping requestMappingHandlerMapping() {
@@ -124,23 +133,21 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 	
 	@Bean
 	public DataSource dataSource() {
-
-		DriverManagerDataSource dataSource = new DriverManagerDataSource();
-
-		dataSource.setDriverClassName(env.getProperty("database.driver"));
-		dataSource.setUrl(env.getProperty("database.url"));
-		dataSource.setUsername(env.getProperty("database.user"));
-		dataSource.setPassword(env.getProperty("database.password"));
 		
-		Properties connectionProperties = new Properties();
-		connectionProperties.setProperty("useUnicode", "true");
-		connectionProperties.setProperty("characterEncoding", "utf-8");
+		DataSource datasource = null;
+	    
+		try {
+			Context ctx = new InitialContext();
+			datasource = (DataSource) ctx.lookup(env.getProperty("datasource.name"));
+			
+		} catch (NamingException e) {
+			
+			logger.error("Unable to find datasource " + env.getProperty("datasource.name") + ". " + e.getMessage());
+		}
 		
-		dataSource.setConnectionProperties(connectionProperties);
-
-		return dataSource;
+	    return datasource;
 	}
-
+	
 	@Bean
 	public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource,
 			JpaVendorAdapter jpaVendorAdapter) {
@@ -174,7 +181,7 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
 		return adapter;
 	}
-
+	
 	@Bean
 	public JpaTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
 
@@ -223,13 +230,14 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
         return javaMailSender;
     }
-
+	
+	
 	// Activiti configuration
 	// =================================================================================================
 	private @Autowired AutowireCapableBeanFactory beanFactory;
 	
 	@Bean
-	public SpringProcessEngineConfiguration springProcessEngineConfiguration(DriverManagerDataSource dataSource,
+	public SpringProcessEngineConfiguration springProcessEngineConfiguration(DataSource dataSource,
 			PlatformTransactionManager txManager) {
 
 		SpringProcessEngineConfiguration speconfig = new SpringProcessEngineConfiguration();
@@ -252,10 +260,11 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 		List<ActivitiEventListener> listeners = new ArrayList<ActivitiEventListener>();
 		
 		listeners.add(eventListener);
-		speconfig.setEventListeners(listeners);
+		speconfig.setEventListeners(listeners);		
 		
 		List<BpmnParseHandler> bpmnParseHandlers = new ArrayList<BpmnParseHandler>();
 		bpmnParseHandlers.add(new CustomTaskFormFields());
+		bpmnParseHandlers.add(new StartEventFormFields());
 		speconfig.setPreBpmnParseHandlers(bpmnParseHandlers);
 		
 		// add the custom types to the Activiti engine configuration

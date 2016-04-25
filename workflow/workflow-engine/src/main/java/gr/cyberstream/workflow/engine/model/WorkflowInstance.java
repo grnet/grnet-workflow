@@ -8,7 +8,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import gr.cyberstream.workflow.engine.model.api.WfProcessInstance;
@@ -19,7 +18,6 @@ import gr.cyberstream.workflow.engine.model.api.WfProcessInstance;
  * @author gtyl
  */
 @Entity
-@Table(name = "Instance")
 public class WorkflowInstance implements Serializable {
 
 	private static final long serialVersionUID = 7477832256955969149L;

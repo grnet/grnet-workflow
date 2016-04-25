@@ -20,6 +20,10 @@
 	  		<md-input-container class="md-block">
 	  			<md-checkbox id="coordinatorAssigned" ng-model="editValue.assign">{{'assignmentsByCoordinator' | translate }}</md-checkbox>
 	  		</md-input-container>
+	  		
+	       	<div ng-if="exception" role="alert" multiple style="font-size: 13px;color: red;">
+      			<div class="exceptionMessage">{{exceptionMessage.message}}</div>
+   			</div>
 	 	</div>
 	</md-dialog-content>
 	

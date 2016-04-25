@@ -2,6 +2,10 @@ html, body {
 	font-family: "Open Sans", sans-serif;
 }
 
+p,h3{
+	margin:0px;
+}
+
 .layout-content {
     max-width: 960px;
     margin: auto;
@@ -210,3 +214,12 @@ div.card-header {
 	left: 0;
 	top: 0;
 } 
+
+.docInputDoc {
+	padding-right: 5px;
+    margin-right: 10px;
+}
+
+.docInputRef {
+	 margin-left: 10px;
+}

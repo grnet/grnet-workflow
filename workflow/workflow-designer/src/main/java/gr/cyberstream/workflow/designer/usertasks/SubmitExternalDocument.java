@@ -18,9 +18,9 @@ public class SubmitExternalDocument extends AbstractCustomUserTask {
 	@Help(displayHelpShort = "Document variable", displayHelpLong = "The variable name of the submitted document.")
 	private String documentVar;
 
-	@Property(type = PropertyType.TEXT, displayName = "Source", required = false)
-	@Help(displayHelpShort = "Specify the document source", displayHelpLong = "Specify the source of the external document (incoming).")
-	private String source;
+	@Property(type = PropertyType.TEXT, displayName = "Source Variable", required = false)
+	@Help(displayHelpShort = "Document source variable", displayHelpLong = "Specify the variable of the source of the external document (incoming).")
+	private String sourceVar;
 
 	@Override
 	public String getName() {

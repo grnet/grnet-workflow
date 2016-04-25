@@ -69,23 +69,7 @@
                     },
                     // error callback
                     function (response) {
-                    	$mdDialog.show({
-                    		controller: function ($scope, $mdDialog, error) {
-                    			$scope.error = error;
-                    			
-                                $scope.cancel = function () {
-                                	$mdDialog.hide();
-                                };
-                            },
-                            scope: $scope,
-                            preserveScope: true,
-                            templateUrl: 'templates/exception.tmpl.html',
-                            parent: angular.element(document.body),
-                            targetEvent: event,
-                            locals: {
-                            	'error': response.data
-                            }
-                    	})
+                    	exceptionModal(response);
                     });
                 
                 /**
@@ -114,23 +98,7 @@
                                     },
                                     // error callback
                                     function (response) {
-                                    	$mdDialog.show({
-                                    		controller: function ($scope, $mdDialog, error) {
-                                    			$scope.error = error;
-                                    			
-                                                $scope.cancel = function () {
-                                                	$mdDialog.hide();
-                                                };
-                                            },
-                                            scope: $scope,
-                                            preserveScope: true,
-                                            templateUrl: 'templates/exception.tmpl.html',
-                                            parent: angular.element(document.body),
-                                            targetEvent: event,
-                                            locals: {
-                                            	'error': response.data
-                                            }
-                                    	})
+                                    	exceptionModal(response);
                                     });
                             };
                             
@@ -141,23 +109,7 @@
                                 },
                                 // error callback
                                 function (response) {
-                                	$mdDialog.show({
-                                		controller: function ($scope, $mdDialog, error) {
-                                			$scope.error = error;
-                                			
-                                            $scope.cancel = function () {
-                                            	$mdDialog.hide();
-                                            };
-                                        },
-                                        scope: $scope,
-                                        preserveScope: true,
-                                        templateUrl: 'templates/exception.tmpl.html',
-                                        parent: angular.element(document.body),
-                                        targetEvent: event,
-                                        locals: {
-                                        	'error': response.data
-                                        }
-                                	})
+                                	exceptionModal(response);
                                 });
                         	},
                         scope: $scope,
@@ -188,7 +140,9 @@
                 				function (response) {
                 					$location.path('/assign');
             					},
-            					function (response) {});
+            					function (response) {
+            						exceptionModal(response);
+            					});
                 	}else{
                 		$location.path('/assign');
                 	}
@@ -241,6 +195,47 @@
                 	})
                 };
                 
+                
+                $scope.showProgressDiagram = function (){
+                  	$mdDialog.show({
+                		controller: function ($mdDialog) {
+                			
+                			$scope.instance = $scope.task.processInstance;
+                			$scope.service = config.WORKFLOW_SERVICE_ENTRY;
+                			
+                            $scope.cancel = function () {
+                            	$mdDialog.hide();
+                            };
+                        },
+                        scope: $scope,
+                        preserveScope: true,
+                        templateUrl: 'templates/progressDiagram.tmpl.html',
+                        parent: document.body,
+                        targetEvent: event,
+                        clickOutsideToClose: true,
+                        locals: {
+                        	'service': $scope.service,
+                        	'instance': $scope.instance,
+                        }
+                	})
+                };
+                
+                function exceptionModal(response,event){
+                	$mdDialog.show({
+                		controller: function ($scope, $mdDialog) {
+                			$scope.error = response.data;
+                			
+                            $scope.cancel = function () {
+                            	 $mdDialog.hide();
+                            };
+                        },
+                        
+                        templateUrl: 'templates/exception.tmpl.html',
+                        parent: angular.element(document.body),
+                        targetEvent: event,
+                        clickOutsideToClose: false
+                	})
+                }
             }]
     );
 

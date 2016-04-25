@@ -5,9 +5,11 @@ package gr.cyberstream.workflow.designer.servicetasks;
 
 import org.activiti.designer.integration.annotation.Help;
 import org.activiti.designer.integration.annotation.Property;
+import org.activiti.designer.integration.annotation.Runtime;
 import org.activiti.designer.integration.servicetask.AbstractCustomServiceTask;
 import org.activiti.designer.integration.servicetask.PropertyType;
 
+@Runtime(javaDelegateClass = "gr.cyberstream.workflow.engine.customservicetasks.TwitterService")
 public class TwitterTask extends AbstractCustomServiceTask {
 
 	@Property(type = PropertyType.TEXT, displayName = "Twitter Status", required = true)

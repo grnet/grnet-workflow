@@ -8,7 +8,7 @@
     angular.module('wfmanagerControllers')
 
         .controller('ProcessDetailCtrl',
-        ['$scope', '$http', '$routeParams', '$location', '$mdDialog', '$timeout', '$filter', 'processService', 'CONFIG',
+        ['$scope', '$http', '$routeParams', '$location', '$mdDialog', '$timeout', '$filter', 'processService', 'auth', 'CONFIG',
 
             /**
              * Controller for the Process Details view
@@ -21,7 +21,7 @@
              * @param {ProcessService} processService
              * @param config
              */
-                function ($scope, $http, $routeParams, $location, $mdDialog, $timeout, $filter, processService, config) {
+                function ($scope, $http, $routeParams, $location, $mdDialog, $timeout, $filter, processService, authProvider, config) {
 
                 /** @type {WorkflowDefinition} */
                 $scope.workflowDefinition = null;
@@ -29,37 +29,60 @@
                 $scope.iconName = null;
                 $scope.groups = null;
                 $scope.taskDetails = null;
+                $scope.editTaskDetails = null;
                 $scope.instances = null;
                 $scope.selectedTask = null; 
                 $scope.selectedTab = "process";
+                $scope.userTaskFormElements = [];
+                
+                $scope.taskMetadataActiveView = "taskMetadata";
+                
+                $scope.saveFirst = false; 
                 
 
-                // get the process data
-                processService.getProcess($scope.processId)
-                    .then(
-                    // success callback
-                    function (response) {
-                        $scope.workflowDefinition = response.data;
-                        
-                        var endIndex = $scope.workflowDefinition.icon.indexOf(".");
-                        $scope.iconName = $scope.workflowDefinition.icon.substring(0, endIndex);
-                        
-                        if($scope.workflowDefinition.activeDeploymentId == null){
-                        	var version = response.data.processVersions[0];
-                        	$scope.workflowDefinition.activeDeploymentId = version.deploymentId;
+                function getProcess() {
+                    // get the process data
+                    processService.getProcess($scope.processId)
+                        .then(
+                        // success callback
+                        function (response) {
+                            $scope.workflowDefinition = response.data;
+                            
+                            if($scope.workflowDefinition.owner == null){
+                            	$scope.saveFirst = true;
+                            }
+                            
+                            var endIndex = $scope.workflowDefinition.icon.indexOf(".");
+                            $scope.iconName = $scope.workflowDefinition.icon.substring(0, endIndex);
+                            
+                            if($scope.workflowDefinition.activeDeploymentId == null){
+                            	var version = response.data.processVersions[0];
+                            	$scope.workflowDefinition.activeDeploymentId = version.deploymentId;
+                            }
+                            
+                            $scope.workflowDefinition.icon = $scope.workflowDefinition.icon || config.DEFAULT_AVATAR;
                         }
-                        
-                        $scope.workflowDefinition.icon = $scope.workflowDefinition.icon || config.DEFAULT_AVATAR;
-                    }
-                );
+                    );
+                }
                 
-                processService.getGroups()
-                .then(
-                // success callback
-                function (response) {
-                	$scope.groups = response.data;
-                	}
-                );
+                getProcess();
+
+                
+                //checking if user has role admin in order to show all groups/owners
+                if(authProvider.getRoles().indexOf("ROLE_Admin") >= 0){
+                    processService.getGroups().then(
+        	                // success callback
+        	                function (response) {
+        	                	$scope.groups = response.data;
+        	                }
+                        );
+                }else{
+                	processService.getUserGroups().then(
+                			 function (response) {
+         	                	$scope.groups = response.data;
+         	                }
+                	);
+                }
                 
                 
                 processService.getRegistries()
@@ -80,27 +103,13 @@
                         // success callback
                         function (response) {
                             $scope.workflowDefinition = response.data;
-                            $scope.redirectTo('/process');
+                            //$scope.redirectTo('/process');
+                            getProcess();
+                            $scope.saveFirst = false; 
                         },
                         // error callback
                         function (response) {
-                        	$mdDialog.show({
-                        		controller: function ($scope, $mdDialog, error) {
-                        			$scope.error = error;
-                        			
-                                    $scope.cancel = function () {
-                                    	$mdDialog.hide();
-                                    };
-                                },
-                                scope: $scope,
-                                preserveScope: true,
-                                templateUrl: 'templates/exception.tmpl.html',
-                                parent: angular.element(document.body),
-                                targetEvent: event,
-                                locals: {
-                                	'error': response.data
-                                }
-                        	})
+                        	exceptionModal(response);
                         });
                 };
 
@@ -127,23 +136,7 @@
                             },
                             // error callback
                             function (response) {
-                            	$mdDialog.show({
-                            		controller: function ($scope, $mdDialog, error) {
-                            			$scope.error = error;
-                            			
-                                        $scope.cancel = function () {
-                                        	$mdDialog.hide();
-                                        };
-                                    },
-                                    scope: $scope,
-                                    preserveScope: true,
-                                    templateUrl: 'templates/exception.tmpl.html',
-                                    parent: angular.element(document.body),
-                                    targetEvent: event,
-                                    locals: {
-                                    	'error': response.data
-                                    }
-                            	})
+                            	exceptionModal(response);
                             });
                     });
                 };
@@ -214,23 +207,7 @@
 
                             // error callback
                             function (response) {
-                              	$mdDialog.show({
-                            		controller: function ($scope, $mdDialog, error) {
-                            			$scope.error = error;
-                            			
-                                        $scope.cancel = function () {
-                                        	$mdDialog.hide();
-                                        };
-                                    },
-                                    scope: $scope,
-                                    preserveScope: true,
-                                    templateUrl: 'templates/exception.tmpl.html',
-                                    parent: angular.element(document.body),
-                                    targetEvent: event,
-                                    locals: {
-                                    	'error': response.data
-                                    }
-                            	})
+                            	exceptionModal(response);
                             });
                     });
                 };
@@ -338,22 +315,39 @@
                  * (new,inactive -> active  or active -> inactive)
                  */
                 $scope.changeStatus = function (event) {
+                	
+                	//need save first in order to select active version
+                	if($scope.saveFirst == true){
+                		var confirm = $mdDialog.alert()
+	                        .title($filter('translate')('saveFirst'))
+	                        .content($filter('translate')('saveFirst'))
+	                        .ariaLabel($filter('translate')('saveFirst'))
+	                        .targetEvent(event)
+	                        .ok($filter('translate')('close'));
+                		
+                		 $mdDialog.show(confirm).then(
+                         // agree
+                         function () {
+                        	 $mdDialog.hide();
+                         });
+                		 
+                	}else {
+                		var confirm = $mdDialog.confirm()
+                			.title($filter('translate')('setActiveVersion'))
+	                        .content($filter('translate')('setActiveVersion'))
+	                        .ariaLabel($filter('translate')('setActiveVersion'))
+	                        .targetEvent(event)
+	                        .ok($filter('translate')('confirm'))
+	                        .cancel($filter('translate')('cancel'));
 
-                    var confirm = $mdDialog.confirm()
-                        .title($filter('translate')('setActiveVersion'))
-                        .content($filter('translate')('setActiveVersion'))
-                        .ariaLabel($filter('translate')('setActiveVersion'))
-                        .targetEvent(event)
-                        .ok($filter('translate')('confirm'))
-                        .cancel($filter('translate')('cancel'));
-
-                    $mdDialog.show(confirm)
-                        .then(
+                    $mdDialog.show(confirm).then(
                         // agree
                         function () {
                             var version = $scope.findActiveVersion();
                             $scope.setVersionStatus(version, version.status === 'active' ? 'inactive' : 'active');
                         });
+                	}
+
                 };
                 
                 
@@ -388,18 +382,40 @@
                 /**
                  * Show modal window with the task description
                  */
-                $scope.editTaskDescription = function (id) {
+                $scope.editTaskDescription = function (id, event) {
                     $scope.taskDetails.forEach(function(entry){
                     	if(entry.id == id){
                     		$scope.selectedTask = entry;
                     	}
                     });
                     $mdDialog.show({
-                        controller: UpdateTaskController,
+                        controller: function ($scope, $mdDialog, $http, task){
+                        	$scope.editValue = task;
+                        	
+                        	
+                            $scope.save = function () {
+                                processService.updateTaskDetails($scope.editValue).then(
+                                function () {
+                                	$mdDialog.hide();
+                                	
+                                },function(response){
+                                	$scope.exception = true;
+                                	$scope.exceptionMessage = response.data;
+                                	
+                                });
+                            };
+                            
+                            $scope.cancel = function () {
+                                $mdDialog.cancel();
+                            };
+                            
+                        },
                         templateUrl: 'templates/updatetaskdetails.tmpl.html',
                         parent: document.body,
                         locals:{
-                        	'task': $scope.selectedTask
+                        	'task': $scope.selectedTask,
+                        	'exception': $scope.exception,
+                        	'exceptionMessage': $scope.exceptionMessage,
                         },
                         clickOutsideToClose: true
                     })
@@ -410,22 +426,14 @@
                 function UpdateTaskController($scope, $mdDialog, $http, task) {
                 	$scope.editValue = task;
                 	
-                    $scope.save = function () {
-                        processService.updateTaskDetails($scope.editValue).then(
-                        function () {
-                        	$mdDialog.hide();
-                        });
-                    };
-                    $scope.cancel = function () {
-                        $mdDialog.cancel();
-                    };
+               
                 }
                 
 
                 /**
                  * Cancel an instance
                  */ 
-                $scope.cancelInstance = function(instance){
+                $scope.cancelInstance = function(instance, event){
                     $mdDialog.show({
                         controller: CancelInstanceConfirmController,
                         templateUrl: 'templates/cancelinstancemodal.tmpl.html',
@@ -464,7 +472,7 @@
                 /**
                  * Act on instance (suspend/resume)
                  */ 
-                $scope.actOnInstance = function(instance, action){
+                $scope.actOnInstance = function(instance, action, event){
                     $mdDialog.show({
                         controller: ActOnInstanceConfirmController,
                         templateUrl: 'templates/actoninstancemodal.tmpl.html',
@@ -597,14 +605,14 @@
                     	
                         var confirm = $mdDialog.confirm()
                         .title($filter('translate')('deleteExternalForm'))
-                        .content($filter('translate')('deleteExternalFormConf') + " " + xform.id + " ?")
+                        .content($filter('translate')('deleteExternalFormConf') + " " + xform.formId + " ?")
                         .ariaLabel($filter('translate')('deleteExternalForm'))
                         .ok($filter('translate')('confirm'))
                         .cancel($filter('translate')('cancel'));
                         
                     
                         $mdDialog.show(confirm).then(function () {
-                            processService.deleteExternalForm(xform.id)
+                            processService.deleteExternalForm(xform.formId)
                                 .then(
                                 // success callback
                                 		function (response) {
@@ -621,7 +629,7 @@
                     	
                         var confirm = $mdDialog.confirm()
                         .title($filter('translate')('suspendExternalForm'))
-                        .content($filter('translate')('suspendExternalFormConf') + " " + xform.id + " ?")
+                        .content($filter('translate')('suspendExternalFormConf') + " " + xform.formId + " ?")
                         .ariaLabel($filter('translate')('suspendExternalForm'))
                         .ok($filter('translate')('confirm'))
                         .cancel($filter('translate')('cancel'));
@@ -629,7 +637,7 @@
                     
                         $mdDialog.show(confirm).then(function () {
                         	var action = 'suspend';
-                        	processService.actOnExternalForm(xform.id,action)
+                        	processService.actOnExternalForm(xform.formId,action)
                         	.then(
                             		function (response) {
                                     	xform.enabled = response.data.enabled;
@@ -648,7 +656,7 @@
                     	
                         var confirm = $mdDialog.confirm()
                         .title($filter('translate')('resumeExternalForm'))
-                        .content($filter('translate')('resumeExternalFormConf') + " " + xform.id + " ?")
+                        .content($filter('translate')('resumeExternalFormConf') + " " + xform.formId + " ?")
                         .ariaLabel($filter('translate')('resumeExternalForm'))
                         .ok($filter('translate')('confirm'))
                         .cancel($filter('translate')('cancel'));
@@ -656,7 +664,7 @@
                     
                         $mdDialog.show(confirm).then(function () {
                         	var action = 'resume';
-                        	processService.actOnExternalForm(xform.id,action)
+                        	processService.actOnExternalForm(xform.formId,action)
                         	.then(
                             		function (response) {
                                     	xform.enabled = response.data.enabled;
@@ -694,7 +702,7 @@
                 /**
                  * Edit External form dialog
                  */
-                $scope.editXForm = function(xform){ 
+                $scope.editXForm = function(xform, event){ 
                 	$scope.xform = xform;
                 	
                   	$mdDialog.show({
@@ -705,7 +713,7 @@
                             };
                             
                             $scope.deleteXForm = function (){
-                            	processService.deleteExternalForm($scope.xform.id).then(
+                            	processService.deleteExternalForm($scope.xform.formId).then(
                                         // success callback
                                         function () {
                                            	processService.getExternalForms($scope.workflowDefinition.id).then(
@@ -836,7 +844,111 @@
                  * Tab change listener
                  */
                 $scope.onTabSelected = function (tab){
+                	$scope.taskMetadataActiveView = "taskMetadata";
                 	$scope.selectedTab = tab;
+                };
+                
+                /**
+                 * Change task metadata tab to show task form items/details
+                 */
+                $scope.goToTaskFormDetails = function (taskDetails){
+                	
+                	$scope.editTaskDetails = taskDetails;
+                	$scope.taskMetadataActiveView = "taskFormItems";
+                	
+                	$scope.taskFormItems = [];
+                	
+                	processService.getTaskFormProperties(taskDetails.taskId, $scope.workflowDefinition.processDefinitionId).then(
+                			//success callback
+                			function (response){
+                				$scope.taskFormItems = response.data;
+                			}
+                	);
+                	
+                	
+                };
+                
+                $scope.saveTaskDetails = function (taskDetails){
+                    processService.updateTaskDetails(taskDetails).then(
+                            function () {
+                            	$mdDialog.hide();
+                            	
+                            },function(response){
+                            	$scope.exception = true;
+                            	$scope.exceptionMessage = response.data;
+                            	
+                            });
+                	
+                };
+                
+                /**
+                 * Edit External form dialog
+                 */
+                $scope.editFormItem = function(formItem,event){ 
+                	
+                	$scope.formItem = formItem;
+
+                	$mdDialog.show({
+                		controller: function ($scope, $mdDialog) {
+                			
+                            $scope.cancel = function () {
+                            	$mdDialog.hide();
+                            };
+                            
+                            $scope.save = function (){
+                            	
+                            	processService.saveTaskFormElement($scope.formItem, $scope.editTaskDetails.taskId, $scope.workflowDefinition.processDefinitionId).then(
+                            			
+                            			//success callback
+                            			function (response){
+                            				$mdDialog.hide();
+                            				
+                            			//error callback	
+                            			}, function (response){}
+                            	);
+                            };
+                            
+                            $scope.clear = function () {
+                            	$scope.formItem.description = "";
+                            };
+                            
+                        },
+                        
+                        scope: $scope,
+                        preserveScope: true,
+                        templateUrl: 'templates/editFormItem.tmpl.html',
+                        parent: angular.element(document.body),
+                        targetEvent: event,
+                        locals: {
+                        	'formItem': $scope.formItem,
+                        }
+                	})
+                };
+
+                
+                /**
+                 * Return to task list
+                 */
+                $scope.goBackToTaks = function (){
+                	
+                	 $scope.taskMetadataActiveView = "taskMetadata";
+                };
+                
+                function exceptionModal(response,event){
+                	$mdDialog.show({
+                		controller: function ($scope, $mdDialog) {
+                			$scope.error = response.data;
+                			
+                            $scope.cancel = function () {
+                            	 $mdDialog.hide();
+                            };
+                        },
+                        
+                        templateUrl: 'templates/exception.tmpl.html',
+                        parent: angular.element(document.body),
+                        targetEvent: event,
+                        clickOutsideToClose: false
+                	})
                 }
 
             }]

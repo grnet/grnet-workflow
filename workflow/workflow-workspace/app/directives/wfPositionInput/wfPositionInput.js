@@ -1,5 +1,5 @@
 angular.module('wfDirectives')
-	.directive('wfPositionInput', ['$mdDialog', function($mdDialog) {
+	.directive('wfPositionInput', ['$mdDialog', 'CONFIG', function($mdDialog, config) {
 		return {
 			require: 'ngModel',
 			restrict: 'E',
@@ -21,13 +21,20 @@ angular.module('wfDirectives')
 					scope.ngModel = angular.fromJson(scope.ngModel);
 				}
 
-				var center = {lat: 37.980008, lng: 23.732331};
+				var center = {lat: config.MAP_CENTER_LAT, lng: config.MAP_CENTER_LNG};
 				
 				if (scope.wfPositionCenterLat && scope.wfPositionCenterLng) {
 					
 					center = {
 							lat: angular.fromJson(scope.wfPositionCenterLat),
 							lng: angular.fromJson(scope.wfPositionCenterLng)
+					};
+				}
+				else if (scope.ngModel.latitude && scope.ngModel.longitude) {
+					
+					center = {
+							lat: scope.ngModel.latitude,
+							lng: scope.ngModel.longitude
 					};
 				}
 				

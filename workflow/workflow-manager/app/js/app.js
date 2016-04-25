@@ -6,8 +6,11 @@
     // system constants
     var WORKFLOW_SERVICE_ENTRY = 'http://10.0.0.156:8085/workflow-engine/api';
     var HOME_URL = 'http://10.0.0.156/workflow-manager/index.html';
+    var WORKFLOW_DOCUMENTS_URL = 'http://10.0.0.156:8085/workflow-engine/document/';
     var AVATARS_PATH = 'img/avatars/';
     var DEFAULT_AVATAR = 'like.svg';
+    var MAP_CENTER_LAT = 38.037496;
+    var MAP_CENTER_LNG = 23.836321;
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     /* create controllers module */
@@ -30,7 +33,8 @@
         'wfmanagerServices',
         'nlkDirectives',
         'wfDirectives',
-        'pascalprecht.translate'
+        'pascalprecht.translate',
+        'ngMaterialDatePicker'
     ]);
 
     /**
@@ -93,8 +97,11 @@
     wfmanagerApp
         .constant('CONFIG', {
             'WORKFLOW_SERVICE_ENTRY': WORKFLOW_SERVICE_ENTRY,
+            'WORKFLOW_DOCUMENTS_URL': WORKFLOW_DOCUMENTS_URL,
             'AVATARS_PATH': AVATARS_PATH,
-            'DEFAULT_AVATAR': DEFAULT_AVATAR
+            'DEFAULT_AVATAR': DEFAULT_AVATAR,
+            'MAP_CENTER_LAT': MAP_CENTER_LAT,
+	        'MAP_CENTER_LNG': MAP_CENTER_LNG
         })
         .config(['$routeProvider', '$httpProvider', 'authProvider', '$translateProvider',
             function ($routeProvider, $httpProvider, authProvider, $translateProvider) {
@@ -143,6 +150,10 @@
                     when('/settings', {
                         templateUrl: 'views/settings.html',
                         controller: 'SettingsCtrl'
+                    }).
+                    when('/externalForms', {
+                        templateUrl: 'views/external-forms.html',
+                        controller: 'ExternalFormsCtrl'
                     }).
                     otherwise({
                         redirectTo: '/process'

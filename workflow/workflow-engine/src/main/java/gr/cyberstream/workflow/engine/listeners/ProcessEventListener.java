@@ -45,7 +45,6 @@ public class ProcessEventListener implements ActivitiEventListener{
 
 	@Override
 	public boolean isFailOnException() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 }

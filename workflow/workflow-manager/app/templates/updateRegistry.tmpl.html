@@ -14,7 +14,12 @@
         	<ng-form name="registryForm">
 	        	<md-input-container class="md-block">
 	        		<label>{{'code' | translate}}</label>
-	        		<input type="text" ng-model="registry.id" required ng-pattern="codePattern" ng-readonly="!isNew">
+	        		<input type="text" id ="registryId" name="registryId" ng-model="registry.id" required ng-pattern="codePattern" ng-readonly="!isNew">
+	        		
+	        		<div ng-messages="registryForm.registryId.$error" role="alert">
+	        			<div ng-if="registryForm.registryId.$error.pattern" ng-message="pattern">{{ 'onlyLatinAndNumbers' | translate }}</div>
+        			</div>
+        			
 	      		</md-input-container>
 	        
 	        	<md-input-container class="md-block">
@@ -33,7 +38,7 @@
         <md-dialog-actions layout="row" layout-align="left center">
         	<md-divider></md-divider>
         	<md-button class="md-raised md-primary" ng-class="{'md-accent': (registryForm.$dirty && registryForm.$valid)}"
-        		ng-click="saveRegistry()">{{'save' | translate }}
+        		ng-click="saveRegistry()" ng-disabled="!registryForm.$valid">{{'save' | translate }}
 			</md-button>
      		<md-button class="md-raised" ng-click="cancel()">{{'cancel' | translate }}</md-button>
      		<md-button ng-if="!isNew" class="md-raised md-warn" ng-click="deleteRegistry()">{{'delete' | translate }}</md-button>

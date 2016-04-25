@@ -32,4 +32,14 @@
 {"name": "stopwatch", "filename": "stopwatch.svg"},
 {"name": "tactics", "filename": "tactics.svg"},
 {"name": "tweet", "filename": "tweet.svg"},
-{"name": "watch", "filename": "watch.svg"}]
+{"name": "watch", "filename": "watch.svg"},
+{"name": "water network", "filename": "water-net.svg"},
+{"name": "construction", "filename": "construction.svg"},
+{"name": "environment", "filename": "environment.svg"},
+{"name": "flower", "filename": "flower.svg"},
+{"name": "hammer", "filename": "hammer.svg"},
+{"name": "location", "filename": "location-green.svg"},
+{"name": "play", "filename": "play.svg"},
+{"name": "playground", "filename": "playground.svg"},
+{"name": "road", "filename": "road.svg"},
+{"name": "skating", "filename": "sidewalk.svg"}]

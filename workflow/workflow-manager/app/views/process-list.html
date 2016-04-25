@@ -10,7 +10,7 @@
             <md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
 
             <div hide-sm layout-padding>
-            	<h1 class="md-title application-title">workflow::workspace</h1>
+            	<h1 class="md-title application-title">workflow::manager</h1>
             	<h2 class="md-subhead page-title">{{ 'processes' | translate }}</h2>
            	</div>
            	
@@ -47,7 +47,7 @@
     <section layout="row">
 
         <!-- Process Owner filtering ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-        <section layout="column" layout-align="start center" hide-sm>
+        <section layout="column" layout-align="start center" hide-sm ng-if="groups.length >= 1">
         	<md-list>
                 <md-list-item>
                      <md-checkbox ng-change="updateOwnerSelection()" ng-model="status.allSelected"></md-checkbox>   
@@ -75,7 +75,7 @@
 						<img ng-src="{{imagePath + definition.icon}}" class="md-avatar" alt="{{definition.name}}" />
 						<div class="md-list-item-text" layout="column">
 							<h3>{{definition.name}}</h3>
-							 <p>owner name {{definition.owner}}
+							 <p>{{ 'owner' | translate }} {{definition.owner}}
 							 	<md-icon ng-if="!isActive(definition)" md-svg-src="img/icons/status/powered-off.svg" ng-style="{color: '#990000'}" class="s24" aria-label="Cake"></md-icon>
                         	</p>
 						</div>

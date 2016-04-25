@@ -6,11 +6,8 @@ package gr.cyberstream.workflow.engine.model.api;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.activiti.engine.form.FormProperty;
-import org.activiti.engine.task.Task;
-
-import gr.cyberstream.workflow.engine.model.DefinitionVersion;
 import gr.cyberstream.workflow.engine.model.UserTaskDetails;
+import gr.cyberstream.workflow.engine.model.UserTaskFormElement;
 
 /**
  * Models a task object. Used in API communications.
@@ -24,8 +21,8 @@ public class WfTaskDetails {
 	private String description;
 	private int definitionVersionId;
 	private String taskId;
-	private boolean assign;	
-
+	private boolean assign;
+	private List<UserTaskFormElement> userTaskFormElements;
 
 	public WfTaskDetails() {
 	}
@@ -37,18 +34,17 @@ public class WfTaskDetails {
 		this.setDefinitionVersionId(task.getDefinitionVersion().getId());
 		this.setTaskId(task.getTaskId());
 		this.assign = task.isAssign();
+		this.setUserTaskFormElements(task.getUserTaskFormElements());
+
 	}
-	
-	
-	public static List<WfTaskDetails> fromUserTaskDetails(List<UserTaskDetails> taskDetails){
+
+	public static List<WfTaskDetails> fromUserTaskDetails(List<UserTaskDetails> taskDetails) {
 		List<WfTaskDetails> wfTaskDetails = new ArrayList<WfTaskDetails>();
-		for(UserTaskDetails td : taskDetails){
+		for (UserTaskDetails td : taskDetails) {
 			wfTaskDetails.add(new WfTaskDetails(td));
 		}
-		return wfTaskDetails;		
+		return wfTaskDetails;
 	}
-	
-	
 
 	public int getId() {
 		return id;
@@ -74,8 +70,6 @@ public class WfTaskDetails {
 		this.description = description;
 	}
 
-	
-	
 	public int getDefinitionVersionId() {
 		return definitionVersionId;
 	}
@@ -98,6 +92,14 @@ public class WfTaskDetails {
 
 	public void setAssign(boolean assign) {
 		this.assign = assign;
+	}
+
+	public List<UserTaskFormElement> getUserTaskFormElements() {
+		return userTaskFormElements;
+	}
+
+	public void setUserTaskFormElements(List<UserTaskFormElement> userTaskFormElements) {
+		this.userTaskFormElements = userTaskFormElements;
 	}
 
 }

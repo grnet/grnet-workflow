@@ -66,6 +66,8 @@
 	"tempSave": "temporary save",
 	"activeVersion": "active version",
 	"taskDescription": "task description",
-	"assignedByCoordinator": "assign by coordinator"
+	"assignedByCoordinator": "assign by coordinator",
+	"complete": "complete",
+	"progress": "progress"
 	
 	}

@@ -37,7 +37,7 @@
 	"assignTo": "ανάθεση σε",
 	"assignedTo": "ανατεθειμένο σε",
 	"workerSelection": "επιλογή εργαζομένου",
-	"pending": "εκκρεμής",
+	"pending": "εκκρεμείς",
 	"noCandidatesFound": "δεν βρέθηκαν υποψήφιοι",
 	"completedAfter": "ολοκλήρωση μετά",
 	"completedBefore": "ολοκλήρωση πριν",
@@ -66,6 +66,8 @@
 	"tempSave": "προσωρινή αποθήκευση",
 	"activeVersion": "ενεργή έκδοση",
 	"taskDescription": "περιγραφή εργασίας",
-	"assignedByCoordinator": "ανάθεση από συντονιστή"
+	"assignedByCoordinator": "ανάθεση από συντονιστή",
+	"complete": "ολοκλήρωση",
+	"progress": "πρόοδος"
 	
 	}

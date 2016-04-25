@@ -29,6 +29,7 @@ public class WfProcess { // extends WorkflowDefinition {
 	private boolean assignBySupervisor;
 	private String activeDeploymentId;
 	private String registryId;
+	private boolean startForm;
 
 	public WfProcess() {
 	}
@@ -45,8 +46,9 @@ public class WfProcess { // extends WorkflowDefinition {
 		this.setAssignBySupervisor(definition.isAssignBySupervisor());
 		this.setActiveDeploymentId(definition.getActiveDeploymentId());
 
-		this.registryId = (definition.getRegistry()!=null) ? definition.getRegistry().getId() : null;
+		this.registryId = (definition.getRegistry() != null) ? definition.getRegistry().getId() : null;
 		this.fromDefinitionVersions(definition.getDefinitionVersions());
+		this.startForm = definition.hasStartForm();
 	}
 
 	public String getProcessDefinitionId() {
@@ -163,6 +165,14 @@ public class WfProcess { // extends WorkflowDefinition {
 
 	public void setRegistryId(String registryId) {
 		this.registryId = registryId;
-	}		
-	
+	}
+
+	public boolean hasStartForm() {
+		return startForm;
+	}
+
+	public void setStartForm(boolean startForm) {
+		this.startForm = startForm;
+	}
+
 }

@@ -4,6 +4,7 @@
 package gr.cyberstream.workflow.engine.cmis;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,7 @@ import java.util.Map;
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.ItemIterable;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
@@ -53,6 +55,69 @@ public class CMISFolder {
 		// create the folder
 		try {
 			newFolder = parent.createFolder(properties);
+		} catch (final Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+
+		return newFolder;
+	}
+	
+	/**
+	 * Creates a new instance folder in the CMIS repository
+	 * organized under a year-month folder
+	 * 
+	 * @param folderName
+	 * @return
+	 */
+	public Folder createInstanceFolder(Folder parent, String folderName) {
+
+		Session session = cmisSession.getSession();
+
+		if (parent == null) {
+			parent = session.getRootFolder();
+		}
+		
+		// Create year-month super folder
+		Calendar now = Calendar.getInstance();
+		int month = now.get(Calendar.MONTH) + 1;
+		String dateString = "" + now.get(Calendar.YEAR) + (month < 10 ? "0" + month : "" + month);
+		Folder dateFolder = null;
+		
+		// Use existing year-month if found 
+		ItemIterable<CmisObject> children = parent.getChildren();
+
+		for (CmisObject child : children) {
+			
+			if (BaseTypeId.CMIS_FOLDER.equals(child.getBaseTypeId())) {
+				
+				if (child.getName().equals(dateString)) {
+					
+					dateFolder = (Folder) child;
+				}
+			}
+		}
+		
+		// Create new year-month folder if not found
+		if (dateFolder == null) {
+			
+			Map<String, Object> properties = new HashMap<String, Object>();
+			properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
+			properties.put(PropertyIds.NAME, dateString);
+			
+			dateFolder = parent.createFolder(properties);
+		}
+		
+		// prepare folder properties
+		Map<String, Object> properties = new HashMap<String, Object>();
+		properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
+		properties.put(PropertyIds.NAME, folderName);
+
+		Folder newFolder;
+
+		// create the folder
+		try {
+			newFolder = dateFolder.createFolder(properties);
 		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;

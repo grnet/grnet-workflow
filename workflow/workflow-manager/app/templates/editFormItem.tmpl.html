@@ -1,0 +1,34 @@
+<md-dialog aria-label="{{ 'editFormItem' | translate }}" ng-style="{'min-width': '400px'}">
+
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>{{ 'editFormItem' | translate }}</h2>
+			<span flex></span>
+				<md-button class="md-icon-button" ng-click="cancel()">
+					<md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+				</md-button>
+      	</div>
+   	</md-toolbar>
+        <!--<md-dialog-content style="max-width:800px;max-height:810px; ">-->
+        
+        <md-dialog-content layout-padding>
+       		<ng-form name="formItemForm">
+					<section layout="row" flex>
+					
+         			<md-input-container style="min-width: 400px;">
+                         <label for="titleTemplate">{{ 'description' | translate }}</label>
+                         <textarea id="titleTemplate" md-maxlength="150" ng-model="formItem.description"></textarea>
+                    </md-input-container>       
+                   </section>		
+       		</ng-form>
+       		
+       		<md-divider></md-divider>
+        </md-dialog-content>
+        
+        <md-dialog-actions layout="row" layout-align="left center" layout-padding>
+        	<md-button class="md-raised md-primary" ng-click="save()">{{ 'confirm' | translate }}</md-button>
+        	<md-button class="md-raised md-warn" ng-click="cancel()">{{ 'cancel' | translate }}</md-button>
+        	<md-button class="md-raised md-warn" ng-click="clear()" ng-disabled="!formItem.description">{{ 'clear' | translate }}</md-button>
+        </md-dialog-actions>
+        
+</md-dialog>

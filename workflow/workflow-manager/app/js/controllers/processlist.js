@@ -6,9 +6,9 @@
     'use strict';
 
     angular.module('wfmanagerControllers')
-        .controller('ProcessListCtrl', ['$scope', '$http', '$location', '$mdDialog', 'processService', 'CONFIG', 'auth',
+        .controller('ProcessListCtrl', ['$scope', 'auth', '$location', '$mdDialog', 'processService', 'CONFIG', 'auth',
 
-            function ($scope, $http, $location, $mdDialog, processService, config, auth) {
+            function ($scope, authProvider, $location, $mdDialog, processService, config, auth) {
         	
         	//comment to commit
 
@@ -47,13 +47,24 @@
                     	}
                 );
                 
-                processService.getGroups().then(
-	                // success callback
-	                function (response) {
-	                	$scope.groups = response.data;
-	                	$scope.groups = $scope.groups.map(function(elm) { return { group: elm, selected: true }; }); 
-	                }
-                );
+
+                //checking if user has role admin in order to show all groups/owners
+                if(authProvider.getRoles().indexOf("ROLE_Admin") >= 0){
+                    processService.getGroups().then(
+        	                // success callback
+        	                function (response) {
+        	                	$scope.groups = response.data;
+        	                	$scope.groups = $scope.groups.map(function(elm) { return { group: elm, selected: true }; }); 
+        	                }
+                        );
+                }else{
+                	processService.getUserGroups().then(
+                			 function (response) {
+         	                	$scope.groups = response.data;
+         	                	$scope.groups = $scope.groups.map(function(elm) { return { group: elm, selected: true }; }); 
+         	                }
+                	);
+                }
 
                 /**
                  * Show a dialog for uploading a new BPMN file to create a new workflow definition

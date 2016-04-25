@@ -42,7 +42,7 @@
                         // set default icon
                         $scope.allTasks = response.data;                          
                         
-                        $scope.tasksMappedById = ArrayUtil.mapByProperty2Property($scope.allTasks, "processDefinitionId", "tasks");
+                        $scope.tasksMappedById = ArrayUtil.mapByProperty2Property($scope.allTasks, "definitionName", "tasks");
                         $scope.taskIds = Object.keys($scope.tasksMappedById);
                         $scope.filteredTasks = response.data;
                         $scope.workflowNames = null;
@@ -53,7 +53,16 @@
                         	names.push(task.definitionName);
                         });
                        
-                        $scope.workflowNames = names;
+                        //make unique list from definition names
+                        var u = {}, a = [];
+                        for(var i = 0, l = names.length; i < l; ++i){
+                            if(!u.hasOwnProperty(names[i])) {
+                                a.push(names[i]);
+                                u[names[i]] = 1;
+                            }
+                            
+                            $scope.workflowNames = a;
+                        }
                     }
                 );
                 
@@ -63,8 +72,7 @@
                 
                 $scope.selectionChanged = function(name){
                 	$scope.filteredTasks = null;
-                	var id = pairs[name];
-                	$scope.filteredTasks = $scope.tasksMappedById[id]["tasks"];
+                	$scope.filteredTasks = $scope.tasksMappedById[name]["tasks"];
                 };
                 
 

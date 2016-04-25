@@ -12,6 +12,8 @@
                 
                 $scope.startDate = null;
                 $scope.dueDate = null;
+                
+                $scope.documentPath = config.WORKFLOW_DOCUMENTS_URL;
 
                 /**
                  * Returns the difference between due date and current date
@@ -36,6 +38,10 @@
                         if($scope.task.dueDate != null){
                           	$scope.dueDate = $filter('date')($scope.task.dueDate, "d/M/yyyy");
                           }
+                        
+                        if($scope.task.endDate != null) {
+                        	$scope.endDate = $filter('date')($scope.task.endDate, "d/M/yyyy");
+                        }
                           
                           $scope.startDate = $filter('date')($scope.task.startDate, "d/M/yyyy");
                     },
@@ -49,6 +55,53 @@
                  */
                 $scope.backTo = function() {
                 	$window.history.back();
+                };
+                
+                /**
+                 * Open a modal to display task details
+                 */
+                $scope.showTaskDetails = function (){
+                  	$mdDialog.show({
+                		controller: function ($mdDialog) {
+                			
+                            $scope.cancel = function () {
+                            	$mdDialog.hide();
+                            };
+                        },
+                        scope: $scope,
+                        preserveScope: true,
+                        templateUrl: 'templates/taskDetails.tmpl.html',
+                        parent: document.body,
+                        targetEvent: event,
+                        clickOutsideToClose: true,
+                        locals: {
+                        	'taskDetails': $scope.task.taskDetails
+                        }
+                	})
+                };
+                
+                $scope.showProgressDiagram = function (){
+                  	$mdDialog.show({
+                		controller: function ($mdDialog) {
+                			
+                			$scope.instance = $scope.task.processInstance;
+                			$scope.service = config.WORKFLOW_SERVICE_ENTRY;
+                			
+                            $scope.cancel = function () {
+                            	$mdDialog.hide();
+                            };
+                        },
+                        scope: $scope,
+                        preserveScope: true,
+                        templateUrl: 'templates/progressDiagram.tmpl.html',
+                        parent: document.body,
+                        targetEvent: event,
+                        clickOutsideToClose: true,
+                        locals: {
+                        	'service': $scope.service,
+                        	'instance': $scope.instance,
+                        }
+                	})
                 };
                 
              }]

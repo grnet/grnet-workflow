@@ -1,9 +1,9 @@
-<md-dialog aria-label="Upload new BPMN file" ng-style="{'min-width': '600px'}">
+<md-dialog aria-label="Upload new BPMN file" ng-style="{'min-width': '400px'}">
 	<md-toolbar>
         <div class="md-toolbar-tools">
         
         	<h2 ng-if="!process">{{ 'uploadNew' | translate }} BPMN {{ 'fileGeni' | translate }}</h2>
-        	<h2 ng-if="process" >{{ 'uploadNew' | translate }} BPMN {{ 'fileGeni' | translate }} {{ 'for' | translate }} {{'process' | translate }} "{{process.name}}"</h2>
+        	<h2 ng-if="process" >{{ 'newVerion' | translate}} {{ 'for' | translate }} "{{process.name}}"</h2>
         	
             <span flex></span>
             <md-button class="md-icon-button" ng-click="cancel()">
@@ -14,23 +14,30 @@
     
     <md-content layout-padding>
     	<section layout="row">
-    	
-    		<md-input-container flex>
-    			<label for="bpmnFileName">BPMN {{ 'file' | translate }}</label>
-    			<input type="text" readonly id="bpmnFileName" name="bpmnFile" ng-model="bpmnFile.name"/>
-             </md-input-container>
-             
-             <input type="file" id="bpmnFile" name="bpmnFile" nlk-file-input="bpmnFile" ng-style="{'display': 'none'}"/>
-             
-             <md-button class="md-icon-button" onclick="(document.querySelector('#bpmnFile')).click()">
-             	<md-icon md-svg-src="img/icons/drive-file.svg" aria-label="Close dialog"></md-icon>
-           	</md-button>
-           	
+    		<form name="defintionForm">
+    		
+	    		<md-input-container flex style="min-width: 450px;">
+	    			<label for="bpmnFileName">BPMN {{ 'file' | translate }}</label>
+	    			<input type="text" readonly id="bpmnFileName" name="bpmnFile" ng-model="bpmnFile.name" required/>
+	             </md-input-container>
+	             
+	             <input type="file" id="bpmnFile" name="bpmnFile" nlk-file-input="bpmnFile" ng-style="{'display': 'none'}" required  style="width: 350px;"/>
+	             
+	             <md-button class="md-icon-button" onclick="(document.querySelector('#bpmnFile')).click()" ng-click="exception = false">
+	             	<md-icon md-svg-src="img/icons/drive-file.svg" aria-label="Close dialog"></md-icon>
+	           	</md-button>
+           	</form>
        	</section>
+       	
+       	<div ng-if="exception" role="alert" multiple style="font-size: 13px;color: red;">
+      		<div class="exceptionMessage">{{exceptionMessage.message}}</div>
+   		</div>
+   		
+   		<md-divider></md-divider>
    	</md-content>
         
 	<md-dialog-actions layout="row" layout-align="left center">
-		<md-button class="md-raised md-primary" ng-click="answer(bpmnFile)">{{ 'confirm' | translate }}</md-button>
+		<md-button class="md-raised md-primary" ng-click="answer(bpmnFile)" ng-disabled="!defintionForm.$valid">{{ 'confirm' | translate }}</md-button>
 		<md-button class="md-raised md-warn" ng-click="cancel()">{{ 'cancel' | translate }}</md-button>
 	</md-dialog-actions>
 </md-dialog>

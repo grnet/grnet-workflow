@@ -22,7 +22,6 @@ import javax.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import gr.cyberstream.workflow.engine.model.api.WfExternalForm;
 import gr.cyberstream.workflow.engine.model.api.WfProcess;
 
 /**
@@ -70,6 +69,9 @@ public class WorkflowDefinition implements Serializable {
 	
 	@OneToMany(mappedBy = "workflowDefinition", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ExternalForm> externalForms;
+	
+	@Column(name = "start_form")
+	private boolean startForm;
 
 	/**
 	 * Helper function to add a new dependent DefinitionVersion object and set the reference to the current
@@ -182,6 +184,14 @@ public class WorkflowDefinition implements Serializable {
 
 	public void setExternalForms(List<ExternalForm> externalForms) {
 		this.externalForms = externalForms;
+	}
+	
+	public boolean hasStartForm() {
+		return startForm;
+	}
+
+	public void setStartForm(boolean startForm) {
+		this.startForm = startForm;
 	}
 
 	@Transient

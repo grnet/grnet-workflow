@@ -1,22 +1,23 @@
 <md-dialog aria-label="{{ 'errorOccurred' | translate }}" ng-cloak>
-  <form>
-    <md-toolbar>
-      <div class="md-toolbar-tools">
-        <h2>{{error.code}}</h2>
-        <span flex></span>
-        <md-button class="md-icon-button" ng-click="cancel()">
-          <md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
-        </md-button>
-      </div>
-    </md-toolbar>
-    <md-dialog-content>
-      <div class="md-dialog-content">
-        <p>{{error.message}}</p>
-      </div>
-    </md-dialog-content>
-    <md-dialog-actions layout="row">
-      <span flex></span>
-      <md-button ng-click="cancel()">Ok</md-button>
-    </md-dialog-actions>
-  </form>
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>{{ 'errorOccurred' | translate }}</h2>
+			
+			<span flex></span>
+			
+			<md-button class="md-icon-button" ng-click="cancel()">
+				<md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+	
+	<md-dialog-content layout-padding>
+		<p>{{error.message}}</p>
+	</md-dialog-content>
+	
+	<md-dialog-actions layout="row" layout-align="left center">
+		<span flex></span>
+		<md-button ng-click="cancel()">Ok</md-button>
+	</md-dialog-actions>
+	
 </md-dialog>

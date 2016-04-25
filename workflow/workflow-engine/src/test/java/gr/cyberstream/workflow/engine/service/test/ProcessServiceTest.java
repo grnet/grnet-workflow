@@ -3,7 +3,6 @@ package gr.cyberstream.workflow.engine.service.test;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
@@ -21,7 +20,6 @@ import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
 import gr.cyberstream.workflow.engine.model.api.WfDocument;
 import gr.cyberstream.workflow.engine.model.api.WfProcess;
 import gr.cyberstream.workflow.engine.model.api.WfProcessInstance;
-import gr.cyberstream.workflow.engine.model.api.WfTask;
 import gr.cyberstream.workflow.engine.model.api.WfTaskDetails;
 import gr.cyberstream.workflow.engine.persistence.Processes;
 import gr.cyberstream.workflow.engine.service.CustomException;
@@ -123,7 +121,6 @@ public class ProcessServiceTest {
 			processService.startProcess(processId, wfProcessInstance);
 			
 		} catch (CustomException e) {
-			// TODO Auto-generated catch block
 			logger.error(e.getMessage());
 			assertTrue(false);
 		}
@@ -157,7 +154,6 @@ public class ProcessServiceTest {
 		}
 	}
 	
-	//TODO:vpap
 	@Test
 	public void shouldReturnTaskDetailsOfVersion(){
 		int versionId = 9;
@@ -186,6 +182,7 @@ public class ProcessServiceTest {
 	@Test
 	public void shouldClaimTasksAccordingUser(){
 		
+		@SuppressWarnings("unused")
 		String userId = "e5738b21-34b8-4d22-a195-b87f447b5ae9";
 		
 		try{

@@ -2,6 +2,10 @@ html, body {
     font-family: "Open Sans", sans-serif;
 }
 
+p,h3{
+	margin:0px;
+}
+
 md-icon:focus {
     outline:0;
 }
@@ -189,4 +193,28 @@ div.card-header {
 	position: absolute;
 	left: 0;
 	top: 0;
+}
+
+.docInputDoc {
+	padding-right: 5px;
+    margin-right: 10px;
+}
+
+.docInputRef {
+	 margin-left: 10px;
+}
+
+nlk-process-form-item{
+	display:block;
+}
+
+.print *{
+	color: black !important;
+}
+
+@media print {
+	
+	* {
+		color: black !important;
+	}
 }

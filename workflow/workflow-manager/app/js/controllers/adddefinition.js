@@ -21,6 +21,8 @@
                 $scope.process = process;
                 $scope.bpmnFile = null;
                 $scope.inProgress = false;
+                $scope.exception = false;
+                $scope.exceptionMessage = null;
 
                 $scope.hide = function () {
                     $mdDialog.hide();
@@ -44,8 +46,10 @@
                             },
                             // error callback
                             function (response) {
-                                $mdDialog.hide(response);
-                                errorAlert(response);
+                                //$mdDialog.hide(response);
+                                //errorAlert(response);
+                            	$scope.exception = true;
+                            	$scope.exceptionMessage = response.data;
                             }
                         );
                     }
@@ -63,8 +67,11 @@
                             },
                             // error callback
                             function (response) {
-                                $mdDialog.hide(response);
-                                errorAlert(response);
+                                //$mdDialog.hide(response);
+                                //errorAlert(response);
+                            	$scope.exception = true;
+                            	$scope.exceptionMessage = response.data;
+                            	
                             }
                         );
                     }

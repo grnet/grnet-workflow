@@ -1,12 +1,12 @@
 <section layout="row" layout-align="left center" ng-if="ngReadonly">
 
-	<md-input-container flex>
-        <label for="title">{{wfDocumentLabel}}</label>
+	<md-input-container flex class="docInputDoc">
+        <label for="title" style="white-space: nowrap;">{{wfDocumentLabel}}</label>
         <input type="text" id="title" name="title" readonly="true" ng-model="ngModel.title"/>
     </md-input-container>
     
     <a href="{{wfDocumentPath}}{{ngModel.documentId}}" flex="5" ng-show="ngModel.documentId" target="_blank">
-    	<md-icon md-svg-icon="img/icons/description.svg">
+    	<md-icon md-svg-icon="img/icons/description.svg" class="md-primary" style="position: relative;top: -10px;">
     		<md-tooltip md-direction="top">
 	       		<span ng-show="ngModel.author">{{ 'author' | translate }} : {{ngModel.author}}</span>
 	       		<span ng-show="ngModel.version">{{ 'version' | translate }} : {{ngModel.version}}</span>
@@ -15,25 +15,26 @@
     	</md-icon>
     </a>
     
-	<md-input-container flex>
+	<md-input-container flex class="docInputRef">
         <label for="refNo">{{ 'referenceNumber' | translate }}</label>
         <input type="text" id="refNo" name="refNo" readonly="true" ng-model="ngModel.refNo"/>
     </md-input-container>
     
-    <md-button flex="5" class="md-icon-button" aria-label="Add File" ng-click="showAddFile()" ng-disabled="true">
-		<md-icon md-svg-icon="img/icons/add.svg" ng-show="!ngModel.file"></md-icon>
+    <md-button flex="5" class="md-icon-button" aria-label="Add File" ng-click="showAddFile()" ng-disabled="true" style="padding:0px">
+		<md-icon md-svg-icon="img/icons/add.svg" ng-show="!ngModel.file" style="position: relative;top: -10px;"></md-icon>
 	</md-button>
     
 </section>
 
 <section layout="row" layout-align="center center" ng-if="!ngReadonly" class="{{ngRequired ? 'wf-required' : ''}}">
-	<md-input-container flex>
-        <label for="title">{{wfDocumentLabel}}</label>
-        <input type="text" id="title" name="title" readonly="true" ng-model="ngModel.title"/>
+
+	<md-input-container flex class="docInputDoc">
+        <label for="title" style="white-space: nowrap;">{{wfDocumentLabel}}</label>
+        <input type="text" id="title" name="title" readonly="true" ng-model="ngModel.title" ng-required="true"/>
     </md-input-container>
     
     <a href="{{wfDocumentPath}}{{ngModel.documentId}}" flex="5" ng-show="ngModel.documentId" target="_blank">
-    	<md-icon md-svg-icon="img/icons/description.svg">
+    	<md-icon md-svg-icon="img/icons/description.svg" class="md-primary" style="position: relative;top: -10px;">
     		<md-tooltip md-direction="top">
 	       		<span ng-show="ngModel.author">{{ 'author' | translate }} : {{ngModel.author}}</span>
 	       		<span ng-show="ngModel.version">{{ 'version' | translate }} : {{ngModel.version}}</span>
@@ -42,13 +43,13 @@
     	</md-icon>
     </a>
     
-	<md-input-container flex>
+	<md-input-container flex class="docInputRef">
         <label for="refNo">{{ 'referenceNumber' | translate }}</label>
         <input type="text" id="refNo" name="refNo" readonly="true" ng-model="ngModel.refNo"/>
     </md-input-container>
     
-    <md-button flex="5" class="md-icon-button" aria-label="Add File" ng-click="showAddFile()">
-		<md-icon md-svg-icon="img/icons/add.svg" ng-show="!ngModel.file"></md-icon>
-		<md-icon md-svg-icon="img/icons/filter.svg" ng-show="ngModel.file"></md-icon>
+    <md-button flex="5" class="md-icon-button" aria-label="Add File" ng-click="showAddFile()" style="padding:0px">
+		<md-icon md-svg-icon="img/icons/add.svg" ng-show="!ngModel.file" class="md-primary" style="position: relative;top: -10px;"></md-icon>
+		<md-icon md-svg-icon="img/icons/filter.svg" ng-show="ngModel.file" style="position: relative;top: -10px;"></md-icon>
 	</md-button>
 </section>
