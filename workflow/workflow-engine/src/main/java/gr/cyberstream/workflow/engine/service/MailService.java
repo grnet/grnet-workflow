@@ -61,25 +61,25 @@ public class MailService {
 		if (!settings.isAssignmentNotification())
 			return;
 		
-		String taskAssignedSubject = "New task";
-		String taskAssignedContent = "You were assigned a new";
+		String taskAssignedSubject = "Νέα εργασία";
+		String taskAssignedContent = "Σας έχει ανατεθεί ";
 		
 		if (taskName != null && !taskName.isEmpty()) {
 			taskAssignedSubject += " '" + taskName + "'";
 			taskAssignedContent += " '" + taskName + "'";
 		}
 		
-		taskAssignedContent += " task";
+		taskAssignedContent += " εργασία";
 		
 		if (dueDate != null) {
 			
-			taskAssignedContent += ", due on " + DateFormatUtils.format(dueDate, datePattern);
+			taskAssignedContent += ", η χρονική περιόδος για την εκτέλεση της εργασίας είναι μέχρι τις " + DateFormatUtils.format(dueDate, datePattern);
 			
 		}
 		
 		taskAssignedContent += ".";
 		
-		taskAssignedContent += " <a href=\"" + workspaceURL + "/#/task/" + taskId + "\">See Task</a>";
+		taskAssignedContent += " <a href=\"" + workspaceURL + "/#/task/" + taskId + "\">Επιλέξτε για να δείτε την εργασία</a>";
 		
 		try {
 			
@@ -97,8 +97,8 @@ public class MailService {
 			return;
 		
 		logger.info("Sending Due Task Email to " + recipient);
-		String dueTaskSubject = "Due task";
-		String dueTaskContent = (unAssigned ? "Unassigned " : "") + "Task";
+		String dueTaskSubject = "Ημερομηνία εκτέλεσης εργασίας";
+		String dueTaskContent = (unAssigned ? "Μη ανατεθειμένη " : "") + "εργασία";
 		
 		if (taskName != null && !taskName.isEmpty()) {
 			dueTaskSubject += " '" + taskName + "'";
@@ -107,14 +107,14 @@ public class MailService {
 		
 		if (dueDate != null) {
 			
-			dueTaskContent += ", is due on " + DateFormatUtils.format(dueDate, datePattern);
+			dueTaskContent += ", έχει ημερομηνία εκτέλεσης μέχρι τις " + DateFormatUtils.format(dueDate, datePattern);
 			
 		}
 		
 		dueTaskContent += ".";
 		
 		dueTaskContent += " <a href=\"" + workspaceURL + "/#/" + (unAssigned ? "assign" : "task") + "/" + taskId + "\">" 
-				+ (unAssigned ? "Assign" : "See") + " Task</a>";
+				+ (unAssigned ? "Ανατεθειμένη" : "Επιλέξτε για να δείτε") + " Task</a>";
 		
 		try {
 			
@@ -132,26 +132,26 @@ public class MailService {
 			return;
 		
 		logger.info("Sending Expired Task Email to " + recipient);
-		String taskExpiredSubject = "Expired Task";
-		String taskExpiredContent = (unAssigned ? "Unassigned " : "") + "Task";
+		String taskExpiredSubject = "Χρονική περίοδος εκτέλεσης εργασίας έληξε";
+		String taskExpiredContent = (unAssigned ? "Μη ανατεθειμένη " : "") + "εργασία";
 		
 		if (taskName != null && !taskName.isEmpty()) {
 			taskExpiredSubject += " '" + taskName + "'";
 			taskExpiredContent += " '" + taskName + "',";
 		}
 		
-		taskExpiredContent += " has expired";
+		taskExpiredContent += " 'έχει λήξει";
 		
 		if (dueDate != null) {
 			
-			taskExpiredContent += " since " + DateFormatUtils.format(dueDate, datePattern);
+			taskExpiredContent += " από τις " + DateFormatUtils.format(dueDate, datePattern);
 			
 		}
 		
 		taskExpiredContent += ".";
 		
 		taskExpiredContent += " <a href=\"" + workspaceURL + "/#/" + (unAssigned ? "assign" : "task") + "/" + taskId + "\">" 
-				+ (unAssigned ? "Assign" : "See") + " Task</a>";
+				+ (unAssigned ? "Ανατεθειμένη" : "Επιλέξτε για να δείτε") + " την εργασία</a>";
 		
 		try {
 			
@@ -165,14 +165,14 @@ public class MailService {
 		
 	public void sendBpmnErrorEmail(String supervisor, WorkflowDefinition workflow, String taskName){
 		
-		String subject = "BPMN error";
+		String subject = "Σφάλμα ορισμού διαδικασίας";
 		
-		String content = "<p>No candidates have been found for the Task with name '" + taskName 
-				+ "' since there is an error at the BPMN file of the process '" + workflow.getName() 
-				+ "' with ProcessDefinitionId '" + workflow.getKey() + "'. </p>";
+		String content = "<p>Δεν βρέθηκαν υποψήφιοι για την εκτέλεση της εργασίας με όνομα '" + taskName 
+				+ "' δεδομένου ότι υπάρχει σφάλμα στο αρχείο BPMN της διαδικασίας με όνομα '" + workflow.getName() 
+				+ "' και κωδικό '" + workflow.getKey() + "'.</p>";
 		
-		content += "<p>For further actions visit the <a href=\"" + managerURL + "/#/process/" + workflow.getId() + 
-				" \"> process definition manager</a> page.</p>";
+		content += "<p>Για περισσότερες επιλογές επισκεφθείτε την σελίδα <a href=\"" + managerURL + "/#/process/" + workflow.getId() + 
+				" \"> διαχείρισης ορισμού διαδικασίας </a> page.</p>";
 		
 		try {
 			

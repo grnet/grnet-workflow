@@ -1,33 +1,29 @@
-<section layout="column">
+<md-toolbar>
+	<div class="md-toolbar-tools">
+	
+		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
+			<md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+		</md-button>
+		
+		<md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
+		
+		<div hide-sm layout-padding>
+			<h1 class="md-title application-title">workflow::manager</h1>
+			<h2 class="md-subhead page-title">{{'processesHistory' | translate }}</h2>
+		</div>
+		
+		<span flex></span>
+	</div>
+</md-toolbar>
 
-    <md-toolbar>
-        <div class="md-toolbar-tools">
-        
-           	<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
-                <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
-            </md-button>
-
-            <md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
-
-            <div hide-sm layout-padding>
-            	<h1 class="md-title application-title">workflow::workspace</h1>
-            	<h2 class="md-subhead page-title">{{'processesHistory' | translate }}</h2>
-           	</div>
-            
-            <span flex></span>
-        </div>
-    </md-toolbar>
-</section>
-
- <section layout="row" layout-padding >
- 	
- 	<div flex="35">
- 	
+<section layout="row" layout-padding>
+	<div flex="35">
 		<section layout="column" style="margin-bottom: 32px">
 		
 			<section layout="row" class="md-block">
-				<label for="date-after" flex="45" class="wf-label">{{'completedAfter' | translate }} </label>
+				<label for="date-after" flex="45" class="wf-label">{{'completedAfter' | translate }}</label>
 				<md-datepicker id="date-from" ng-model="after" ng-change="getMatches('')"></md-datepicker>
+				
 				<md-button class="md-icon-button" aria-label="Clear" ng-click="clearCriteria()">
 					<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 10px;color: red;"></md-icon>
 				</md-button>
@@ -36,6 +32,7 @@
 			<section layout="row" class="md-block">
 				<label for="date-after" flex="45" class="wf-label">{{'completedBefore' | translate }}</label>
 				<md-datepicker id="date-to" ng-model="before" ng-change="getMatches('')"></md-datepicker>
+				
 				<md-button class="md-icon-button" aria-label="Clear" ng-click="clearCriteria()">
 					<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 10px;color: red;"></md-icon>
 				</md-button>
@@ -52,17 +49,15 @@
 			  <span>{{item.title}}</span>
 		</md-autocomplete>
 	</div>
-
-	<md-list flex>
-		<md-card ng-repeat="instance in endedInstances">
-			<md-list-item class="md-2-line" ng-click="goTo('/history/' + instance.id)">
-				<img ng-src="{{imagePath + instance.definitionIcon}}" class="md-avatar" alt="{{instance.title}}" />
-				<div class="md-list-item-text" layout="column">
-					<h3>{{instance.title}}</h3>
-					<p ng-if="instance.supervisor">{{'supervisor' | translate }} : {{instance.supervisor}}</p>
-				</div>
-			</md-list-item>
-		</md-card>
-	</md-list>
 	
- </section>
+<md-list flex>
+	<md-card ng-repeat="instance in endedInstances">
+		<md-list-item class="md-2-line" ng-click="goTo('/history/' + instance.id)">
+			<img ng-src="{{imagePath + instance.definitionIcon}}" class="md-avatar" alt="{{instance.title}}" />
+			<div class="md-list-item-text" layout="column">
+				<h3>{{instance.title}}</h3>
+				<p ng-if="instance.supervisor">{{'supervisor' | translate }} : {{instance.supervisor}}</p>
+			</div>
+		</md-list-item>
+	</md-card>
+</md-list>

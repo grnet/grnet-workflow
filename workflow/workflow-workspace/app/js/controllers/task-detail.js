@@ -62,57 +62,47 @@
         			return diffInDays;
                 };
                 
-                // get the selected task
-                processService.getTask(taskId).then(
-                    // success callback
-                    function (response) {
-                        
-                    	$scope.task = response.data;
-                    	
-                	  if($scope.task.dueDate != null){
-                		  $scope.dueDate = $filter('date')($scope.task.dueDate, "d/M/yyyy");
-                      }
-                	  
-                	  if($scope.task.endDate != null){
-                		  $scope.endDate = $filter('date')($scope.task.endDate, "d/M/yyyy");
-                	  }
-                      
-                      $scope.startDate = $filter('date')($scope.task.startDate, "d/M/yyyy");
-                        
-                        var formProperties = response.data.taskForm;
-                        
-                        for (var i = 0; i < formProperties.length; i++) {
+                function getTask(taskId) {
+                    // get the selected task
+                    processService.getTask(taskId).then(
+                        // success callback
+                        function (response) {
+                            
+                        	$scope.task = response.data;
                         	
-                        	var property = formProperties[i];
-                        	
-                        	if (property.type === 'approve') {
-                        		
-                        		$scope.approveAction = property;
-                        		break;
-                        	}
-                        }
-                    },
-                    // error callback
-                    function (response) {
-                    	$mdDialog.show({
-                    		controller: function ($scope, $mdDialog, error) {
-                    			$scope.error = error;
-                    			
-                                $scope.cancel = function () {
-                                	$mdDialog.hide();
-                                };
-                            },
-                            scope: $scope,
-                            preserveScope: true,
-                            templateUrl: 'templates/exception.tmpl.html',
-                            parent: angular.element(document.body),
-                            targetEvent: event,
-                            locals: {
-                            	'error': response.data
+                    	  if($scope.task.dueDate != null){
+                    		  $scope.dueDate = $filter('date')($scope.task.dueDate, "d/M/yyyy");
+                          }
+                    	  
+                    	  if($scope.task.endDate != null){
+                    		  $scope.endDate = $filter('date')($scope.task.endDate, "d/M/yyyy");
+                    	  }
+                          
+                          $scope.startDate = $filter('date')($scope.task.startDate, "d/M/yyyy");
+                            
+                            var formProperties = response.data.taskForm;
+                            
+                            for (var i = 0; i < formProperties.length; i++) {
+                            	
+                            	var property = formProperties[i];
+                            	
+                            	if (property.type === 'approve') {
+                            		
+                            		$scope.approveAction = property;
+                            		break;
+                            	}
                             }
-                    	})
-                    }
-                );
+                        },
+                        // error callback
+                        function (response) {
+                        
+                        	exceptionModal(response);
+                        	
+                        });                	
+                }
+                
+                getTask(taskId);
+                
                 
                 /**
                  * Opens assignee modal
@@ -149,30 +139,13 @@
                         // success callback
                         function (response) {
                             $scope.task = response.data;
-                            $location.path('/task');
+                            getTask(taskId);
                         },
                         // error callback
                         function (response) {
-                        	$mdDialog.show({
-                        		controller: function ($scope, $mdDialog, error) {
-                        			$scope.error = error;
-                        			
-                                    $scope.cancel = function () {
-                                    	$mdDialog.hide();
-                                    };
-                                },
-                                scope: $scope,
-                                preserveScope: true,
-                                templateUrl: 'templates/exception.tmpl.html',
-                                parent: angular.element(document.body),
-                                targetEvent: event,
-                                locals: {
-                                	'error': response.data
-                                }
-                        	})
-                        }
-                    );
-                };
+                        	exceptionModal(response);
+                        });
+                    };
                 
                 /**
                  * Completes the task
@@ -190,23 +163,9 @@
                             },
                             // error callback
                             function (response) {
-                            	$mdDialog.show({
-                            		controller: function ($scope, $mdDialog, error) {
-                            			$scope.error = error;
-                            			
-                                        $scope.cancel = function () {
-                                        	$mdDialog.hide();
-                                        };
-                                    },
-                                    scope: $scope,
-                                    preserveScope: true,
-                                    templateUrl: 'templates/exception.tmpl.html',
-                                    parent: angular.element(document.body),
-                                    targetEvent: event,
-                                    locals: {
-                                    	'error': response.data
-                                    }
-                            	})
+                            	exceptionModal(response);
+                            	$scope.showProgress = false;
+                                $location.path('/task');
                             }
                         );
                 };
@@ -215,7 +174,7 @@
                 	
                 	$scope.approveAction.value = outcome;
                 	
-                    processService.completeTask($scope.task).then(
+                	processService.completeTask($scope.task).then(
                         // success callback
                         function (response) {
                             $scope.task = response.data;
@@ -223,23 +182,7 @@
                         },
                         // error callback
                         function (response) {
-                        	$mdDialog.show({
-                        		controller: function ($scope, $mdDialog, error) {
-                        			$scope.error = error;
-                        			
-                                    $scope.cancel = function () {
-                                    	$mdDialog.hide();
-                                    };
-                                },
-                                scope: $scope,
-                                preserveScope: true,
-                                templateUrl: 'templates/exception.tmpl.html',
-                                parent: angular.element(document.body),
-                                targetEvent: event,
-                                locals: {
-                                	'error': response.data
-                                }
-                        	})
+                        	exceptionModal(response);
                         }
                     );
                 	
@@ -249,9 +192,10 @@
                 /**
                  * Open a modal to display task details
                  */
-                $scope.showTaskDetails = function (){
+                $scope.showTaskDetails = function (event){
                   	$mdDialog.show({
                 		controller: function ($mdDialog) {
+                			
                 			
                             $scope.cancel = function () {
                             	$mdDialog.hide();
@@ -280,7 +224,9 @@
                 					$scope.historyTasks = response.data;
                 				},
                 				//error callback
-                				function (response){});
+                				function (response){
+                					exceptionModal(response);
+                				});
                 	}else
                 		$scope.executionActiveView = "list";
                 };
@@ -306,7 +252,7 @@
                         		$scope.historicStartDate = $filter('date')($scope.historicTask.startDate, "d/M/yyyy");
                 			},
                 			function (response){
-                				
+                				exceptionModal(response);
                 			});
                 };
                 
@@ -314,32 +260,14 @@
                  * Temporary saves the task form data
                  */
                 $scope.temporarySave = function (){
-                	
                 	processService.temporarySave($scope.task).then(
+                			//success callback
+                			function (response){},
+                			//error callback
                 			function (response){
-                				
-                			},
-                			function (response){
-                            	$mdDialog.show({
-                            		controller: function ($scope, $mdDialog, error) {
-                            			$scope.error = error;
-                            			
-                                        $scope.cancel = function () {
-                                        	$mdDialog.hide();
-                                        };
-                                    },
-                                    scope: $scope,
-                                    preserveScope: true,
-                                    templateUrl: 'templates/exception.tmpl.html',
-                                    parent: angular.element(document.body),
-                                    targetEvent: event,
-                                    locals: {
-                                    	'error': response.data
-                                    }
-                            	})
-                				
-                			});
-                }
+                				exceptionModal(response);
+                				});
+                	};
                 
                 /**
                  * Go back to historic tasks
@@ -347,6 +275,31 @@
                 $scope.goBack = function (){
             		$scope.executionActiveView = "list";
                 };
+                
+                /**
+                 * Redirects to print page
+                 */
+                $scope.goToPrintPage = function (){
+                	 $location.path('/startform/print/' + $scope.task.processInstance.id , '_blank')
+                };
+                
+                
+                function exceptionModal(response,event){
+                	$mdDialog.show({
+                		controller: function ($scope, $mdDialog) {
+                			$scope.error = response.data;
+                			
+                            $scope.cancel = function () {
+                            	 $mdDialog.hide();
+                            };
+                        },
+                        
+                        templateUrl: 'templates/exception.tmpl.html',
+                        parent: angular.element(document.body),
+                        targetEvent: event,
+                        clickOutsideToClose: false
+                	})
+                }
                 
             }]
     );

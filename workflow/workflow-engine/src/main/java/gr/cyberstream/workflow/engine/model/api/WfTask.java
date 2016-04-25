@@ -39,6 +39,7 @@ public class WfTask {
 	private WfTaskDetails taskDetails;
 	private boolean completed;
 	private Date endDate;
+	private boolean startForm;
 
 	public WfTask() {
 		this.completed = false;
@@ -242,6 +243,14 @@ public class WfTask {
 
 	public void setEndDate(Date endDate) {
 		this.endDate = endDate;
+	}
+
+	public boolean isStartForm() {
+		return startForm;
+	}
+
+	public void setStartForm(boolean startForm) {
+		this.startForm = startForm;
 	}
 
 }

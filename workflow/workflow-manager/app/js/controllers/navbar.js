@@ -47,17 +47,31 @@
                 	$scope.page = {title: 'processes', path: '/process', icon: 'processDefinitions.svg', color: null, disabled: false };
             		$scope.pages.push($scope.page);
             		
-            		$scope.page = {title: 'processesHistory', path: '/history', icon: 'logout.svg', color: null, disabled: false };
+            		if(authProvider.getRoles().indexOf("ROLE_Admin") >= 0 ) {
+            			$scope.page = {title: 'externalForms', path: '/externalForms', icon: 'external.svg', color: "grey", disabled: false };
+            			$scope.pages.push($scope.page);
+            		}else {
+            			$scope.page = {title: 'externalForms', path: '/externalForms', icon: 'external.svg', color: "grey", disabled: true };
+            			$scope.pages.push($scope.page);
+            		}
+            		
+            		$scope.page = {title: 'processesHistory', path: '/history', icon: 'history.svg', color: null, disabled: false };
             		$scope.pages.push($scope.page);
             		
-            		$scope.page = {title: 'pendingTasks', path: '/pending', icon: 'logout.svg', color: 'purple', disabled: false };
+            		$scope.page = {title: 'pendingTasks', path: '/pending', icon: 'inbox.svg', color: 'purple', disabled: false };
             		$scope.pages.push($scope.page);
             		
             		$scope.page = {title: 'userActivity', path: '/activity', icon: 'activity.svg', color: 'purple', disabled: false };
             		$scope.pages.push($scope.page);
+          
+            		if(authProvider.getRoles().indexOf("ROLE_Admin") >= 0 ){
+            			$scope.page = {title: 'settings', path: '/settings', icon: 'settings.svg', color: 'grey', disabled: false };
+                		$scope.pages.push($scope.page);	
+            		}else{
+            			$scope.page = {title: 'settings', path: '/settings', icon: 'settings.svg', color: 'grey', disabled: true };
+                		$scope.pages.push($scope.page);	
+            		}
             		
-            		$scope.page = {title: 'settings', path: '/settings', icon: 'settings.svg', color: 'grey', disabled: false };
-            		$scope.pages.push($scope.page);
                 };
                 
 

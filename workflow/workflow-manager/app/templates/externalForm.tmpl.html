@@ -1,0 +1,76 @@
+<md-dialog aria-label="{{ 'addExternalForm' | translate }}" style="width:500px">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>{{ 'addExternalForm' | translate }}</h2>
+			
+			<span flex></span>
+			
+			<md-button class="md-icon-button" ng-click="cancel()">
+				<md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+	
+	<md-dialog-content layout-padding>
+		<section layout="column">
+			<form name="externalForm">
+			
+				<md-input-container class="md-block">
+					<label for="xFormId">{{ 'exernalFormId' | translate }}</label>
+					<input id="xFormId" ng-model="extForm.formId" ng-required="true" md-maxlength="150">
+				</md-input-container>
+				
+				<md-input-container class="md-block">
+					<label for="titleTemplate">{{ 'externalFormTitleTemplate' | translate }}</label>
+					<textarea id="titleTemplate" ng-model="extForm.titleTemplate" rows="2" ng-required="true" md-maxlength="250"></textarea>
+				</md-input-container>
+				
+				<md-input-container class="md-block">
+					<label for="selectDefinition">{{ 'process' | translate }}</label>
+					<md-select id="selectDefinition" ng-model="extForm.workflowDefinitionId" ng-required="true" ng-change="getSupervisorsByProcess()">
+						<md-option ng-repeat="process in processes" ng-value="process.id">{{process.name}}</md-option>
+					</md-select>
+				</md-input-container>
+				
+				<md-input-container class="md-block">
+					<label for="selectSupervisor">{{ 'supervisor' | translate }}</label>
+					<md-select id="selectSupervisor" ng-model="extForm.supervisor" ng-required="true" ng-disabled="!extForm.workflowDefinitionId">
+						<md-option ng-repeat="supervisor in supervisors" ng-value="supervisor.email">{{supervisor.email}}</md-option>
+					</md-select>
+				</md-input-container>
+				
+				<md-input-container class="md-block">
+					<label for="selectGroup">{{ 'groupName' | translate }}</label>
+					<md-select id="selectGroup" ng-model="extForm.formExternalGroup.groupId">
+						<md-option ng-value="">{{ 'none' | translate }}</md-option>
+						<md-option ng-repeat="group in groups" ng-value="group.groupId" ng-if="group.name !== '!empty!' && createFromGroup == false">{{group.name}}</md-option>
+						<md-option ng-if="createFromGroup == true" ng-value="group.groupId" ng-selected="group.groupId">{{group.name}}</md-option>
+					</md-select>
+				</md-input-container>
+				
+				<md-input-container class="md-block">
+					 <md-checkbox ng-model="extForm.mobileEnabled" aria-label="Mobile enabled">{{ 'mobileEnabled' | translate }}</md-checkbox>
+				</md-input-container>
+				
+				<md-input-container class="md-block">
+					 <md-checkbox ng-model="extForm.enabled" aria-label="Enabled">{{ 'femaleEnabled' | translate }}</md-checkbox>
+				</md-input-container>
+				
+<!-- 				<md-input-container class="md-block"> -->
+<!-- 					<label for="selectOrder">{{ 'groupOrder' | translate }}</label> -->
+<!-- 					<input id="selectOrder" ng-model="extForm.externalFormOrder"></input> -->
+<!-- 				</md-input-container> -->
+
+			</form>
+		</section>
+		
+		<md-divider></md-divider>
+	</md-dialog-content>
+	
+	<md-dialog-actions layout="row" layout-align="left center" style="padding-left: 0px;">
+		<md-button class="md-raised md-primary" ng-click="save()" ng-disabled="!externalForm.$valid">{{ 'confirm' | translate }}</md-button>
+		<md-button class="md-raised" ng-click="cancel()">{{ 'close' | translate }}</md-button>
+		<md-button class="md-raised md-warn" ng-click="deleteExtForm()" ng-if="!isNew">{{ 'delete' | translate }}</md-button>
+	</md-dialog-actions>
+        
+</md-dialog>

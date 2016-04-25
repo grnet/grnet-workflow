@@ -1,4 +1,4 @@
-<md-dialog aria-label="{{ 'editExternalForm' | translate }}" ng-style="{'min-width': '200px'}">
+<md-dialog aria-label="{{ 'editExternalForm' | translate }}" ng-style="{'min-width': '400px'}">
 
 	<md-toolbar>
 		<div class="md-toolbar-tools">
@@ -16,23 +16,23 @@
         		<ng-form name="externalForm-Form">
  				
  					<section layout="row" flex>
-	        			<md-input-container>
+	        			<md-input-container style="min-width: 400px;">
 	                         <label for="xFormId">{{ 'exernalFormId' | translate }}</label>
-	                         <input id="xFormId" ng-model="xform.id" readonly>
+	                         <input id="xFormId" ng-model="xform.formId" readonly>
 	                    </md-input-container>
  					</section>
  					
- 					<section layout="row" flex>
+ 					<section layout="row" flex style="min-width: 400px;">
 	         			<md-input-container>
 	                         <label for="titleTemplate">{{ 'externalFormTitleTemplate' | translate }}</label>
-	                         <input id="titleTemplate" ng-model="xform.titleTemplate">
+	                         <textarea id="titleTemplate" ng-model="xform.titleTemplate" rows="2" style="min-width: 400px;"></textarea>
 	                    </md-input-container>       
                     </section>		
                     
-                    <section layout="row" flex>
+                    <section layout="row" flex style="min-width: 400px;">
                     	<md-input-container>
                     		<label for="selectSupervisor">{{ 'supervisor' | translate }}</label>
-	                    	<md-select id="selectSupervisor" ng-model="xform.supervisor" >
+	                    	<md-select id="selectSupervisor" ng-model="xform.supervisor" style="min-width: 400px;">
 	                    		<md-option ng-repeat="supervisor in supervisors" 
 	                    			ng-value="supervisor.email">{{supervisor.email}}</md-option>
 	                    	</md-select>
@@ -40,11 +40,13 @@
                     </section>
         		</ng-form>
         	</section>
+        	
+        	<md-divider></md-divider>
         </md-dialog-content>
         
         <md-dialog-actions layout="row" layout-align="left center">
         	<md-button class="md-raised md-primary" ng-click="update()">{{ 'confirm' | translate }}</md-button>
-        	<md-button class="md-raised md-warn" ng-click="cancel()">{{ 'cancel' | translate }}</md-button>
+        	<md-button class="md-raised md-warn" ng-click="cancel()">{{ 'close' | translate }}</md-button>
         	<md-button class="md-raised md-warn" ng-click="deleteXForm()">{{ 'delete' | translate }}</md-button>
         </md-dialog-actions>
         

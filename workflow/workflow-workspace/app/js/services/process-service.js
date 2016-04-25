@@ -102,6 +102,13 @@
                 };
                 
                 /**
+                 * Returns all active process definitions
+                 */
+                this.getActiveProcessDefinitions = function (){
+                	return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/active');
+                };
+                
+                /**
                  * Get completed tasks for user for supervisor
                  */
                 this.getCompletedTasks = function () {
@@ -198,7 +205,8 @@
                 			+ instanceTitle + ","
                 			+ after + ","
                 			+ before + ","
-                			+ isSupervisor);
+                			+ isSupervisor
+                	);
                 };
                 
 
@@ -538,6 +546,13 @@
                         + taskId
                         + '/completed'
                     );
+                };
+                
+                /**
+                 * Returns the start event form by selected instance
+                 */
+                this.getStartEventForm = function (instanceId){
+                	 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/instance/' + instanceId + '/startform' );
                 };
                 
                 /**

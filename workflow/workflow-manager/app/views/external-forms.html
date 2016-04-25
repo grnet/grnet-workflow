@@ -1,0 +1,66 @@
+<section layout="column">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			
+			<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
+				<md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+			</md-button>
+			
+			<md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
+			
+			<div hide-sm layout-padding>
+				<h1 class="md-title application-title">workflow::manager</h1>
+				<h2 class="md-subhead page-title">{{'externalForms' | translate }}</h2>
+			</div>
+			
+			<span flex></span>
+			
+			<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="addNewGroup($event)">
+				<md-icon md-svg-src="img/icons/groups.svg"></md-icon>
+			</md-button>
+			
+			<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="createExtForm($event)">
+				<md-icon md-svg-src="img/icons/add.svg"></md-icon>
+			</md-button>
+			
+		</div>
+	</md-toolbar>
+	
+	<section layout="column">
+		<div ng-repeat="group in groups" >
+		
+			<div layout="row" ng-if="group.name !== '!empty!'">
+			
+				<md-subheader class="md-primary">{{group.name}}</md-subheader>
+					
+				<md-button class="md-icon-button" aria-label="Delet group" ng-click="deleteGroup($event, group.groupId)" ng-if="!wrappedGroups[group.name][0].titleTemplate">
+					<md-icon md-svg-src="img/icons/delete.svg"></md-icon>
+				</md-button>
+				
+				<md-button class="md-icon-button" aria-label="Create new form" ng-click="createExtForm($event, group)">
+					<md-icon md-svg-src="img/icons/add.svg"></md-icon>
+				</md-button>
+				
+				<md-button class="md-icon-button" aria-label="Edit group" ng-click="editGroup($event, group)">
+					<md-icon md-svg-src="img/icons/pencil.svg"></md-icon>
+				</md-button>
+				
+			</div>
+
+			<md-list>
+				<md-card ng-if="form.titleTemplate" ng-repeat="form in wrappedGroups[group.name]">
+					<md-list-item class="md-2-line" ng-click="editForm($event, form)">
+						<img ng-src="{{imagePath + form.icon}}" class="md-avatar"/>
+						<div class="md-list-item-text">
+							<span>
+								<p style="display:inline;">{{form.titleTemplate}}</p>
+								<md-icon ng-if="form.mobileEnabled" md-svg-src="img/icons/mobile.svg" aria-label="form.titleTemplate"></md-icon>
+								<md-icon ng-if="!form.enabled" md-svg-src="img/icons/status/powered-off.svg" aria-label="form.titleTemplate"></md-icon>
+							</span>
+						</div>
+					</md-list-item>	
+				</md-card>
+			</md-list>	
+		</div>
+	</section>
+</section>

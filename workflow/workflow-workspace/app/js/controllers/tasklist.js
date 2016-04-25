@@ -22,8 +22,8 @@
     		$scope.claimTasks = [];
             $scope.tasks = [];
             $scope.assignedTasks = [];
-            $scope.unAssignedTasks = null;
-            $scope.taskMapByProcess = {};
+            $scope.unAssignedTasks = {};
+            $scope.taskMapByProcess = [];
             
             $scope.imagePath = config.AVATARS_PATH;
 
@@ -48,23 +48,7 @@
                 },
                 // error callback
                 function (response) {
-                	$mdDialog.show({
-                		controller: function ($scope, $mdDialog, error) {
-                			$scope.error = error;
-                			
-                            $scope.cancel = function () {
-                            	$mdDialog.hide();
-                            };
-                        },
-                        scope: $scope,
-                        preserveScope: true,
-                        templateUrl: 'templates/exception.tmpl.html',
-                        parent: angular.element(document.body),
-                        targetEvent: event,
-                        locals: {
-                        	'error': response.data
-                        }
-                	})
+                	exceptionModal(response);
                 });
             
             //get tasks to be claimed by user
@@ -79,23 +63,7 @@
                     	},
                         // error callback
                         function (response) {
-                        	$mdDialog.show({
-                        		controller: function ($scope, $mdDialog, error) {
-                        			$scope.error = error;
-                        			
-                                    $scope.cancel = function () {
-                                    	$mdDialog.hide();
-                                    };
-                                },
-                                scope: $scope,
-                                preserveScope: true,
-                                templateUrl: 'templates/exception.tmpl.html',
-                                parent: angular.element(document.body),
-                                targetEvent: event,
-                                locals: {
-                                	'error': response.data
-                                }
-                        	})
+                    		exceptionModal(response);
                         });
             
             /**
@@ -113,6 +81,23 @@
             	$scope.assignedTasks = $scope.tasks; 
             	$scope.unAssignedTasks = $scope.claimTasks;                	
             };
+            
+            function exceptionModal(response,event){
+            	$mdDialog.show({
+            		controller: function ($scope, $mdDialog) {
+            			$scope.error = response.data;
+            			
+                        $scope.cancel = function () {
+                        	 $mdDialog.hide();
+                        };
+                    },
+                    
+                    templateUrl: 'templates/exception.tmpl.html',
+                    parent: angular.element(document.body),
+                    targetEvent: event,
+                    clickOutsideToClose: false
+            	})
+            }
         }]
 );
 

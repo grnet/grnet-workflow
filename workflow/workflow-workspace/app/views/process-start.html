@@ -49,16 +49,14 @@
                         	<textarea ng-model="instance.title" ng-required="true"></textarea>
                     	</md-input-container>
                     	
-						<md-input-container class="md-block">
+						<md-input-container class="md-block" style="width: 500px;">
 	        				<label>{{ 'coordinator' | translate }}</label>
 						    <md-select ng-model="instance.supervisor" ng-required="true">
 						        <md-option ng-repeat="supervisor in supervisors" ng-value="supervisor.email">{{supervisor.lastName}} {{supervisor.firstName}}</md-option>
 						    </md-select>
-						    
-						    <nlk-process-form-item ng-repeat="item in process.processForm" ng-model="item" wf-document-path="{{documentPath}}"
-                   				wf-position-center-lat="38.037496" wf-position-center-lng="23.836321">
-                   			</nlk-process-form-item>
 	      				</md-input-container>
+	      				
+	      				<nlk-process-form-item ng-repeat="item in process.processForm" ng-model="item" wf-document-path="{{documentPath}}"></nlk-process-form-item>
 	      				
                     </ng-form>
 					

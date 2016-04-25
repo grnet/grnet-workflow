@@ -1,0 +1,35 @@
+<md-dialog aria-label="{{ 'addNewGroup' | translate }}" ng-style="{'min-width': '400px'}">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2 ng-if="isNew">{{ 'addNewGroup' | translate }}</h2>
+			<h2 ng-if="!isNew">{{ 'editGroup' | translate }}</h2>
+			<span flex></span>
+				<md-button class="md-icon-button" ng-click="cancel()">
+					<md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+				</md-button>
+      	</div>
+   	</md-toolbar>
+   	
+        <md-dialog-content layout-padding>
+        	<ng-form name="externalGroup" >
+        		<section layout="column">
+
+        			<md-input-container class="md-block">
+        				<label for="groupName">{{ 'groupName' | translate }}</label>
+        				<input id="groupName" ng-model="group.name" ng-required="true">
+       				</md-input-container>
+       				
+<!--        				<md-input-container class="md-block"> -->
+<!--        					<label for="groupOrder">{{ 'groupOrder' | translate }}</label> -->
+<!--        					<input id="groupOrder" ng-model="group.orderCode"></input> -->
+<!--    					</md-input-container> -->
+				</section>
+			</ng-form>
+			
+		</md-dialog-content>
+        
+        <md-dialog-actions layout="row" layout-align="left center">
+        	<md-button class="md-raised md-primary" ng-click="save()">{{ 'confirm' | translate }}</md-button>
+        	<md-button class="md-raised" ng-click="cancel()">{{ 'close' | translate }}</md-button>
+        </md-dialog-actions>
+</md-dialog>

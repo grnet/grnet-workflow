@@ -1,3 +1,4 @@
+<div id="fb-root"></div>	
 <section layout="column">
 	<md-toolbar>
 	<div class="md-toolbar-tools">
@@ -8,7 +9,7 @@
 		<md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
 
 		<div hide-sm layout-padding>
-			<h1 class="md-title application-title">workflow::workspace</h1>
+			<h1 class="md-title application-title">workflow::manager</h1>
 			<h2 class="md-subhead page-title">{{'settings' | translate}}</h2>
 		</div>
 
@@ -24,6 +25,7 @@
 	<md-tabs md-dynamic-height md-border-bottom> 
 		<md-tab label="{{'generalSettings' | translate}}" md-on-select="onTabSelected('generalSettings')">
 			<section layout="column" layout-padding>
+			
 				<md-switch ng-model="settings.autoAssignment">{{'autoAssignment' | translate }}</md-switch>
 				
      			<md-input-container style="width: 200px" class="md-block">
@@ -31,15 +33,27 @@
      				<md-slider id="due-date" flex class="md-primary" md-discrete ng-model="settings.duedateAlertPeriod" 
      					step="1" min="1" max="20" aria-label="due date warning"></md-slider>									
 				</md-input-container>
+				
 				<md-switch ng-model="settings.assignmentNotification">{{'sentAssignNotif' | translate }}</md-switch>
+				
+				<section layout="row" >
+					<md-button class="md-raised" ng-click="facebookLogin()" arial-label="facebook-login">{{'facebookConnectOption' | translate }}</md-button>
+					<md-input-container class="md-block">
+                    	<label for="facebookPageName">{{'facebookPageName' | translate }}</label>
+                    	<input id="facebookPageName" ng-model="facebookPage">
+                	</md-input-container>
+                </section>
+                	
 			</section>
 			
 			<md-divider></md-divider>
-			
+
 			<div class="md-actions" layout="row" layout-align="start center" style="margin-top: 10px">
 				<md-button class="md-raised md-primary" ng-click="settingsChanged()" arial-label="save">{{'save' | translate }}</md-button>
-				<md-button class="md-raised" ng-click="back()" arial-label="back">{{'back' | translate }}</md-button>
+				<md-button class="md-raised" ng-click="back()" arial-label="back">{{'back' | translate }}</md-button>			
 			</div>
+			
+			
 			
 		</md-tab> 
 		<md-tab label="{{'numbering' | translate }}" md-on-select="onTabSelected('numbering')">
@@ -50,7 +64,7 @@
         	<md-content flex class="mainList" layout-padding ng-style="{position: 'relative'}" >
         		<md-list>
         			<md-card ng-repeat="registry in registries">
-        				<md-list-item class="md-1-line" ng-click="editRegistry(registry)">
+        				<md-list-item class="md-1-line" ng-click="editRegistry(registry, $event)">
 							<div class="md-list-item-text" layout="column">
 							<p>
 						 		<span class="md-body-1">{{'code' | translate}} : {{registry.id}}</span>

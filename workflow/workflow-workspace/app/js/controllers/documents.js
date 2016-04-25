@@ -20,7 +20,7 @@
                 var taskId = $routeParams['taskId'];
                 
                 $scope.documents = null;
-                
+                                
                 $scope.documentPath = config.WORKFLOW_DOCUMENTS_URL;
                 
                 // get the process instance docuemnts
@@ -39,6 +39,13 @@
                 $scope.back = function() {
                 	
                 	$location.path('/' + pageId + '/' + taskId);
+                };
+                
+                $scope.getDateString = function (time) {
+                    
+                	var date = new Date(time);
+                	
+                	return date.toLocaleString();
                 };
             }]
     );

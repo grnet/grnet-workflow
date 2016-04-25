@@ -1,6 +1,7 @@
 package gr.cyberstream.workflow.engine.model.api;
 
 import java.util.Date;
+import java.util.List;
 
 public class WfDocument {
 
@@ -11,6 +12,8 @@ public class WfDocument {
 	private String authorId;
 	private Date submittedDate;
 	private String refNo;
+	
+	private List<WfDocument> versions;
 	
 	public String getTitle() {
 		return title;
@@ -53,5 +56,11 @@ public class WfDocument {
 	}
 	public void setAuthorId(String authorId) {
 		this.authorId = authorId;
+	}
+	public List<WfDocument> getVersions() {
+		return versions;
+	}
+	public void setVersions(List<WfDocument> versions) {
+		this.versions = versions;
 	}
 }

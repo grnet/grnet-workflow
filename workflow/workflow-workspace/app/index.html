@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>GRNET.workflow-workspace</title>
-
+    
     <link rel="stylesheet" href="css/lib.css"/>
     <link rel="stylesheet" href="css/main.css"/>
-   <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400 italic"> --> 
-   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700,400italic&subset=latin,greek">
+    <link rel="stylesheet" href="css/material-datetimepicker.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700,400italic&subset=latin,greek">
 
     <style type="text/css">
         [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak {
@@ -24,7 +24,7 @@
 <div layout="row" flex>
 
     <!-- Navigation Menu ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-    <md-sidenav id="navbar" flex="24" class="md-sidenav-left md-whiteframe-z2 ng-cloak" md-component-id="navbar" md-is-locked-open="$mdMedia('gt-md')" ng-cloak>
+    <md-sidenav id="navbar" flex="24" class="md-sidenav-left md-whiteframe-z2 ng-cloak" md-component-id="navbar" md-is-locked-open="$mdMedia('gt-md')" ng-cloak ng-if="!isPrint">
 
         <md-content layout-padding>
             <md-list flex>
@@ -74,8 +74,13 @@
 <script src="js/controllers/task-completed-list.js"></script>
 <script src="js/controllers/task-completed-details.js"></script>
 <script src="js/controllers/task-activity-list.js"></script>
+<script type="text/javascript" src="js/directives/print-form-item.js"></script>
+<script type="text/javascript" src="directives/wfPositionPrint/wfPositionPrint.js"></script>
+<script type="text/javascript" src="js/controllers/print-start-form.js"></script>
 <script type="text/javascript" src="js/angular-translate.min.js"></script>
 <script type="text/javascript" src="js/angular-translate-loader-static-files.js"></script>
+<script type="text/javascript" src="js/moment.js"></script>
+<script type="text/javascript" src="js/angular-material-datetimepicker.min.js"></script>
 
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCtmaS-D4KkoCa7VQIXlyveZh8Ls6XSDD8">
 </script>

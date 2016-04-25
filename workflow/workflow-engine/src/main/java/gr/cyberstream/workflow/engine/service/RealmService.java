@@ -149,7 +149,7 @@ public class RealmService {
 			ResponseEntity<UserRepresentation[]> response = restTemplate.exchange(uri, HttpMethod.GET, entity, UserRepresentation[].class);
 			
 			for (UserRepresentation user : response.getBody()) {
-				users.add(new WfUser(user.getId(), user.getUsername(), user.getFirstName(), user.getLastName(),user.getEmail(), user.getGroups(), getUserGroups()));
+				users.add(new WfUser(user.getId(), user.getUsername(), user.getFirstName(), user.getLastName(), user.getEmail(), user.getGroups(), user.getRealmRoles()));
 			}
 			
 		} catch (HttpClientErrorException e) {
@@ -181,7 +181,11 @@ public class RealmService {
 			
 			GroupRepresentation group = groupResponse.getBody();
 			
-			URI uri = KeycloakUriBuilder.fromUri(keycloakServer + "/admin/realms/{realm}/groups/{id}/members").build(keycloakRealm, group.getId());
+			//for keycloak version 1.8.1.Final
+			URI uri = KeycloakUriBuilder.fromUri(keycloakServer + "/admin/realms/{realm}/groups/{id}/members?first=0&max=10&").build(keycloakRealm, group.getId());
+			
+			//for keycloak version 1.8.1.Final and later
+			//URI uri = KeycloakUriBuilder.fromUri(keycloakServer + "/admin/realms/{realm}/groups/{id}/members").build(keycloakRealm, group.getId());
 			
 			ResponseEntity<UserRepresentation[]> response = restTemplate.exchange(uri, HttpMethod.GET, entity, UserRepresentation[].class);
 			

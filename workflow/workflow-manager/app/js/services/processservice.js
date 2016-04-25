@@ -38,7 +38,25 @@
 			    this.getGroups = function () {
 			        return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/group');
 			    };
-
+			    
+			    /**
+		    	 * Returns user groups from realm
+		    	 * 
+		    	 * @name RealmService#getUserGroups
+		    	 */
+			
+			    this.getUserGroups = function () {
+			        return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/user/group');
+			    };
+			    
+			    /**
+			     * Creates an user task form element and then saves it
+			     */
+			    this.saveTaskFormElement = function (formItem, taskDefinitionKey, definitionVersion){
+			    	
+			    	return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/process/' + encodeURIComponent(definitionVersion) + '/task/' + taskDefinitionKey + '/formelement' , formItem);
+			    };
+			    
                 /**
                  * Creates a new process version
                  * @param {number} processId
@@ -105,6 +123,22 @@
                     );
                 };
                 
+//                /**
+//                 * Return a promise object for the list of processes by selected owners (workflow definition)
+//                 * @return {HttpPromise}
+//                 *
+//                 * @name ProcessService#getProcessesByOwners
+//                 */
+//                this.getProcessesByOwners = function (selectedOwners) {
+//                	
+//                	if(selectedOwners.length == 0){
+//                		return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/filter/all');
+//                	}else{
+//                		return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/filter/owners;owners=' + encodeURIComponent(selectedOwners));
+//                	}
+//                	
+//                };
+                
                 /**
                  * Return a promise object for the list of processes by selected owners (workflow definition)
                  * @return {HttpPromise}
@@ -112,13 +146,7 @@
                  * @name ProcessService#getProcessesByOwners
                  */
                 this.getProcessesByOwners = function (selectedOwners) {
-                	
-                	if(selectedOwners.length == 0){
-                		return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/filter/all');
-                	}else{
-                		return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/filter/owners;owners=' + selectedOwners );
-                	}
-                	
+                	return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/filter?owners=' + encodeURIComponent(selectedOwners));
                 };
 
                 /**
@@ -187,6 +215,17 @@
                         + taskId
                     );
                 };
+                
+                /**
+                 * Returns a task by task definition key
+                 * 
+                 * @param {String} taskDefinitionKey
+                 * @param {String} processId
+                 */
+                this.getTaskFormProperties = function (taskDefinitionKey,processId){
+                	
+                	 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/taskdefinition/' + taskDefinitionKey + '/process/' + processId );
+                }
                 
                 this.getCompletedTask = function (taskId) {
                     return $http.get(config.WORKFLOW_SERVICE_ENTRY
@@ -459,8 +498,21 @@
                 			+ "/"
                 			+ action
                 	);
-                };                
-                             
+                };   
+                
+                
+                
+                
+                /**
+                 * Post facebook access token to server
+                 */
+                this.postAccessToken=function(fbResponse){
+                	//alert(fbResponse.userID + ', ' + fbResponse.accessToken);                	
+                	return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/facebook', fbResponse);
+                };
+
+                
+                
                 
                 /**
                  * Returns a promise object for the list of workflow instances
@@ -472,6 +524,56 @@
                     		+'/instance'
                     );
                 };
+                
+                /**
+                 * Delete a process instance by id
+                 */
+                this.deleteProcessInstance = function(instanceId) {
+                	return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/delete/completed/instance/' + instanceId);
+                };
+                
+                /**
+                 * Get groups/forms wrapped
+                 */
+                this.getGroupsFormsWrapped = function() {
+                	return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/external/groups/forms/wrapped');
+                };
+                
+                /**
+                 * Creates new external group
+                 */
+                this.createExternalGroup = function(externalGroup) {
+                	return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/external/group/create', externalGroup);
+                };
+                
+                /**
+                 * Gets all available groups
+                 */
+                this.getExternalGroups = function() {
+                	return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/external/groups');
+                };
+                
+                /**
+                 * Deletes a public group
+                 */
+                this.deletePublicGroup = function(groupId) {
+                	return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/form/delete/group/' + groupId);		
+                };
+                
+                /**
+                 * Edits public group
+                 */
+                this.editPublicGroup = function(group) {
+                	return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/form/update/group', group);	
+                };
+                
+                /**
+                 * Gets supervisors by process id
+                 */
+                this.getSupervisorsByProcessId = function(processId) {
+                	return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/supervisors/process/' + processId);
+                };
+                
             }]
     );
 })(angular);

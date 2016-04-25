@@ -9,9 +9,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import gr.cyberstream.workflow.engine.model.DefinitionVersion;
 import gr.cyberstream.workflow.engine.model.ExternalForm;
+import gr.cyberstream.workflow.engine.model.ExternalGroup;
+import gr.cyberstream.workflow.engine.model.ExternalWrapper;
 import gr.cyberstream.workflow.engine.model.Registry;
 import gr.cyberstream.workflow.engine.model.TaskPath;
 import gr.cyberstream.workflow.engine.model.UserTaskDetails;
+import gr.cyberstream.workflow.engine.model.UserTaskFormElement;
 import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
 import gr.cyberstream.workflow.engine.model.WorkflowInstance;
 import gr.cyberstream.workflow.engine.model.WorkflowSettings;
@@ -30,6 +33,13 @@ public interface Processes {
 	 * @return list containing the processes
 	 */
 	public List<WorkflowDefinition> getAll();
+	
+	/**
+	 * Returns all active process definitions
+	 * 
+	 * @return
+	 */
+	public List<WorkflowDefinition> getActiveProcessDefintions();
 
 	/**
 	 * Saves the new process definition
@@ -146,7 +156,23 @@ public interface Processes {
 	 * @return
 	 */
 	public List<UserTaskDetails> getVersionTaskDetails(int versionId);
-
+	
+	/**
+	 * Saves a new UserTaskFormElement
+	 * 
+	 * @param taskFormElement
+	 * @return
+	 */
+	public UserTaskFormElement save(UserTaskFormElement taskFormElement);
+	
+	/**
+	 * Returns a list of user task form elements by element id
+	 * 
+	 * @param taskDefinitionKey
+	 * @return
+	 */
+	public List<UserTaskFormElement> getUserTaskFormElements(String elementId, int userTaskDetailId);
+	
 	/**
 	 * 
 	 * @param definition
@@ -214,6 +240,15 @@ public interface Processes {
 	 * @return
 	 */
 	public List<UserTaskDetails> getUserTaskDetailsByDefinitionKey(String key, int definitionId);
+	
+	/**
+	 * Returns task details for a task
+	 * 
+	 * @param key
+	 * @param definitionId
+	 * @return
+	 */
+	public UserTaskDetails getUserTaskDetailByDefinitionKey(String key, String definitionVersionKey);
 	
 	/**
 	 * Returns a WorkfloDefinition entity with the specified processDefinitionId
@@ -344,4 +379,118 @@ public interface Processes {
 	 * @return
 	 */
 	public List<WorkflowDefinition> getDefinitionsByOwners(List<String> owners); 
+	
+	/**
+	 * Return process instance by reference id
+	 * 
+	 * @param referenceId
+	 * @return
+	 */
+	public WorkflowInstance getInstanceByReferenceId(String referenceId);
+
+	/**
+	 * Return a list of task form elements by definition version and task detail
+	 * 
+	 * @param definitionVersion
+	 * @param elementId
+	 * @return
+	 */
+	public List<UserTaskFormElement> getUserTaskFromElements(String definitionVersion, int taskDetailId);
+	
+	/**
+	 * 
+	 * @param definitionVersion
+	 * @param taskDetailId
+	 * @param elementId
+	 * @return
+	 */
+	public UserTaskFormElement getUserTaskFromElement(String definitionVersion, String taskDefintionKey, String elementId);
+	
+	/**
+	 * Returns a workflow instance by defintion version id
+	 * 
+	 * @param id
+	 */
+	public List<WorkflowInstance> getInstancesByDefinitionVersionId(int id);
+	
+	/**
+	 * Returns a list with all available external forms
+	 * 
+	 * @return
+	 */
+	public List<ExternalForm> getExternalForms();
+	
+	/**
+	 * Deletes an instance by instance id
+	 * @param instanceId
+	 */
+	public void deleteProcessInstance(String instanceId);
+	
+	/**
+	 * Get external groups ordered by order
+	 * 
+	 * @return
+	 */
+	public List<ExternalWrapper> getExternalFormsGroupsWrapped();
+	
+	/**
+	 * Get external forms by group id 
+	 * 
+	 * @param groupId
+	 * @return
+	 */
+	public List<ExternalForm> getExternalFormsByGroup(int groupId);
+	
+	/**
+	 * Creates new external group
+	 * 
+	 * @param externalGroup
+	 * @return
+	 */
+	public ExternalGroup createExternalGroup(ExternalGroup externalGroup);
+
+	/**
+	 * Checks if group name already exists
+	 * @param groupName
+	 * @return
+	 */
+	public Long checkIfExternalGroup(String groupName);
+	
+	/**
+	 * Get all available groups
+	 * 
+	 * @return
+	 */
+	public List<ExternalGroup> getExternalGroups();
+	
+	/**
+	 * Deletes a public group
+	 * 
+	 * @param groupId
+	 */
+	public void deletePublicGroup(int groupId);
+	
+	/**
+	 * Returns an external group by id
+	 * 
+	 * @param groupId
+	 * @return
+	 */
+	public ExternalGroup getExternalGroupById(int groupId);
+	
+	/**
+	 * Checks if public group has public forms
+	 * 
+	 * @param groupId
+	 * @return
+	 */
+	public Long checkIfPublicGroupHasForms(int groupId);
+	
+	/**
+	 * Updates an external group
+	 * 
+	 * @param externalGroup
+	 * @return
+	 */
+	public ExternalGroup updatePublicGroup(ExternalGroup externalGroup);
 }

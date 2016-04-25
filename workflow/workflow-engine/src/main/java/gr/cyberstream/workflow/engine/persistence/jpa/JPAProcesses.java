@@ -3,6 +3,7 @@
  */
 package gr.cyberstream.workflow.engine.persistence.jpa;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -15,9 +16,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import gr.cyberstream.workflow.engine.model.DefinitionVersion;
 import gr.cyberstream.workflow.engine.model.ExternalForm;
+import gr.cyberstream.workflow.engine.model.ExternalGroup;
+import gr.cyberstream.workflow.engine.model.ExternalWrapper;
 import gr.cyberstream.workflow.engine.model.Registry;
 import gr.cyberstream.workflow.engine.model.TaskPath;
 import gr.cyberstream.workflow.engine.model.UserTaskDetails;
+import gr.cyberstream.workflow.engine.model.UserTaskFormElement;
 import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
 import gr.cyberstream.workflow.engine.model.WorkflowInstance;
 import gr.cyberstream.workflow.engine.model.WorkflowSettings;
@@ -44,6 +48,12 @@ public class JPAProcesses implements Processes {
 	public List<WorkflowDefinition> getAll() {
 		return entityManager.createQuery("select p from WorkflowDefinition p", WorkflowDefinition.class)
 				.getResultList();
+	}
+	
+	@Override
+	public List<WorkflowDefinition> getActiveProcessDefintions() {
+		return entityManager.createQuery("select p from WorkflowDefinition p "
+				+ "where p.activeDeploymentId != ''", WorkflowDefinition.class).getResultList();
 	}
 
 	/**
@@ -235,8 +245,8 @@ public class JPAProcesses implements Processes {
 				"select v from DefinitionVersion v where v.id = :id", DefinitionVersion.class);
 		return query.setParameter("id", versionId).getSingleResult();
 	}
+
 	
-	//TODO:vpap
 	@Override
 	@Transactional
 	public List<UserTaskDetails> getVersionTaskDetails(int versionId) {
@@ -527,5 +537,198 @@ public class JPAProcesses implements Processes {
 		query.setParameter("registryId", registryId);
 		return query.getSingleResult();
 	}
+
+	@Override
+	public UserTaskFormElement save(UserTaskFormElement taskFormElement) {
+		
+		if (entityManager.contains(taskFormElement))
+			entityManager.persist(taskFormElement);
+		 else 
+			taskFormElement = entityManager.merge(taskFormElement);
+		
+		return taskFormElement;
+	}
 	
+
+	@Override
+	public List<UserTaskFormElement> getUserTaskFormElements(String elementId, int userTaskDetailId) {
+		TypedQuery<UserTaskFormElement> query = entityManager.createQuery(
+				"select elem from UserTaskFormElement elem where elem.elementId = :elementId "
+				+ "and elem.userTaskDetail.id = :userTaskDetailId", UserTaskFormElement.class);
+		
+		query.setParameter("elementId", elementId);
+		query.setParameter("userTaskDetailId", userTaskDetailId);
+		
+		return query.getResultList();
+	}
+
+	@Override
+	public WorkflowInstance getInstanceByReferenceId(String referenceId) {
+		TypedQuery<WorkflowInstance> query = entityManager.createQuery(
+				"select inst from WorkflowInstance inst where inst.reference = :referenceId", WorkflowInstance.class);
+		query.setParameter("referenceId", referenceId);
+		return query.getSingleResult();
+	}
+
+	@Override
+	public List<UserTaskFormElement> getUserTaskFromElements(String definitionVersion, int taskDetailId) {
+		TypedQuery<UserTaskFormElement> query = entityManager.
+				createQuery("select elem from UserTaskFormElement elem "
+						+ "inner join elem.userTaskDetail as det "
+						+ "inner join det.definitionVersion as ver "
+						+ "where ver.processDefinitionId = :definitionVersion "
+						+ "and elem.userTaskDetail.id = :taskDetailId", UserTaskFormElement.class);
+		
+		query.setParameter("definitionVersion", definitionVersion);
+		query.setParameter("taskDetailId", taskDetailId);
+		return query.getResultList();
+	}
+	
+	@Override
+	public UserTaskFormElement getUserTaskFromElement(String definitionVersion, String taskDefintionKey ,String elementId) {
+		
+		TypedQuery<UserTaskFormElement> query = entityManager.
+				createQuery("select elem from UserTaskFormElement elem "
+						+ "inner join elem.userTaskDetail as det "
+						+ "inner join det.definitionVersion as ver "
+						+ "where ver.processDefinitionId = :definitionVersion "
+						+ "and det.taskId = :taskId "
+						+ "and elem.elementId = :elementId", UserTaskFormElement.class);
+		
+		query.setParameter("definitionVersion", definitionVersion);
+		query.setParameter("elementId", elementId);
+		query.setParameter("taskId", taskDefintionKey);
+		return query.getSingleResult();
+	}
+
+	@Override
+	public UserTaskDetails getUserTaskDetailByDefinitionKey(String key, String definitionVersionKey) {
+		
+		TypedQuery <UserTaskDetails> query = entityManager.createQuery(
+				"select det from UserTaskDetails det where det.taskId = :key "
+				+ "and det.definitionVersion.processDefinitionId = :definitionVersionKey", UserTaskDetails.class);
+		
+		query.setParameter("key", key);
+		query.setParameter("definitionVersionKey", definitionVersionKey);
+		
+		return query.getSingleResult();
+	}
+
+	@Override
+	public List<WorkflowInstance> getInstancesByDefinitionVersionId(int id) {
+		TypedQuery<WorkflowInstance> query = entityManager.createQuery(
+				"select inst from WorkflowInstance inst where inst.definitionVersion.id = :definitionVersionId", WorkflowInstance.class);
+		query.setParameter("definitionVersionId", id);
+		return query.getResultList();
+	}
+
+	@Override
+	public List<ExternalForm> getExternalForms() {
+		TypedQuery<ExternalForm> query = entityManager.createQuery("select form from ExternalForm form", ExternalForm.class);
+		return query.getResultList();
+	}
+
+	@Override
+	@Transactional
+	public void deleteProcessInstance(String instanceId) {
+		Query query = entityManager.createQuery("delete from WorkflowInstance inst where inst.id = :instanceId");
+		query.setParameter("instanceId", instanceId);
+	}
+
+	@Override
+	public List<ExternalWrapper> getExternalFormsGroupsWrapped() {
+		List<ExternalWrapper> returnList = new ArrayList<>();
+		
+		TypedQuery<ExternalWrapper> groupsOnly = entityManager.createQuery("SELECT new gr.cyberstream.workflow.engine.model.ExternalWrapper(exGroup) "
+				+ "from ExternalGroup as exGroup where not exists (select extForm from ExternalForm extForm where extForm.externalGroup = exGroup)",
+				ExternalWrapper.class);
+		
+		TypedQuery<ExternalWrapper> formsOnly = entityManager.createQuery("SELECT new gr.cyberstream.workflow.engine.model.ExternalWrapper(form) "
+				+ "from ExternalForm as form where not exists (select exGroup from ExternalGroup exGroup where exGroup = form.externalGroup)",
+				ExternalWrapper.class);
+		
+		TypedQuery<ExternalWrapper> groupsWithForms = entityManager.createQuery("SELECT new gr.cyberstream.workflow.engine.model.ExternalWrapper(form, form.externalGroup) "
+				+ "from ExternalForm as form ",
+				ExternalWrapper.class);
+		
+		returnList = groupsOnly.getResultList();
+		returnList.addAll(formsOnly.getResultList());
+		returnList.addAll(groupsWithForms.getResultList());
+		
+		return returnList;
+	}
+
+	@Override
+	public List<ExternalForm> getExternalFormsByGroup(int groupId) {
+		TypedQuery<ExternalForm> query = entityManager.createQuery("select form from ExternalForm form where form.externalGroup.id = :groupId", ExternalForm.class);
+		query.setParameter("groupId", groupId);
+		return query.getResultList();
+	}
+
+	@Override
+	@Transactional
+	public ExternalGroup createExternalGroup(ExternalGroup externalGroup) {
+		
+		externalGroup = entityManager.merge(externalGroup);
+		
+		return externalGroup;
+	}
+	
+	@Override
+	public Long checkIfExternalGroup(String groupName) {
+		TypedQuery<Long> query = entityManager.createQuery(
+				"select count(*) from ExternalGroup extGroup where extGroup.name = :groupName", Long.class);
+		query.setParameter("groupName", groupName);
+		
+		return query.getSingleResult();
+	}
+
+	@Override
+	public List<ExternalGroup> getExternalGroups() {
+		TypedQuery<ExternalGroup> query = entityManager.createQuery("select extGroup from ExternalGroup extGroup", ExternalGroup.class);
+		return query.getResultList();
+	}
+
+	@Override
+	@Transactional
+	public void deletePublicGroup(int groupId) {
+		ExternalGroup externalGroup = getExternalGroupById(groupId);
+		
+		if (externalGroup != null) {
+			entityManager.remove(externalGroup);
+		}
+	}
+
+	@Override
+	public ExternalGroup getExternalGroupById(int groupId) {
+		
+		TypedQuery<ExternalGroup> query = entityManager.createQuery("select extGroup from ExternalGroup extGroup "
+				+ "where extGroup.id = :groupId", ExternalGroup.class);
+		
+		query.setParameter("groupId", groupId);
+		
+		return query.getSingleResult();
+	}
+
+	@Override
+	public Long checkIfPublicGroupHasForms(int groupId) {
+		TypedQuery<Long> query = entityManager.createQuery(
+				"select count(*) from ExternalForm extForm where extForm.externalGroup.id = :groupId", Long.class);
+		query.setParameter("groupId", groupId);
+
+		return query.getSingleResult();
+	}
+
+	@Override
+	@Transactional
+	public ExternalGroup updatePublicGroup(ExternalGroup externalGroup) {
+		
+		if(entityManager.contains(externalGroup))
+			entityManager.persist(externalGroup);
+		else
+			entityManager.merge(externalGroup);
+		
+		return externalGroup;
+	}
+
 }

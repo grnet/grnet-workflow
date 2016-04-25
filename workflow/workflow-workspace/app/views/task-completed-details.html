@@ -77,9 +77,15 @@
                     </md-input-container>
                     
                     
-                   <nlk-process-form-item ng-repeat="item in task.taskForm" ng-model="item" wf-document-path="{{documentPath}}" wf-preview="true" ng-if="item.writable"
-                   	wf-position-center-lat="38.037496" wf-position-center-lng="23.836321">
-                   </nlk-process-form-item>
+<!--                    <nlk-process-form-item ng-repeat="item in task.taskForm" ng-model="item"  -->
+<!--                    		wf-document-path="{{documentPath}}" wf-preview="true" ng-if="item.writable"> -->
+<!--                    </nlk-process-form-item> -->
+						
+						<div>
+							<nlk-process-form-item ng-repeat="item in task.taskForm" wf-preview="true" ng-model="item" 
+								wf-document-path="{{documentPath}}" ng-if="item.writable" >
+							</nlk-process-form-item>
+                    	</div>	
                    
                 </md-card-content>
                 

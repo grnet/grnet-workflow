@@ -25,6 +25,8 @@
                 $scope.startDate = null;
                 $scope.dueDate = null;
                 $scope.endDate = null;
+                
+                $scope.documentPath = config.WORKFLOW_DOCUMENTS_URL;
 
                 /**
                  * Returns the difference between due date and current date
