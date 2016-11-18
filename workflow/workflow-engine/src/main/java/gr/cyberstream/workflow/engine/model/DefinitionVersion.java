@@ -1,6 +1,3 @@
-/**
- * @author nlyk
- */
 package gr.cyberstream.workflow.engine.model;
 
 import java.io.Serializable;
@@ -17,12 +14,16 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import gr.cyberstream.workflow.engine.model.api.WfProcessVersion;
 
 /**
  * The persistent class for the DefinitionVersion database table.
+ * 
+ * @author nlyk
  */
 @Entity
 public class DefinitionVersion implements Serializable {
@@ -37,6 +38,7 @@ public class DefinitionVersion implements Serializable {
 	private String deploymentId;
 
 	private Integer version;
+
 	private Date deploymentdate;
 
 	@Column(name = "process_definition_id")
@@ -44,7 +46,7 @@ public class DefinitionVersion implements Serializable {
 
 	private String status;
 
-	@JsonIgnore // is responsible for avoiding JSON convert infinite loop
+	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "workflow_definition_id")
 	private WorkflowDefinition workflowDefinition;
@@ -52,18 +54,28 @@ public class DefinitionVersion implements Serializable {
 	@OneToMany(mappedBy = "definitionVersion", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<UserTaskDetails> tasks;
 
+	/**
+	 * Default constructor
+	 */
 	public DefinitionVersion() {
+
 	}
 
-	public void updateFrom(WfProcessVersion version) {
-		this.setDeploymentId(version.getDeploymentId());
-		this.setDeploymentdate(version.getDeploymentdate());
-		this.setProcessDefinitionId(version.getProcessDefinitionId());
-		this.setStatus(version.getStatus());
+	/**
+	 * A copy constructor using a {@link WfProcessVersion} object
+	 * 
+	 * @param wfProcessVersion
+	 *            {@link WfProcessVersion} to be converted
+	 */
+	public void updateFrom(WfProcessVersion wfProcessVersion) {
+		this.deploymentId = wfProcessVersion.getDeploymentId();
+		this.deploymentdate = wfProcessVersion.getDeploymentdate();
+		this.processDefinitionId = wfProcessVersion.getProcessDefinitionId();
+		this.status = wfProcessVersion.getStatus();
 	}
 
 	public int getId() {
-		return this.id;
+		return id;
 	}
 
 	public void setId(int id) {
@@ -71,27 +83,11 @@ public class DefinitionVersion implements Serializable {
 	}
 
 	public String getDeploymentId() {
-		return this.deploymentId;
+		return deploymentId;
 	}
 
 	public void setDeploymentId(String deploymentId) {
 		this.deploymentId = deploymentId;
-	}
-
-	public String getStatus() {
-		return this.status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
-	public WorkflowDefinition getWorkflowDefinition() {
-		return workflowDefinition;
-	}
-
-	public void setWorkflowDefinition(WorkflowDefinition workflowDefinition) {
-		this.workflowDefinition = workflowDefinition;
 	}
 
 	public Integer getVersion() {
@@ -118,12 +114,52 @@ public class DefinitionVersion implements Serializable {
 		this.processDefinitionId = processDefinitionId;
 	}
 
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public WorkflowDefinition getWorkflowDefinition() {
+		return workflowDefinition;
+	}
+
+	public void setWorkflowDefinition(WorkflowDefinition workflowDefinition) {
+		this.workflowDefinition = workflowDefinition;
+	}
+
 	public List<UserTaskDetails> getTasks() {
 		return tasks;
 	}
 
 	public void setTasks(List<UserTaskDetails> tasks) {
 		this.tasks = tasks;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		boolean result = false;
+		if (other instanceof DefinitionVersion) {
+			DefinitionVersion that = (DefinitionVersion) other;
+			result = (this.getId() == that.getId());
+		}
+		return result;
+	}
+
+	@Override
+	public int hashCode() {
+		HashCodeBuilder builder = new HashCodeBuilder();
+		builder.append(id);
+		builder.append(deploymentId);
+		builder.append(version);
+		builder.append(deploymentdate);
+		builder.append(processDefinitionId);
+		builder.append(status);
+		builder.append(workflowDefinition);
+		builder.append(tasks);
+		return builder.toHashCode();
 	}
 
 }

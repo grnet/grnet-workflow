@@ -10,7 +10,7 @@ public class WfSettings {
 	private boolean assignmentNotification;
 
 	public WfSettings() {
-		
+
 	}
 
 	public WfSettings(WorkflowSettings settings) {

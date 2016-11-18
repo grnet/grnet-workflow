@@ -1,48 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
-<!-- http://www.codingpedia.org/ama/how-to-log-in-spring-with-slf4j-and-logback/ -->
-<configuration>
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" debug="false">
 
 	<property resource="workflow-engine.properties" />
 	
-	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+	<appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
+		<target>System.err</target>
+		<filter class="gr.cyberstream.workflow.engine.common.ErrOutFilter" />
 		<encoder>
-			<Pattern>%d{HH:mm:ss.SSS} %highlight(%-5level %-45.45logger{36} | %msg) "\n"
-			</Pattern>
+			<charset>UTF-8</charset>
+			<pattern>%-5level %logger{16} - %msg\n</pattern>
 		</encoder>
 	</appender>
 	
-	<!-- Send log messages to a file -->
-	<appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>${log.path}/workflow-engine.log</file>
-		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<Pattern>%d{yyyy-MM-dd_HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<target>System.out</target>
+		<filter class="gr.cyberstream.workflow.engine.common.StdOutFilter" />
+		<encoder>
+			<charset>UTF-8</charset>
+			<pattern>%-5level %logger{16} - %msg\n</pattern>
 		</encoder>
- 
-		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-			<FileNamePattern>workflow-engine.%i.log.zip</FileNamePattern>
-			<MinIndex>1</MinIndex>
-			<MaxIndex>10</MaxIndex>
+	</appender>
+	
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${log.path}/workflow-engine.log</file>
+		<filter class="gr.cyberstream.workflow.engine.common.StdOutFilter" />
+		
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${log.path}/workflow-engine.%d.%i.log.zip</fileNamePattern>
+			<MaxHistory>20</MaxHistory>
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>5MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
 		</rollingPolicy>
- 
-		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-			<MaxFileSize>2MB</MaxFileSize>
-		</triggeringPolicy>
-	</appender>	
-
+		
+		<encoder>
+			<charset>UTF-8</charset>
+			<pattern>%d{yyyy/MM/dd-HH:mm:ss} [%thread] %-5level %logger{35} - %msg%n</pattern>
+		</encoder>
+	</appender>
+	
+	<appender name="ERRORFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="gr.cyberstream.workflow.engine.common.ErrOutFilter" />
+        <file>${log.path}/workflow-engine-error.log</file>
+        
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/workflow-engine-error.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
+        </rollingPolicy>
+        
+        <encoder>
+            <charset>UTF-8</charset>
+			<pattern>%d{yyyy/MM/dd-HH:mm:ss} [%thread] %-5level %logger{35} - %msg%n</pattern>
+        </encoder>
+    </appender>
+	
 	<logger name="gr.cyberstream" additivity="false">
-		<appender-ref ref="console" />
-		<appender-ref ref="file" />
+		<appender-ref ref="STDERR" />
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="FILE" />
+		<appender-ref ref="ERRORFILE" />
 	</logger>
 
-	<logger name="org.springframework" additivity="false">
-		<appender-ref ref="console" />
-		<appender-ref ref="file" />
+	<logger name="org.springframework" level="info" additivity="false">
+		<appender-ref ref="STDERR" />
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="FILE" />
+		<appender-ref ref="ERRORFILE" />
 	</logger>
 	
+	<logger name="org.hibernate" level="info" additivity="false">
+		<appender-ref ref="STDERR" />
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="FILE" />
+		<appender-ref ref="ERRORFILE" />
+	</logger>
+	
+	<!--  
+	<logger name="org.hibernate.SQL" level="warn" additivity="false">
+		<appender-ref ref="STDERR" />
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="FILE" />
+		<appender-ref ref="ERRORFILE" />
+	</logger>
+	-->
+	
+	<!-- 	
+	<logger name="org.springframework.security" level="info" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	 -->
+	 
 	<root level="info">
-		<appender-ref ref="console" />
-		<appender-ref ref="file" />
-	</root> 	
+		<appender-ref ref="STDERR" />
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="FILE" />
+		<appender-ref ref="ERRORFILE" />
+	</root>
 
 </configuration>

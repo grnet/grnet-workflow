@@ -1,957 +1,765 @@
-/**
- * @author nlyk
- */
 (function (angular) {
 
     'use strict';
 
-    angular.module('wfmanagerControllers')
+    angular.module('wfmanagerControllers').controller('ProcessDetailCtrl', ['$scope', '$http', '$routeParams', '$location', '$mdDialog', '$filter', 'processService', 'auth', 'CONFIG',
+        /**
+         * @name ProcessDetailCtrl
+         * @ngDoc controllers
+         * @memberof wfmanagerControllers
+         * 
+         * @desc Controller used in Process details view
+         */
+        function ($scope, $http, $routeParams, $location, $mdDialog, $filter, processService, authProvider, config) {
 
-        .controller('ProcessDetailCtrl',
-        ['$scope', '$http', '$routeParams', '$location', '$mdDialog', '$timeout', '$filter', 'processService', 'auth', 'CONFIG',
+            $scope.processId = $routeParams.processId;
+            $scope.selectedTab = "process";
+            $scope.taskMetadataActiveView = "taskMetadata";
+            $scope.saveFirst = false;
 
             /**
-             * Controller for the Process Details view
-             * @param {object} $scope
-             * @param {$http} $http
-             * @param {$routeParams} $routeParams
-             * @param {$location} $location
-             * @param {$mdDialog} $mdDialog
-             * @param $timeout
-             * @param {ProcessService} processService
-             * @param config
+             * @memberOf ProcessDetailCtrl
+             * @desc Get the workflow definition
              */
-                function ($scope, $http, $routeParams, $location, $mdDialog, $timeout, $filter, processService, authProvider, config) {
+            function getProcess() {
 
-                /** @type {WorkflowDefinition} */
-                $scope.workflowDefinition = null;
-                $scope.processId = $routeParams.processId;
-                $scope.iconName = null;
-                $scope.groups = null;
-                $scope.taskDetails = null;
-                $scope.editTaskDetails = null;
-                $scope.instances = null;
-                $scope.selectedTask = null; 
-                $scope.selectedTab = "process";
-                $scope.userTaskFormElements = [];
-                
-                $scope.taskMetadataActiveView = "taskMetadata";
-                
-                $scope.saveFirst = false; 
-                
+                $scope.progressBar = true;
 
-                function getProcess() {
-                    // get the process data
-                    processService.getProcess($scope.processId)
-                        .then(
+                // get the process data
+                processService.getProcess($scope.processId).then(
+                    // success callback
+                    function (response) {
+                        $scope.workflowDefinition = response.data;
+
+                        // check if definition is new. Therefore needs to be saved first
+                        if ($scope.workflowDefinition.owner == null)
+                            $scope.saveFirst = true;
+
+                        var endIndex = $scope.workflowDefinition.icon.indexOf(".");
+                        $scope.iconName = $scope.workflowDefinition.icon.substring(0, endIndex);
+
+                        if ($scope.workflowDefinition.activeDeploymentId == null) {
+                            var version = response.data.processVersions[0];
+                            $scope.workflowDefinition.activeDeploymentId = version.deploymentId;
+                        }
+
+                        $scope.workflowDefinition.icon = $scope.workflowDefinition.icon || config.DEFAULT_AVATAR;
+
+                        // get groups
+                        getGroups();
+                    }
+
+                ).finally(function () {
+                    $scope.progressBar = false;
+                });
+            };
+
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Get groups based on user's role
+             */
+            function getGroups() {
+                //checking if user has role admin in order to show all groups/owners
+                if (authProvider.getRoles().indexOf("ROLE_Admin") >= 0) {
+                    processService.getGroups().then(
                         // success callback
                         function (response) {
-                            $scope.workflowDefinition = response.data;
-                            
-                            if($scope.workflowDefinition.owner == null){
-                            	$scope.saveFirst = true;
-                            }
-                            
-                            var endIndex = $scope.workflowDefinition.icon.indexOf(".");
-                            $scope.iconName = $scope.workflowDefinition.icon.substring(0, endIndex);
-                            
-                            if($scope.workflowDefinition.activeDeploymentId == null){
-                            	var version = response.data.processVersions[0];
-                            	$scope.workflowDefinition.activeDeploymentId = version.deploymentId;
-                            }
-                            
-                            $scope.workflowDefinition.icon = $scope.workflowDefinition.icon || config.DEFAULT_AVATAR;
+                            $scope.groups = response.data;
+                        }
+                    );
+                    // user is not admin and groups in which belongs will be returned	
+                } else {
+                    processService.getUserGroups().then(
+                        function (response) {
+                            $scope.groups = response.data;
                         }
                     );
                 }
-                
-                getProcess();
+            };
 
-                
-                //checking if user has role admin in order to show all groups/owners
-                if(authProvider.getRoles().indexOf("ROLE_Admin") >= 0){
-                    processService.getGroups().then(
-        	                // success callback
-        	                function (response) {
-        	                	$scope.groups = response.data;
-        	                }
-                        );
-                }else{
-                	processService.getUserGroups().then(
-                			 function (response) {
-         	                	$scope.groups = response.data;
-         	                }
-                	);
-                }
-                
-                
-                processService.getRegistries()
-                .then(
-                // success callback
-                function (response) {
-                	$scope.registries = response.data;
-                	}
-                );
-                
-                
-                /**
-                 * Saves the Process Definition form
-                 */
-                $scope.save = function () {
-                    processService.updateProcess($scope.workflowDefinition)
-                        .then(
-                        // success callback
-                        function (response) {
-                            $scope.workflowDefinition = response.data;
-                            //$scope.redirectTo('/process');
-                            getProcess();
-                            $scope.saveFirst = false; 
-                        },
-                        // error callback
-                        function (response) {
-                        	exceptionModal(response);
-                        });
-                };
+            // get the definition
+            getProcess();
 
-                /**
-                 * Click event Handler for the Delete Process button
-                 * @param {event} event
-                 */
-                $scope.askDeleteProcess = function (event) {
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Saves the Process Definition form
+             */
+            $scope.save = function () {
+                processService.updateProcess($scope.workflowDefinition).then(
+                    // success callback
+                    function (response) {
+                        $scope.saveFirst = false;
+                        $scope.processForm.$setPristine();
+                    },
+                    // error callback
+                    function (response) {
+                        exceptionModal(response);
+                    });
+            };
 
-                    var confirm = $mdDialog.confirm()
-                        .title($filter('translate')('deleteProcess'))
-                        .content($filter('translate')('deleteProcessConf') + " " + $scope.workflowDefinition.name + " ?")
-                        .ariaLabel($filter('translate')('deleteProcess'))
-                        .targetEvent(event)
-                        .ok($filter('translate')('confirm'))
-                        .cancel($filter('translate')('cancel'));
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Deletes the process definition by using a modal panel in order to ask for confirmation from the user
+             * 
+             * @param {event} event
+             */
+            $scope.deleteProcess = function (event) {
 
-                    $mdDialog.show(confirm).then(function () {
-                        processService.deleteProcess($scope.processId)
-                            .then(
-                            // success callback
+                var confirm = $mdDialog.confirm()
+                    .title($filter('translate')('deleteProcess'))
+                    .content($filter('translate')('deleteProcessConf') + " " + $scope.workflowDefinition.name + " ?")
+                    .ariaLabel($filter('translate')('deleteProcess'))
+                    .targetEvent(event)
+                    .ok($filter('translate')('confirm'))
+                    .cancel($filter('translate')('cancel'));
+
+                // show the confirm modal
+                $mdDialog.show(confirm).then(
+                    // confirmed
+                    function () {
+                        processService.deleteProcess($scope.processId).then(
+                            // success delete callback
                             function () {
                                 $location.path('/process');
-                            },
-                            // error callback
-                            function (response) {
-                            	exceptionModal(response);
-                            });
-                    });
-                };
-
-                /**
-                 * Find the active version in the definition versions array
-                 * @return DefinitionVersion
-                 */
-                $scope.findActiveVersion = function () {
-                    if ($scope.workflowDefinition == null) {
-                        return null;
-                    }
-
-                    var versions = $scope.workflowDefinition.processVersions;
-
-                    /** @type {DefinitionVersion} */
-                    var version = null;
-                    for (var index = 0; index < versions.length; index++) {
-                        if (versions[index].deploymentId === $scope.workflowDefinition.activeDeploymentId) {
-                            version = versions[index];
-                            break;
-                        }
-                    }
-
-                    return version;
-                };
-
-                /**
-                 * Click event handler for the delete version button
-                 * @param event
-                 */
-                $scope.askDeleteVersion = function (event) {
-
-                    /** @type {DefinitionVersion} */
-                    var version = $scope.findActiveVersion();
-
-                    if (version === null) {
-                        $mdDialog.show(
-                            $mdDialog.alert()
-                                .parent(document.body)
-                                .clickOutsideToClose(true)
-                                .title($filter('translate')('deleteVersionError'))
-                                .content($filter('translate')('versionNotFound'))
-                                .ariaLabel($filter('translate')('deleteVersionError'))
-                                .ok($filter('translate')('confirm'))
+                            }
+                            // error delete callback
+                            , function (response) {
+                                exceptionModal(response);
+                            }
                         );
-                        return;
                     }
+                );
+            };
 
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Deletes the process definition by using a modal panel in order to ask for confirmation from the user
+             * 
+             * @param {event} event
+             */
+            $scope.askDeleteVersion = function (event) {
+
+                // get the active version
+                var version = $scope.findActiveVersion();
+
+                // if the version is null, a modal shows up and informs user to delete the process definition instead
+                if (version === null) {
+
+                    var deleteProcessInsteadModal = $mdDialog.alert()
+                        .parent(document.body)
+                        .clickOutsideToClose(true)
+                        .title($filter('translate')('deleteVersionError'))
+                        .content($filter('translate')('versionNotFound'))
+                        .ariaLabel($filter('translate')('deleteVersionError'))
+                        .ok($filter('translate')('confirm'));
+
+                    $mdDialog.show(deleteProcessInsteadModal);
+                    return;
+                }
+
+                // show a confirmation modal for the version delete
+                var confirm = $mdDialog.confirm()
+                    .title($filter('translate')('deleteVersion'))
+                    .content($filter('translate')('deleteVersionConf') + " " + version.version + " ?")
+                    .ariaLabel($filter('translate')('deleteVersion'))
+                    .targetEvent(event)
+                    .ok($filter('translate')('confirm'))
+                    .cancel($filter('translate')('cancel'));
+
+                $mdDialog.show(confirm).then(
+                    // agree callback
+                    function () {
+                        processService.deleteProcessVersion($scope.processId, $scope.workflowDefinition.activeDeploymentId).then(
+                            // success delete callback
+                            function (response) {
+                                $scope.workflowDefinition = response.data;
+                            }
+                            // error delete callback
+                            , function (response) {
+                                exceptionModal(response);
+                            }
+                        );
+                    }
+                );
+            };
+
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Find the active version in the definition versions array
+             * 
+             * @returns {ProcessVersion}
+             */
+            $scope.findActiveVersion = function () {
+
+                if ($scope.workflowDefinition == null)
+                    return null;
+
+                var versions = $scope.workflowDefinition.processVersions;
+
+                var version = null;
+
+                for (var index = 0; index < versions.length; index++) {
+                    if (versions[index].deploymentId === $scope.workflowDefinition.activeDeploymentId) {
+                        version = versions[index];
+                        break;
+                    }
+                }
+
+                return version;
+            };
+
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Displays a modal panel in order to add a new version by selecting a new BPM file
+             * 
+             * @param {event} event
+             */
+            $scope.addVersion = function (event) {
+                $mdDialog.show({
+                    controller: 'addDefinitionController',
+                    templateUrl: 'templates/adddefinition.tmpl.html',
+                    parent: document.body,
+                    targetEvent: event,
+                    clickOutsideToClose: true,
+                    locals: {
+                        'process': $scope.workflowDefinition
+                    }
+                });
+            };
+
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Shows a dialog with the process diagram
+             * 
+             * @param {event} event
+             */
+            $scope.showDiagram = function (event) {
+                $mdDialog.show({
+                    controller: function ($scope, $mdDialog, process, service) {
+                        $scope.process = process.id;
+                        $scope.service = service;
+                        $scope.definitionName = process.name;
+
+                        $scope.cancel = function () {
+                            $mdDialog.cancel();
+                        };
+
+                    },
+                    templateUrl: 'templates/diagram.tmpl.html',
+                    parent: document.body,
+                    targetEvent: event,
+                    clickOutsideToClose: true,
+                    locals: {
+                        'service': config.WORKFLOW_SERVICE_ENTRY,
+                        'process': $scope.workflowDefinition
+                    }
+                })
+            };
+
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Displays all available icons
+             * 
+             * @param {event} event
+             */
+            $scope.showIconSelect = function (event) {
+                $mdDialog.show({
+                    controller: DialogController,
+                    templateUrl: 'templates/iconselect.tmpl.html',
+                    parent: document.body,
+                    targetEvent: event,
+                    clickOutsideToClose: true
+                })
+                    .then(function (answer) {
+                        $scope.workflowDefinition.icon = answer.filename;
+                        $scope.iconName = answer.name;
+                        $scope.processForm.icon.$setDirty();
+                    });
+            };
+
+            function DialogController($scope, $mdDialog, $http) {
+
+                $http.get('img/avatars/avatars.json').then(function (response) {
+                    $scope.avatars = response.data;
+                });
+
+                $scope.hide = function () {
+                    $mdDialog.hide();
+                };
+                $scope.cancel = function () {
+                    $mdDialog.cancel();
+                };
+                $scope.answer = function (answer) {
+                    $mdDialog.hide(answer);
+                };
+            };
+
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Returns the label for the change status button
+             * 
+             * @returns {String}
+             */
+            $scope.newStatusButtonLabel = function () {
+                var version = $scope.findActiveVersion() || {};
+
+                switch (version.status) {
+                    case 'new':
+                    case 'inactive':
+                        return 'activate';
+                    case 'active':
+                        return 'deActivate';
+                }
+            };
+
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Changes the status of the selected version (new,inactive -> active  or active -> inactive)
+             * 
+             * @param {event} event
+             */
+            $scope.changeStatus = function (event) {
+
+                //need save first in order to select active version
+                if ($scope.saveFirst == true) {
+                    var confirm = $mdDialog.alert()
+                        .title($filter('translate')('saveFirst'))
+                        .content($filter('translate')('saveFirst'))
+                        .ariaLabel($filter('translate')('saveFirst'))
+                        .targetEvent(event)
+                        .ok($filter('translate')('close'));
+
+                    $mdDialog.show(confirm).then(
+                        // agree
+                        function () {
+                            $mdDialog.hide();
+                        });
+
+                } else {
                     var confirm = $mdDialog.confirm()
-                        .title($filter('translate')('deleteVersion'))
-                        .content($filter('translate')('deleteVersionConf') + " " + version.version + " ?")
-                        .ariaLabel($filter('translate')('deleteVersion'))
+                        .title($filter('translate')('setActiveVersion'))
+                        .content($filter('translate')('setActiveVersion'))
+                        .ariaLabel($filter('translate')('setActiveVersion'))
                         .targetEvent(event)
                         .ok($filter('translate')('confirm'))
                         .cancel($filter('translate')('cancel'));
-
-                    $mdDialog.show(confirm).then(function () {
-
-                        processService.deleteProcessVersion(
-                            $scope.processId,
-                            $scope.workflowDefinition.activeDeploymentId)
-                            .then(
-                            // success callback
-                            function (response) {
-                                $scope.workflowDefinition = response.data;
-                            },
-
-                            // error callback
-                            function (response) {
-                            	exceptionModal(response);
-                            });
-                    });
-                };
-                
-                /**
-                 * Redirects to given path and re-render the view of the given path
-                 * @param redirectPath
-                 */
-                
-                $scope.redirectTo = function (redirectPath){
-                	$location.path(redirectPath);
-                };
-
-                /**
-                 * Click event handler fot the Add Version button
-                 * @param event
-                 */
-                $scope.showAddVersion = function (event) {
-                    $mdDialog.show({
-                        controller: 'addDefinitionController',
-                        templateUrl: 'templates/adddefinition.tmpl.html',
-                        parent: document.body,
-                        targetEvent: event,
-                        clickOutsideToClose: true,
-                        locals: {
-                            'process': $scope.workflowDefinition
-                        }
-                    });
-                };
-
-                /**
-                 * Shows a dialog with the process diagram
-                 * @param event
-                 */
-                $scope.showDiagram = function (event) {
-                    $mdDialog.show({
-                        controller: function ($scope, $mdDialog, process, service) {
-                            $scope.process = process;
-                            $scope.service = service;
-                            $scope.cancel = function () {
-                                $mdDialog.cancel();
-                            };
-                        },
-                        templateUrl: 'templates/diagram.tmpl.html',
-                        parent: document.body,
-                        targetEvent: event,
-                        clickOutsideToClose: true,
-                        locals: {
-                            'service': config.WORKFLOW_SERVICE_ENTRY,
-                            'process': $scope.workflowDefinition
-                        }
-                    })
-                };
-
-                $scope.showIconSelect = function (event) {
-                    $mdDialog.show({
-                        controller: DialogController,
-                        templateUrl: 'templates/iconselect.tmpl.html',
-                        parent: document.body,
-                        targetEvent: event,
-                        clickOutsideToClose: true
-                    })
-                        .then(function (answer) {
-                            $scope.workflowDefinition.icon = answer.filename;
-                            $scope.iconName = answer.name;
-                            $scope.processForm.icon.$setDirty();
-                        });
-                };
-
-                function DialogController($scope, $mdDialog, $http) {
-
-                    $http.get('img/avatars/avatars.json').then(function (response) {
-                        $scope.avatars = response.data;
-                    });
-
-                    $scope.hide = function () {
-                        $mdDialog.hide();
-                    };
-                    $scope.cancel = function () {
-                        $mdDialog.cancel();
-                    };
-                    $scope.answer = function (answer) {
-                        $mdDialog.hide(answer);
-                    };
-                }
-
-                /**
-                 * Returns the label for the change status button
-                 * @return {string}
-                 */
-                $scope.newStatusButtonLabel = function () {
-                    var version = $scope.findActiveVersion() || {};
-
-                    switch (version.status) {
-                        case 'new':
-                        case 'inactive':
-                            return 'activate';
-                        case 'active':
-                            return 'deActivate';
-                    }
-                };
-
-                /**
-                 * Changes the status of the selected version
-                 * (new,inactive -> active  or active -> inactive)
-                 */
-                $scope.changeStatus = function (event) {
-                	
-                	//need save first in order to select active version
-                	if($scope.saveFirst == true){
-                		var confirm = $mdDialog.alert()
-	                        .title($filter('translate')('saveFirst'))
-	                        .content($filter('translate')('saveFirst'))
-	                        .ariaLabel($filter('translate')('saveFirst'))
-	                        .targetEvent(event)
-	                        .ok($filter('translate')('close'));
-                		
-                		 $mdDialog.show(confirm).then(
-                         // agree
-                         function () {
-                        	 $mdDialog.hide();
-                         });
-                		 
-                	}else {
-                		var confirm = $mdDialog.confirm()
-                			.title($filter('translate')('setActiveVersion'))
-	                        .content($filter('translate')('setActiveVersion'))
-	                        .ariaLabel($filter('translate')('setActiveVersion'))
-	                        .targetEvent(event)
-	                        .ok($filter('translate')('confirm'))
-	                        .cancel($filter('translate')('cancel'));
 
                     $mdDialog.show(confirm).then(
                         // agree
                         function () {
                             var version = $scope.findActiveVersion();
-                            $scope.setVersionStatus(version, version.status === 'active' ? 'inactive' : 'active');
+                            setVersionStatus(version, version.status === 'active' ? 'inactive' : 'active');
                         });
-                	}
+                }
 
-                };
-                
-                
-                
-                /**
-                 * Put here function that returns a workflow version's tasks
-                 */
-                $scope.clickedOnTaskDetailsTab = function(){
-                	 var versions;
-                	 var selectedVersionDeploymentId = $scope.workflowDefinition.activeDeploymentId;
-                	 var selectedVersion;
-                	 
-                	 if(selectedVersionDeploymentId != null){
-                		 versions = $scope.workflowDefinition.processVersions;
-                		 versions.forEach(function(entry){
-                			 if(entry.deploymentId == selectedVersionDeploymentId)	selectedVersion = entry;
-                		 });
-                		 
-                         processService.getVersionTaskDetails(selectedVersion.id)
-                         .then(
-	                         function (response) {
-	                             $scope.taskDetails = response.data;
-	                         },
-	                 		function (response) {
-	                 			alertGenericResponseError(response);
-	                 		}
-                         );
-                	 }
-                 }
-                
-            
-                /**
-                 * Show modal window with the task description
-                 */
-                $scope.editTaskDescription = function (id, event) {
-                    $scope.taskDetails.forEach(function(entry){
-                    	if(entry.id == id){
-                    		$scope.selectedTask = entry;
-                    	}
+            };
+
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Sets the status to the definition version
+             * 
+             * @param {ProcessVersion} version
+             * @param {String} status
+             */
+            function setVersionStatus(version, status) {
+
+                if (status === 'active') {
+                    processService.setActiveVersion($scope.workflowDefinition.id, version.id).then(
+                        // success callback
+                        function (response) {
+                            $scope.workflowDefinition = response.data;
+                        }
+                        // error callback
+                        , function (response) {
+                            exceptionModal(response);
+                        }
+                    );
+
+                } else {
+                    processService.deactivateVersion($scope.workflowDefinition.id, version.id).then(
+                        // success callback
+                        function (response) {
+                            version.status = response.data.status;
+                        }
+                        // error callback
+                        , function (response) {
+                            exceptionModal(response);
+                        }
+                    );
+                }
+            };
+
+            /************************************** Process definition tasks tab ***************************************/
+
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Event listener for definition's task tab. Prefetches all the required data while selecting the tab
+             * 
+             */
+            $scope.clickedOnTaskDetailsTab = function () {
+                var versions;
+                var selectedVersionDeploymentId = $scope.workflowDefinition.activeDeploymentId;
+                var selectedVersion;
+
+                if (selectedVersionDeploymentId != null) {
+                    versions = $scope.workflowDefinition.processVersions;
+                    versions.forEach(function (entry) {
+
+                        if (entry.deploymentId == selectedVersionDeploymentId)
+                            selectedVersion = entry;
                     });
-                    $mdDialog.show({
-                        controller: function ($scope, $mdDialog, $http, task){
-                        	$scope.editValue = task;
-                        	
-                        	
-                            $scope.save = function () {
-                                processService.updateTaskDetails($scope.editValue).then(
-                                function () {
-                                	$mdDialog.hide();
-                                	
-                                },function(response){
-                                	$scope.exception = true;
-                                	$scope.exceptionMessage = response.data;
-                                	
-                                });
-                            };
-                            
-                            $scope.cancel = function () {
-                                $mdDialog.cancel();
-                            };
-                            
-                        },
-                        templateUrl: 'templates/updatetaskdetails.tmpl.html',
-                        parent: document.body,
-                        locals:{
-                        	'task': $scope.selectedTask,
-                        	'exception': $scope.exception,
-                        	'exceptionMessage': $scope.exceptionMessage,
-                        },
-                        clickOutsideToClose: true
-                    })
 
-                };
-                
-                
-                function UpdateTaskController($scope, $mdDialog, $http, task) {
-                	$scope.editValue = task;
-                	
-               
-                }
-                
-
-                /**
-                 * Cancel an instance
-                 */ 
-                $scope.cancelInstance = function(instance, event){
-                    $mdDialog.show({
-                        controller: CancelInstanceConfirmController,
-                        templateUrl: 'templates/cancelinstancemodal.tmpl.html',
-                        parent: document.body,
-                        locals:{
-                        	'instance': instance,
-                        	'instances': $scope.instances
-                        },
-                        clickOutsideToClose: true
-                    })
-                }
-
-                function CancelInstanceConfirmController($scope, $mdDialog, $http, instance, instances) {
-                	$scope.instance = instance;
-                	$scope.instances = instances;
-                	
-                    $scope.confirm= function () {
-                        processService.cancelInstance($scope.instance.id)
-                        .then(
-	                        function () {
-	                        	$mdDialog.hide();
-	                        	var i = $scope.instances.indexOf($scope.instance);
-	                        	if(i!=-1)	$scope.instances.splice(i,1);
-	                        },
-	                		function (response) {
-	                			alertGenericResponseError(response);
-	                		}                        
-                        );
-                    };
-                    $scope.cancel = function () {
-                        $mdDialog.cancel();
-                   };    
-                }
- 
-                
-                /**
-                 * Act on instance (suspend/resume)
-                 */ 
-                $scope.actOnInstance = function(instance, action, event){
-                    $mdDialog.show({
-                        controller: ActOnInstanceConfirmController,
-                        templateUrl: 'templates/actoninstancemodal.tmpl.html',
-                        parent: document.body,
-                        locals:{
-                        	'instance': instance,
-                        	'action' : action
-                        },
-                        clickOutsideToClose: true
-                    })
-                }
-
-                function ActOnInstanceConfirmController($scope, $mdDialog, $http, instance, action) {
-                	$scope.instance = instance;
-                	$scope.action = action;
-                	
-                    $scope.confirm= function () {
-                        processService.actOnInstance($scope.instance.id, action)
-                        .then(
-	                        function (response) {
-	                        	$scope.instance.status = response.data.status;               
-	                        	$mdDialog.hide();
-	                        },
-	                		function (response) {
-	                			alertGenericResponseError(response);
-	                		}
-                        );
-                    };
-                    $scope.cancel = function () {
-                        $mdDialog.cancel();
-                   };    
-                }
-                       
-                
-                
-                /**
-                 * Put here function that returns workflow instances
-                 */
-                $scope.clickedInProgressTab = function(){
-                	
-                   processService.getWorkflowInstances($scope.workflowDefinition.id)
-                     .then(
-                      function (response) {
-                         $scope.instances = response.data;
-                         if($scope.instances == null || $scope.instances.length==0)	return;
-//                  		 $scope.instances.forEach(function(entry){
-//                			 entry.startDate = new Date(entry.startDate).toString("dd MM YY");
-//                		 });
-                      }
+                    processService.getVersionTaskDetails(selectedVersion.id).then(
+                        function (response) {
+                            $scope.taskDetails = response.data;
+                        }
+                        // error callback
+                        , function (response) {
+                            exceptionModal(response);
+                        }
                     );
-                 }
-                
+                }
+            };
 
-                /**
-                 * Sets the status to the definition version
-                 * @param {DefinitionVersion} version
-                 * @param {string} status
-                 */
-                $scope.setVersionStatus = function (version, status) {
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Saves task's details. Such as a description and if the task is assigned by supervisor
+             * 
+             * @param {TaskDetails} taskDetails
+             */
+            $scope.saveTaskDetails = function (taskDetails) {
+                processService.updateTaskDetails(taskDetails).then(
+                    function () {
+                        $mdDialog.hide();
+                    }
+                    // error callback
+                    , function (response) {
+                        $scope.exception = true;
+                        $scope.exceptionMessage = response.data;
+                    }
+                );
+            };
 
-                    if (status === 'active') {
-                        processService.setActiveVersion($scope.workflowDefinition.id, version.id)
-                            .then(
-                            // success callback
-                            function (response) {
-                                $scope.workflowDefinition = response.data;
-                                $scope.resetVersionSelect()
-                            },
-                            // fail callback
-                            function (response) {
-                                alertStatusChangeFailed(response);
-                            }
-                        );
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Returns to task list
+             */
+            $scope.goBackToTaks = function () {
+                $scope.taskMetadataActiveView = "taskMetadata";
+            };
+
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Change task metadata tab to show task form items/details
+             * 
+             * @param {TaskDetails} taskDetails
+             */
+            $scope.goToTaskFormDetails = function (taskDetails) {
+                $scope.editTaskDetails = taskDetails;
+                $scope.taskMetadataActiveView = "taskFormItems";
+
+                $scope.taskFormItems = [];
+
+                processService.getTaskFormProperties(taskDetails.taskId, $scope.workflowDefinition.processDefinitionId).then(
+                    //success callback
+                    function (response) {
+                        $scope.taskFormItems = response.data;
                     }
-                    else {
-                        processService.deactivateVersion($scope.workflowDefinition.id, version.id)
-                            .then(
-                            // success callback
-                            function (response) {
-                                version.status = response.data.status;
-                                $scope.resetVersionSelect()
-                            },
-                            // fail callback
-                            function (response) {
-                                alertStatusChangeFailed(response);
-                            }
-                        );
+                    // error callback
+                    , function (response) {
+                        exceptionModal(response);
                     }
-                };
-                
-                
-                
-                /**
-                 * External Forms Tab
-                 */
-                $scope.clickedExtFormsTab = function(){
-                	
-                	$scope.supervisors;
-                	$scope.xforms = null;
-                    $scope.registries;
-                    
-                    $scope.xform;
-                	
-                	processService.getExternalForms($scope.workflowDefinition.id)
-                    .then(
-                    		// success callback
-                    		function (response) {
-                    			$scope.xforms = response.data;
-                    		},
-                    		// fail callback
-                    		function (response) {
-                    			alertGenericResponseError(response);
-                    		}
-                    );       
-                	               	
-                    processService.getUsers()
-                    .then(
-                    		// success callback
-                    		function (response) {
-                    			$scope.supervisors = response.data;
-                    		},
-                    		// fail callback
-                    		function (response) {
-                    			alertGenericResponseError(response);
-                    		}
-                    );
-                    
-                    // delete external form confirmation
-                    $scope.askDeleteXForm = function(xform){
-                    	
-                        var confirm = $mdDialog.confirm()
-                        .title($filter('translate')('deleteExternalForm'))
-                        .content($filter('translate')('deleteExternalFormConf') + " " + xform.formId + " ?")
-                        .ariaLabel($filter('translate')('deleteExternalForm'))
-                        .ok($filter('translate')('confirm'))
-                        .cancel($filter('translate')('cancel'));
-                        
-                    
-                        $mdDialog.show(confirm).then(function () {
-                            processService.deleteExternalForm(xform.formId)
-                                .then(
-                                // success callback
-                                		function (response) {
-                                        	var x = $scope.xforms.indexOf(xform);
-                                        	if(x!=-1)	$scope.xforms.splice(x,1);
-                                		}                                );
-                        });
-                    
-                    };                    
- 
-                    
-                    // suspend external form confirmation
-                    $scope.askSuspendXForm = function(xform){
-                    	
-                        var confirm = $mdDialog.confirm()
-                        .title($filter('translate')('suspendExternalForm'))
-                        .content($filter('translate')('suspendExternalFormConf') + " " + xform.formId + " ?")
-                        .ariaLabel($filter('translate')('suspendExternalForm'))
-                        .ok($filter('translate')('confirm'))
-                        .cancel($filter('translate')('cancel'));
-                        
-                    
-                        $mdDialog.show(confirm).then(function () {
-                        	var action = 'suspend';
-                        	processService.actOnExternalForm(xform.formId,action)
-                        	.then(
-                            		function (response) {
-                                    	xform.enabled = response.data.enabled;
-                            		},
-                            		function (response) {
-                            			alertGenericResponseError(response);
-                            		}
-                        	);
-                        });
-                    
-                    };   
-                    
-                    
-                    // resume external form confirmation
-                    $scope.askResumeXForm = function(xform){
-                    	
-                        var confirm = $mdDialog.confirm()
-                        .title($filter('translate')('resumeExternalForm'))
-                        .content($filter('translate')('resumeExternalFormConf') + " " + xform.formId + " ?")
-                        .ariaLabel($filter('translate')('resumeExternalForm'))
-                        .ok($filter('translate')('confirm'))
-                        .cancel($filter('translate')('cancel'));
-                        
-                    
-                        $mdDialog.show(confirm).then(function () {
-                        	var action = 'resume';
-                        	processService.actOnExternalForm(xform.formId,action)
-                        	.then(
-                            		function (response) {
-                                    	xform.enabled = response.data.enabled;
-                            		},          
-                            		function (response) {
-                            			alertGenericResponseError(response);
-                            		}
+                );
+            };
+
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Edits a task's form item (task's form element/form property)
+             * 
+             * @param {FormProperty} formItem
+             * @param {event} event
+             */
+            $scope.editFormItem = function (formItem, event) {
+
+                $mdDialog.show({
+                    controller: function ($scope, $mdDialog, formItem, editTaskDetails, workflowDefinition) {
+
+                        $scope.formItem = formItem;
+                        $scope.editTaskDetails = editTaskDetails;
+                        $scope.workflowDefinition = workflowDefinition;
+
+                        $scope.cancel = function () {
+                            $mdDialog.hide();
+                        };
+
+                        $scope.save = function () {
+                            processService.saveTaskFormElement($scope.formItem, $scope.editTaskDetails.taskId, $scope.workflowDefinition.processDefinitionId).then(
+                                //success save callback
+                                function (response) {
+                                    $mdDialog.hide();
+                                }
+                                //error save callback
+                                , function (response) {
+                                    exceptionModal(response);
+                                }
                             );
-                        });
-                    
-                    };   
-                
-                };
-                
-                
-                
-                /**
-                 * Add External form dialog
-                 */
-                $scope.addXForm = function(){                	
-                	
-                    $mdDialog.show({
-                        controller: AddXFormController,
-                        templateUrl: 'templates/addxform.tmpl.html',
-                        parent: document.body,
-                        locals:{
-                        	'workflow': $scope.workflowDefinition,
-                        	'supervisors': $scope.supervisors,
-                        	'xforms':$scope.xforms
-                        },
-                        clickOutsideToClose: true
-                    })
-                };
-                
-                /**
-                 * Edit External form dialog
-                 */
-                $scope.editXForm = function(xform, event){ 
-                	$scope.xform = xform;
-                	
-                  	$mdDialog.show({
-                		controller: function ($scope, $mdDialog) {
-                			
-                            $scope.cancel = function () {
-                            	$mdDialog.hide();
-                            };
-                            
-                            $scope.deleteXForm = function (){
-                            	processService.deleteExternalForm($scope.xform.formId).then(
-                                        // success callback
-                                        function () {
-                                           	processService.getExternalForms($scope.workflowDefinition.id).then(
-                                            		// success callback
-                                            		function (response) {
-                                            			$scope.xforms = response.data;
-                                            			$mdDialog.hide();
-                                            		},
-                                            		// fail callback
-                                            		function (response) {
-                                            			alertGenericResponseError(response);
-                                            		}
-                                            ); 
-                                        },
-                                        // error callback
-                                        function (response) {
-                                        	alertGenericResponseError(response);
-                                        });
-                            }
-                            
-                            $scope.update = function (){
-                                processService.updateExternalForm($scope.xform).then(
-                                		function () {
-                                			$mdDialog.hide();
-                                			},                        
-                        		function (response) {
-                        			alertGenericResponseError(response);
-                        		});
-                            };
-                            
-                        },
-                        
-                        scope: $scope,
-                        preserveScope: true,
-                        templateUrl: 'templates/editxform.tmpl.html',
-                        parent: angular.element(document.body),
-                        targetEvent: event,
-                        locals: {
-                        	'xform': $scope.xform,
-                        	'supervisors': $scope.supervisors,
-                        }
-                	})
-                };
-                
-                
-                
-                function AddXFormController($scope, $mdDialog, $http, workflow, supervisors, xforms) {
-                	
-                	$scope.xforms=xforms;
-                	
-                	$scope.xform={};
-                	$scope.xform.workflowDefinitionId = workflow.id;
-                	$scope.xform.enabled=true;
-                	
-                	$scope.supervisors = supervisors;                	
-                	
-                    $scope.save = function () {
-                        processService.saveExternalForm($scope.xform)
-                        .then(
-                        function () {
-                        	$scope.xforms.push($scope.xform);
-                        	$mdDialog.hide();
-                        },                        
-                		function (response) {
-                			alertGenericResponseError(response);
-                		}
-                		
-                        );
-                    };
-                    $scope.cancel = function () {
-                        $mdDialog.cancel();
-                    };
-                }
-                
-                
-                
-                /**
-                 * Helper function for showing error alert
-                 * @param response
-                 */
-                function alertStatusChangeFailed(response) {
-                	$mdDialog.show({
-                		controller: function ($scope, $mdDialog, error) {
-                			$scope.error = error;
-                			
-                            $scope.cancel = function () {
-                            	$mdDialog.hide();
-                            };
-                        },
-                        scope: $scope,
-                        preserveScope: true,
-                        templateUrl: 'templates/exception.tmpl.html',
-                        parent: angular.element(document.body),
-                        targetEvent: event,
-                        locals: {
-                        	'error': response.data
-                        }
-                	})
-                }
+                        };
 
-                
-                /**
-                 * Helper function for showing generic error alert
-                 * @param response
-                 */
-                function alertGenericResponseError(response) {
-                    $mdDialog.show($mdDialog.alert()
-                            .parent(document.body)
-                            .clickOutsideToClose(true)
-                            .title($filter('translate')('error'))
-                            .content(response.data.message)
-                            .ok($filter('translate')('confirm'))
+                        $scope.clear = function () {
+                            $scope.formItem.description = "";
+                        };
+                    },
+                    templateUrl: 'templates/editFormItem.tmpl.html',
+                    parent: angular.element(document.body),
+                    targetEvent: event,
+                    locals: {
+                        'formItem': formItem,
+                        'editTaskDetails': $scope.editTaskDetails,
+                        'workflowDefinition': $scope.workflowDefinition
+                    }
+                })
+            };
+
+            /************************************** Instances in progress ***************************************/
+
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Event listener for in progress instances tab. Prefetches all the required data while selecting the tab
+             */
+            $scope.clickedInProgressTab = function () {
+                processService.getWorkflowInstances($scope.workflowDefinition.id).then(
+                    // success callback
+                    function (response) {
+                        $scope.instances = response.data;
+                    }
+                    // error callback
+                    , function (response) {
+                        exceptionModal(response);
+                    }
+                );
+            };
+
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Change status of an instance to deleted and removes it from activiti
+             * 
+             * @param {ProcessInstance} instance
+             * @param {event} event
+             */
+            $scope.cancelInstance = function (instance, event) {
+                $mdDialog.show({
+                    controller: cancelInstanceCtrl,
+                    templateUrl: 'templates/cancelinstancemodal.tmpl.html',
+                    parent: document.body,
+                    scope: $scope,
+                    targetEvent: event,
+                    preserveScope: true,
+                    clickOutsideToClose: true,
+                    locals: {
+                        'instance': instance
+                    }
+                });
+            };
+
+            function cancelInstanceCtrl($scope, $mdDialog, instance) {
+                $scope.instance = instance;
+
+                $scope.confirm = function () {
+                    processService.cancelInstance($scope.instance.id).then(
+                        // success callback
+                        function () {
+                            getInstances();
+                            $mdDialog.cancel();
+                        }
+                        // error callback
+                        , function (response) {
+                            $mdDialog.cancel();
+                            exceptionModal(response);
+                        }
+                    );
+                };
+
+                $scope.cancel = function () {
+                    $mdDialog.cancel();
+                };
+
+                var getInstances = function () {
+                    processService.getWorkflowInstances($scope.workflowDefinition.id).then(
+                        // success callback
+                        function (response) {
+                            $scope.instances = response.data;
+                        }
                     );
                 }
-                
+            };
 
-                // workaround to update the md-select after status change
-                $scope.recreateSelect = true;
-                $scope.resetVersionSelect = function () {
-                    $scope.recreateSelect = false;
-                    $timeout(function () {
-                        $scope.recreateSelect = true;
-                    }, 0);
-                }
-                
-                
-                /**
-                 * Tab change listener
-                 */
-                $scope.onTabSelected = function (tab){
-                	$scope.taskMetadataActiveView = "taskMetadata";
-                	$scope.selectedTab = tab;
-                };
-                
-                /**
-                 * Change task metadata tab to show task form items/details
-                 */
-                $scope.goToTaskFormDetails = function (taskDetails){
-                	
-                	$scope.editTaskDetails = taskDetails;
-                	$scope.taskMetadataActiveView = "taskFormItems";
-                	
-                	$scope.taskFormItems = [];
-                	
-                	processService.getTaskFormProperties(taskDetails.taskId, $scope.workflowDefinition.processDefinitionId).then(
-                			//success callback
-                			function (response){
-                				$scope.taskFormItems = response.data;
-                			}
-                	);
-                	
-                	
-                };
-                
-                $scope.saveTaskDetails = function (taskDetails){
-                    processService.updateTaskDetails(taskDetails).then(
-                            function () {
-                            	$mdDialog.hide();
-                            	
-                            },function(response){
-                            	$scope.exception = true;
-                            	$scope.exceptionMessage = response.data;
-                            	
-                            });
-                	
-                };
-                
-                /**
-                 * Edit External form dialog
-                 */
-                $scope.editFormItem = function(formItem,event){ 
-                	
-                	$scope.formItem = formItem;
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Deletes an instance
+             * 
+             * @param {ProcessInstance} instance
+             * @param {event} event
+             */
+            $scope.deleteInstance = function (instance, event) {
+                $mdDialog.show({
+                    controller: deleteInstanceCtrl,
+                    scope: $scope,
+                    preserveScope: true,
+                    templateUrl: 'templates/deleteInstance.tmpl.html',
+                    parent: angular.element(document.body),
+                    targetEvent: event,
+                    clickOutsideToClose: false,
+                    locals: {
+                        'instance': instance
+                    }
+                });
+            };
 
-                	$mdDialog.show({
-                		controller: function ($scope, $mdDialog) {
-                			
-                            $scope.cancel = function () {
-                            	$mdDialog.hide();
-                            };
-                            
-                            $scope.save = function (){
-                            	
-                            	processService.saveTaskFormElement($scope.formItem, $scope.editTaskDetails.taskId, $scope.workflowDefinition.processDefinitionId).then(
-                            			
-                            			//success callback
-                            			function (response){
-                            				$mdDialog.hide();
-                            				
-                            			//error callback	
-                            			}, function (response){}
-                            	);
-                            };
-                            
-                            $scope.clear = function () {
-                            	$scope.formItem.description = "";
-                            };
-                            
-                        },
-                        
-                        scope: $scope,
-                        preserveScope: true,
-                        templateUrl: 'templates/editFormItem.tmpl.html',
-                        parent: angular.element(document.body),
-                        targetEvent: event,
-                        locals: {
-                        	'formItem': $scope.formItem,
+            function deleteInstanceCtrl($scope, $mdDialog, instance) {
+
+                $scope.instance = instance;
+
+                $scope.cancel = function () {
+                    $mdDialog.hide();
+                };
+
+                $scope.confirm = function () {
+                    processService.deleteInstance($scope.instance.id).then(
+                        // sucess callback
+                        function (response) {
+                            getInstances();
+                            $mdDialog.cancel();
                         }
-                	})
+                        // error callback
+                        , function (response) {
+                            $mdDialog.cancel();
+                            exceptionModal(response);
+                        }
+                    );
                 };
 
-                
-                /**
-                 * Return to task list
-                 */
-                $scope.goBackToTaks = function (){
-                	
-                	 $scope.taskMetadataActiveView = "taskMetadata";
-                };
-                
-                function exceptionModal(response,event){
-                	$mdDialog.show({
-                		controller: function ($scope, $mdDialog) {
-                			$scope.error = response.data;
-                			
-                            $scope.cancel = function () {
-                            	 $mdDialog.hide();
-                            };
-                        },
-                        
-                        templateUrl: 'templates/exception.tmpl.html',
-                        parent: angular.element(document.body),
-                        targetEvent: event,
-                        clickOutsideToClose: false
-                	})
+                var getInstances = function () {
+                    processService.getWorkflowInstances($scope.workflowDefinition.id).then(
+                        // success callback
+                        function (response) {
+                            $scope.instances = response.data;
+                        }
+                    );
                 }
+            };
 
-            }]
-    );
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Either resume or suspend an instance
+             * 
+             * @param {ProcessInstance} instance
+             * @param {String} action - resume/suspend
+             * @param {event} event
+             */
+            $scope.actOnInstance = function (instance, action, event) {
+                $mdDialog.show({
+                    controller: ActOnInstanceConfirmController,
+                    templateUrl: 'templates/actoninstancemodal.tmpl.html',
+                    parent: document.body,
+                    targetEvent: event,
+                    clickOutsideToClose: true,
+                    locals: {
+                        'instance': instance,
+                        'action': action
+                    }
+                });
+            };
 
+            function ActOnInstanceConfirmController($scope, $mdDialog, instance, action) {
+
+                $scope.instance = instance;
+                $scope.action = action;
+
+                $scope.confirm = function () {
+                    processService.actOnInstance($scope.instance.id, action).then(
+                        // success callback
+                        function (response) {
+                            $scope.instance.status = response.data.status;
+                            $mdDialog.cancel();
+                        }
+                        // error callback
+                        , function (response) {
+                            $mdDialog.cancel();
+                            exceptionModal(response);
+                        }
+                    );
+                };
+
+                $scope.cancel = function () {
+                    $mdDialog.cancel();
+                };
+            };
+
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Tab change listener
+             * 
+             * @param {String} tab
+             */
+            $scope.onTabSelected = function (tab) {
+                $scope.taskMetadataActiveView = "taskMetadata";
+                $scope.selectedTab = tab;
+            };
+
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Shows the progress of the instance as diagram
+             * 
+             * @param {ProcessInstance} instance
+             * @param {event} event
+             */
+            $scope.showProgressDiagram = function (instance, event) {
+                $mdDialog.show({
+                    controller: function ($mdDialog) {
+
+                        $scope.instance = instance;
+                        $scope.service = config.WORKFLOW_SERVICE_ENTRY;
+
+                        $scope.cancel = function () {
+                            $mdDialog.hide();
+                        };
+                    },
+                    scope: $scope,
+                    preserveScope: true,
+                    templateUrl: 'templates/progressDiagram.tmpl.html',
+                    parent: document.body,
+                    targetEvent: event,
+                    clickOutsideToClose: true,
+                    locals: {
+                        'service': $scope.service,
+                        'instance': $scope.instance
+                    }
+                })
+            };
+
+            /**
+             * @memberOf ProcessDetailCtrl
+             * @desc Displays a modal panel showing the exception message
+             * 
+             * @param {any} response
+             * @param {event} $event
+             */
+            function exceptionModal(response, $event) {
+                $mdDialog.show({
+                    controller: function ($scope, $mdDialog) {
+
+                        $scope.error = response.data;
+
+                        $scope.cancel = function () {
+                            $mdDialog.hide();
+                        };
+                    },
+                    templateUrl: 'templates/exception.tmpl.html',
+                    parent: angular.element(document.body),
+                    targetEvent: $event,
+                    clickOutsideToClose: false
+                });
+            };
+
+        }]);
 })(angular);

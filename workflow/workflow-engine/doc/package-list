@@ -1,4 +1,15 @@
+gr.cyberstream.workflow.engine.cmis
+gr.cyberstream.workflow.engine.common
 gr.cyberstream.workflow.engine.config
 gr.cyberstream.workflow.engine.controller
+gr.cyberstream.workflow.engine.customservicetasks
+gr.cyberstream.workflow.engine.customtypes
+gr.cyberstream.workflow.engine.listeners
 gr.cyberstream.workflow.engine.model
+gr.cyberstream.workflow.engine.model.api
 gr.cyberstream.workflow.engine.persistence
+gr.cyberstream.workflow.engine.persistence.jpa
+gr.cyberstream.workflow.engine.service
+gr.cyberstream.workflow.engine.service.impl
+gr.cyberstream.workflow.engine.servlet
+gr.cyberstream.workflow.engine.util.string

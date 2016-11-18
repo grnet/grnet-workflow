@@ -4,50 +4,46 @@
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // system constants
-    var WORKFLOW_SERVICE_ENTRY = 'http://10.0.0.156:8085/workflow-engine/api';
-    var HOME_URL = 'http://10.0.0.156/workflow-manager/index.html';
-    var WORKFLOW_DOCUMENTS_URL = 'http://10.0.0.156:8085/workflow-engine/document/';
+    var WORKFLOW_SERVICE_ENTRY = 'http://10.0.0.167:8080/grnet-workflow-engine/api';
+    var HOME_URL = 'http://10.0.0.167/workflow-manager/index.html';
+    var WORKFLOW_DOCUMENTS_URL = 'http://10.0.0.167:8080/grnet-workflow-engine/document/';
     var AVATARS_PATH = 'img/avatars/';
     var DEFAULT_AVATAR = 'like.svg';
     var MAP_CENTER_LAT = 38.037496;
     var MAP_CENTER_LNG = 23.836321;
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    /* create controllers module */
+    // create controllers module
     angular.module('wfmanagerControllers', []);
 
-    /* create directives module */
-    angular.module('nlkDirectives', []);
-    
-    /* create directives module */
+    // create directives module
     angular.module('wfDirectives', []);
 
-    /* create services module */
+    // create services module
     angular.module('wfmanagerServices', []);
 
-    /* workflow manager App Module */
+    // create the App module
     var wfmanagerApp = angular.module('wfmanagerApp', [
         'ngRoute',
         'ngMaterial',
         'wfmanagerControllers',
         'wfmanagerServices',
-        'nlkDirectives',
         'wfDirectives',
         'pascalprecht.translate',
         'ngMaterialDatePicker'
     ]);
 
-    /**
-     * Application Bootstrapping integrating with SSO
-     */
     var auth = {};
 
+    /**
+     * @memberOf config
+     * @desc Configure the SSO
+     */
     angular.element(document).ready(function () {
 
         var keycloakAuth = new Keycloak('keycloak.json');
         auth.loggedIn = false;
 
-        keycloakAuth.init({onLoad: 'login-required'})
+        keycloakAuth.init({ onLoad: 'login-required' })
             .success(function () {
                 auth.loggedIn = true;
                 auth.authz = keycloakAuth;
@@ -83,17 +79,14 @@
                 return response;
             },
             responseError: function (response) {
-            	if(response.status === 400 || response.status === 500) {
-            		return $q.reject(response);
-            	}
+                if (response.status === 400 || response.status === 500) {
+                    return $q.reject(response);
+                }
                 return authProvider.authErrorHandler($q, response);
             }
         };
     }]);
-    
-    /*
-     * Application configuration
-     */
+
     wfmanagerApp
         .constant('CONFIG', {
             'WORKFLOW_SERVICE_ENTRY': WORKFLOW_SERVICE_ENTRY,
@@ -101,19 +94,19 @@
             'AVATARS_PATH': AVATARS_PATH,
             'DEFAULT_AVATAR': DEFAULT_AVATAR,
             'MAP_CENTER_LAT': MAP_CENTER_LAT,
-	        'MAP_CENTER_LNG': MAP_CENTER_LNG
+            'MAP_CENTER_LNG': MAP_CENTER_LNG
         })
         .config(['$routeProvider', '$httpProvider', 'authProvider', '$translateProvider',
             function ($routeProvider, $httpProvider, authProvider, $translateProvider) {
-        	
-	    		$translateProvider.preferredLanguage('el');
-	    		$translateProvider.useSanitizeValueStrategy(null);
-	    		
-		    	$translateProvider.useStaticFilesLoader({
-		    		  prefix: 'lang/',
-		    		  suffix: '.json'
-		    		});
-	    	
+
+                $translateProvider.preferredLanguage('el');
+                $translateProvider.useSanitizeValueStrategy(null);
+
+                $translateProvider.useStaticFilesLoader({
+                    prefix: 'lang/',
+                    suffix: '.json'
+                });
+
                 $routeProvider.
                     when('/process', {
                         templateUrl: 'views/process-list.html',
@@ -129,11 +122,12 @@
                     }).
                     when('/history', {
                         templateUrl: 'views/history.html',
-                        controller: 'HistoryCtrl'
+                        controller: 'HistoryCtrl',
+                        reloadOnSearch: false
                     }).
                     when('/history/:instanceId', {
                         templateUrl: 'views/instance-details.html',
-                        controller: 'InstanceDetailCtrl'
+                        controller: 'CompletedInstanceDetailCtrl'
                     }).
                     when('/task/details/:taskId', {
                         templateUrl: 'views/task-details.html',
@@ -142,6 +136,10 @@
                     when('/pending', {
                         templateUrl: 'views/pending.html',
                         controller: 'PendingCtrl'
+                    }).
+                    when('/inprogress', {
+                        templateUrl: 'views/in-progress.html',
+                        controller: 'InProgressCtrl'
                     }).
                     when('/activity', {
                         templateUrl: 'views/activity.html',
@@ -155,13 +153,21 @@
                         templateUrl: 'views/external-forms.html',
                         controller: 'ExternalFormsCtrl'
                     }).
+                    when('/instance/:instanceId', {
+                        templateUrl: 'views/inprogress-instance-details.html',
+                        controller: 'InProgressInstanceDetailCtrl'
+                    }).
+                    when('/instance/:instanceId/documents', {
+                        templateUrl: 'views/documents.html',
+                        controller: 'InstanceDocumentsCtrl'
+                    }).
                     otherwise({
                         redirectTo: '/process'
                     });
 
                 // configure $http to use the new Promise interface
                 $httpProvider.useLegacyPromiseExtensions(false);
-                $httpProvider.defaults.useXDomain=true;
+                $httpProvider.defaults.useXDomain = true;
                 $httpProvider.defaults.cache = false;
 
                 // configure authentication interceptors
@@ -171,5 +177,5 @@
                 authProvider.auth = auth;
                 authProvider.addIgnorePath(/img\//);
             }]
-    );
+        );
 })(angular);

@@ -21,11 +21,14 @@ public class WfFormProperty {
 
 	private Map<String, String> formValues;
 
+	private String device;
+
 	public WfFormProperty() {
+
 	}
 
 	public WfFormProperty(String id, String name, String type, String value, boolean readable, boolean writable,
-			boolean required, Map<String, String> formValues, String format, String description) {
+			boolean required, Map<String, String> formValues, String format, String description, String device) {
 
 		this.id = id;
 		this.name = name;
@@ -34,10 +37,10 @@ public class WfFormProperty {
 		this.readable = readable;
 		this.writable = writable;
 		this.required = required;
-
 		this.formValues = formValues;
 		this.format = format;
 		this.description = description;
+		this.device = device;
 	}
 
 	public String getId() {
@@ -118,5 +121,13 @@ public class WfFormProperty {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public String getDevice() {
+		return device;
+	}
+
+	public void setDevice(String device) {
+		this.device = device;
 	}
 }

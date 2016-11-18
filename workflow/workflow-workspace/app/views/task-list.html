@@ -1,7 +1,7 @@
 <md-toolbar>
 	<div class="md-toolbar-tools">
 	
-		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
+		<md-button class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
 			<md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
 		</md-button>
 		
@@ -13,33 +13,44 @@
 		</div>
 		
 		<span flex></span>
+		
 	</div>
 </md-toolbar>
+	
+<section layout="row" style="overflow: hidden;">
 
-
-<section layout="row" layout-padding>
 	<!-- Process Filter -->
-	<section layout="column" flex="30" layout-align="start">
-		<md-radio-group>
-			<md-radio-button class="md-primary wf-selectAll" ng-click="selectAllTasks()" ng-value="TRUE">{{ 'showAll' | translate }}</md-radio-button>
-			<md-divider></md-divider>
-			<md-radio-button ng-repeat="(key, value) in taskMapByProcess" ng-value="key" class="md-primary" ng-click="selectionChanged(key)">{{key}}</md-radio-button>
-		</md-radio-group>
+	<div layout="column" flex="35">
+		<md-card>
+			<md-card-content>
+				<md-radio-group>
+					<md-radio-button class="md-primary wf-selectAll" ng-click="selectAllTasks()" ng-value="TRUE">{{ 'showAll' | translate }}</md-radio-button>
+					<md-divider></md-divider>
+					<md-radio-button ng-repeat="(key, value) in taskMapByProcess" ng-value="key" class="md-primary" ng-click="selectionChanged(key)">{{key}}</md-radio-button>
+				</md-radio-group>
+			</md-card-content>
+		</md-card>
+	</div>
+		
+	<section layout="column" class="wait-icon" ng-if="showProgress">
+		<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
 	</section>
 	
-	<md-content flex class="mainList" ng-style="{position: 'relative'}">
+	<md-content flex class="transparent" style="padding-top: 8px;position:relative" ng-if="!showProgress">
+		
 		<!-- Tasks to be claimed by user -->
-		<section ng-if="unAssignedTasks.length > 0">
-			<md-subheader class="md-primary">{{ 'newTasksToClaim' | translate }}</md-subheader>
-			<md-list flex>
-				<md-card ng-repeat="task in unAssignedTasks">
+		<section ng-show="unAssignedTasks.length > 0">
+			<md-list flex style="padding-top: 0px;">
+				<md-subheader sticky-state="next" class="md-primary" md-whiteframe="2" style="margin-left: 8px">{{ 'newTasksToClaim' | translate }}</md-subheader>
+				
+				<md-card ng-repeat="task in unAssignedTasks" style="margin-left: 0;">
 					<md-list-item class="md-2-line" ng-click="goTo('/task/' + task.id)">
 						<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}"/>
 						<div class="md-list-item-text" layout="column">
 							<h3>{{task.processInstance.title}}</h3>
 							<p>{{task.name}}
 								<span ng-if="task.dueDate" class="cardInline">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
-									<md-icon ng-class="taskDelay(task.dueDate) < 1 ? (taskDelay(task.dueDate) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'" 
+									<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'" 
 										md-svg-icon="img/icons/delayed-notification.svg">
 									</md-icon>
 								</span>
@@ -50,50 +61,36 @@
 			</md-list>
 		</section>
 
-<!-- 			<section ng-if="unAssignedTasks.length == 0 || unAssignedTasks == null"> -->
-<!-- 				<md-subheader class="md-primary">{{ 'newTasksToClaim' | translate }}</md-subheader> -->
-<!-- 				<md-list flex> -->
-<!-- 					<md-card> -->
-<!-- 						<md-list-item class="md-2-line"> -->
-<!-- 							 <div  class="md-list-item-text" layout="column">{{ 'noTasksToClaim' | translate }}</div> -->
-<!-- 						</md-list-item> -->
-<!-- 					</md-card>					 -->
-<!-- 				</md-list> -->
-<!-- 			</section>	 -->
-		
-			<!-- Tasks assigned to user -->
-			<section ng-if="assignedTasks.length > 0">
-				<!--  <md-subheader class="md-primary">{{ 'myTasks' | translate }}</md-subheader> -->
-				<md-list flex>
-					<md-card ng-repeat="task in assignedTasks">
-						<md-list-item class="md-2-line" ng-click="goTo('/task/' + task.id)">
-							 <img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}"/>
-								<div class="md-list-item-text" layout="column">
-							 		<h3>{{task.processInstance.title}}</h3>
-							 		<p>{{task.name}} 
-										<span ng-if="task.dueDate" class="cardInline">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
-							 				<md-icon ng-class="taskDelay(task.dueDate) < 1 ? (taskDelay(task.dueDate) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"
-							 					md-svg-icon="img/icons/delayed-notification.svg">
-							 				</md-icon>
-							 			</span>
-								 	</p>
-								</div>
-						</md-list-item>
+		<!-- Tasks assigned to user -->
+		<section>
+			<md-list flex style="padding-top: 0px;position:relative">
+				<md-subheader md-whiteframe="2" class="md-primary" style="margin-right: 8px">{{ 'myTasks' | translate }}</md-subheader>
+			
+				<div layout="row" layout-align="center start" flex class="infoMessage" ng-if="assignedTasks.length == 0">
+					<md-card style="width:100%; line-height: 32px; background-color: #d84315">
+						<md-card-content layout-align="center center">
+							<md-icon md-svg-icon="img/icons/info.svg" style="height: 32px; width: 32px; margin-right: 10px;"></md-icon>
+							<span style="display: inline-block; vertical-align: middle; color:white">{{'noTasksAssignedToMe' | translate }}</span>
+						</md-card-content>
 					</md-card>
-				</md-list>
-			</section>
-			
-			<section ng-if="assignedTasks.length == 0 || assignedTasks == null">
-				<md-subheader class="md-primary">{{ 'myTasks' | translate }}</md-subheader>
-				<md-list flex>
-					<md-card>
-						<md-list-item class="md-2-line">
-							 <div class="md-list-item-text" layout="column">{{ 'noTasksAssignedToMe' | translate }}</div>
-						</md-list-item>
-					</md-card>					
-				</md-list>
-			</section>	
-			
-		</md-content>
-		
+				</div>
+				
+				<md-card ng-repeat="task in assignedTasks">
+					<md-list-item class="md-2-line" ng-click="goTo('/task/' + task.id)">
+						<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}"/>
+						<div class="md-list-item-text" layout="column">
+							<h3>{{task.processInstance.title}}</h3>
+							<p>{{task.name}} 
+								<span ng-if="task.dueDate" class="cardInline">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
+									<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"
+										md-svg-icon="img/icons/delayed-notification.svg">
+									</md-icon>
+								</span>
+						 	</p>
+						</div>
+					</md-list-item>
+				</md-card>
+			</md-list>
 		</section>
+	</md-content>
+</section>

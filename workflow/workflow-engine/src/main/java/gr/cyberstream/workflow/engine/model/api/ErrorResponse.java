@@ -13,7 +13,7 @@ public class ErrorResponse {
 
 	private String code;
 	private String message;
-	
+
 	public final static String noerror = "NOERROR";
 
 	public String getCode() {

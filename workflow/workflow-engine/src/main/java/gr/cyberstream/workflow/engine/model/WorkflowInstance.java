@@ -10,10 +10,12 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
 import gr.cyberstream.workflow.engine.model.api.WfProcessInstance;
 
 /**
- * The persistent class for the process instance database table.
+ * The persistent class for the WorkflowInstance database table.
  * 
  * @author gtyl
  */
@@ -33,32 +35,34 @@ public class WorkflowInstance implements Serializable {
 	@ManyToOne
 	@JoinColumn(name = "definition_version_id")
 	private DefinitionVersion definitionVersion;
-	
+
 	private String status;
 
-	private String supervisor;	
-	
+	private String supervisor;
+
 	@Column(name = "start_date")
 	private Date startDate;
-	
+
 	@Column(name = "end_date")
 	private Date endDate;
 
-	private String reference;
-	
 	@Transient
 	public static String STATUS_RUNNING = "running";
 
 	@Transient
 	public static String STATUS_SUSPENDED = "suspended";
-	
+
 	@Transient
 	public static String STATUS_ENDED = "ended";
 
-	
-	public void updateFrom(WfProcessInstance wfProcessInstance) {
-		this.setTitle(wfProcessInstance.getTitle());
-		this.setSupervisor(wfProcessInstance.getSupervisor());
+	@Transient
+	public static String STATUS_DELETED = "deleted";
+
+	/**
+	 * Default constructor
+	 */
+	public WorkflowInstance() {
+
 	}
 
 	public String getId() {
@@ -93,20 +97,20 @@ public class WorkflowInstance implements Serializable {
 		this.definitionVersion = definitionVersion;
 	}
 
-	public String getSupervisor() {
-		return supervisor;
-	}
-
-	public void setSupervisor(String supervisor) {
-		this.supervisor = supervisor;
-	}
-
 	public String getStatus() {
 		return status;
 	}
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	public String getSupervisor() {
+		return supervisor;
+	}
+
+	public void setSupervisor(String supervisor) {
+		this.supervisor = supervisor;
 	}
 
 	public Date getStartDate() {
@@ -125,11 +129,32 @@ public class WorkflowInstance implements Serializable {
 		this.endDate = endDate;
 	}
 
-	public String getReference() {
-		return reference;
+	public void updateFrom(WfProcessInstance wfProcessInstance) {
+		this.title = wfProcessInstance.getTitle();
+		this.supervisor = wfProcessInstance.getSupervisor();
 	}
 
-	public void setReference(String reference) {
-		this.reference = reference;
+	@Override
+	public boolean equals(Object other) {
+		boolean result = false;
+		if (other instanceof WorkflowInstance) {
+			WorkflowInstance that = (WorkflowInstance) other;
+			result = (this.getId() == that.getId());
+		}
+		return result;
+	}
+
+	@Override
+	public int hashCode() {
+		HashCodeBuilder builder = new HashCodeBuilder();
+		builder.append(id);
+		builder.append(title);
+		builder.append(folderId);
+		builder.append(definitionVersion);
+		builder.append(status);
+		builder.append(supervisor);
+		builder.append(startDate);
+		builder.append(endDate);
+		return builder.toHashCode();
 	}
 }

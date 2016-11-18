@@ -17,7 +17,9 @@ import org.activiti.engine.ManagementService;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
+import org.activiti.engine.delegate.event.ActivitiEventListener;
 import org.activiti.engine.form.AbstractFormType;
+import org.activiti.engine.parse.BpmnParseHandler;
 import org.activiti.spring.ProcessEngineFactoryBean;
 import org.activiti.spring.SpringProcessEngineConfiguration;
 import org.keycloak.adapters.springsecurity.KeycloakSecurityComponents;
@@ -26,6 +28,7 @@ import org.keycloak.adapters.springsecurity.client.KeycloakRestTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -53,8 +56,16 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 
 import gr.cyberstream.workflow.engine.cmis.CMISSession;
 import gr.cyberstream.workflow.engine.config.SettingsStatus;
+import gr.cyberstream.workflow.engine.customtypes.ApproveFormType;
 import gr.cyberstream.workflow.engine.customtypes.ConversationFormType;
 import gr.cyberstream.workflow.engine.customtypes.DocumentFormType;
+import gr.cyberstream.workflow.engine.customtypes.EmailFormType;
+import gr.cyberstream.workflow.engine.customtypes.MessageFormType;
+import gr.cyberstream.workflow.engine.customtypes.PositionFormType;
+import gr.cyberstream.workflow.engine.customtypes.TextareaFormType;
+import gr.cyberstream.workflow.engine.listeners.CustomTaskFormFields;
+import gr.cyberstream.workflow.engine.listeners.ProcessEventListener;
+import gr.cyberstream.workflow.engine.listeners.StartEventFormFields;
 
 /**
  * Is responsible for configuring the various modules of the underline
@@ -64,15 +75,15 @@ import gr.cyberstream.workflow.engine.customtypes.DocumentFormType;
  * 
  */
 @Configuration
-// @EnableWebMvc
 @EnableTransactionManagement
 @ComponentScan(basePackages = { 
-		"gr.cyberstream.workflow.engine.controller.v2",
+		"gr.cyberstream.workflow.engine.controller", 
 		"gr.cyberstream.workflow.engine.service",
-		"gr.cyberstream.workflow.engine.persistence",
+		"gr.cyberstream.workflow.engine.persistence", 
 		"gr.cyberstream.workflow.engine.cmis",
-		},
-		basePackageClasses = KeycloakSecurityComponents.class)
+		"gr.cyberstream.workflow.engine.listeners",
+		"gr.cyberstream.workflow.engine.customservicetasks" 
+		}, basePackageClasses = KeycloakSecurityComponents.class)
 @PropertySource("classpath:workflow-engine.properties")
 public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
@@ -83,35 +94,36 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
 	@Override
 	public RequestMappingHandlerMapping requestMappingHandlerMapping() {
-		
+
 		RequestMappingHandlerMapping handlerMapping = super.requestMappingHandlerMapping();
-	    handlerMapping.setAlwaysUseFullPath(true);
-	    handlerMapping.setRemoveSemicolonContent(false); // In order to enable matrix variables
-	    return handlerMapping;
+		handlerMapping.setAlwaysUseFullPath(true);
+		handlerMapping.setRemoveSemicolonContent(false); // In order to enable
+															// matrix variables
+		return handlerMapping;
 	}
-	
+
 	@Override
 	protected void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(new WebContentInterceptor() {
-			
+
 			@Override
 			public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
 					ModelAndView modelAndView) throws Exception {
-				
+
 				response.setHeader("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate");
 				response.setHeader("Pragma", "no-cache");
 				response.setDateHeader("Expires", 0);
-				//setCacheControl(CacheControl.noCache());
-				//setCacheControl(CacheControl.noStore());
+				// setCacheControl(CacheControl.noCache());
+				// setCacheControl(CacheControl.noStore());
 			}
-			
+
 			@Override
-			public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
-					throws Exception {
+			public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
+					Exception ex) throws Exception {
 			}
 		});
 	}
-	
+
 	@Bean
 	public DataSource dataSource() {
 
@@ -126,9 +138,8 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 	}
 
 	@Bean
-	public LocalContainerEntityManagerFactoryBean entityManagerFactory(
-			DataSource dataSource, JpaVendorAdapter jpaVendorAdapter) {
-
+	public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource,
+			JpaVendorAdapter jpaVendorAdapter) {
 		LocalContainerEntityManagerFactoryBean emfb = new LocalContainerEntityManagerFactoryBean();
 
 		emfb.setDataSource(dataSource);
@@ -138,8 +149,9 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 		// add special JPA properties
 		Map<String, Object> jpaProperties;
 		jpaProperties = emfb.getJpaPropertyMap();
-		jpaProperties.put("hibernate.format_sql", "true");
-		//jpaProperties.put("hibernate.use_sql_comments", "true");
+		jpaProperties.put("hibernate.show_sql", env.getProperty("database.showsql", Boolean.class));
+		jpaProperties.put("hibernate.format_sql", env.getProperty("database.showsql", Boolean.class));
+		jpaProperties.put("hibernate.use_sql_comments", env.getProperty("database.showsql", Boolean.class));
 		emfb.setJpaPropertyMap(jpaProperties);
 
 		return emfb;
@@ -159,15 +171,14 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 	}
 
 	@Bean
-	public JpaTransactionManager transactionManager(
-			EntityManagerFactory entityManagerFactory) {
+	public JpaTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
 
 		JpaTransactionManager transactionManager = new JpaTransactionManager();
 		transactionManager.setEntityManagerFactory(entityManagerFactory);
 
 		return transactionManager;
 	}
-	
+
 	@Bean
 	public CommonsMultipartResolver multipartResolver() {
 		CommonsMultipartResolver resolver = new CommonsMultipartResolver();
@@ -175,32 +186,32 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 		resolver.setMaxUploadSize(20 * 1024 * 1024);
 		return resolver;
 	}
-	
+
 	@Bean
-	public SettingsStatus settingsStatus(){
-		SettingsStatus status = new SettingsStatus();		
+	public SettingsStatus settingsStatus() {
+		SettingsStatus status = new SettingsStatus();
 		return status;
 	}
-	
+
 	@Bean
-    public JavaMailSender mailSender() {
-		
-        JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
+	public JavaMailSender mailSender() {
 
-        javaMailSender.setHost(env.getProperty("mail.host"));
-        javaMailSender.setPort(env.getProperty("mail.port", Integer.class));
-        javaMailSender.setUsername(env.getProperty("mail.username"));
-        javaMailSender.setPassword(env.getProperty("mail.password"));
-        javaMailSender.setDefaultEncoding("UTF-8");
+		JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
 
-        Properties properties = new Properties();
-        properties.setProperty("mail.transport.protocol", "smtp");
-        properties.setProperty("mail.smtp.auth", "true");
-        
-        javaMailSender.setJavaMailProperties(properties);
+		javaMailSender.setHost(env.getProperty("mail.host"));
+		javaMailSender.setPort(env.getProperty("mail.port", Integer.class));
+		javaMailSender.setUsername(env.getProperty("mail.username"));
+		javaMailSender.setPassword(env.getProperty("mail.password"));
+		javaMailSender.setDefaultEncoding("UTF-8");
 
-        return javaMailSender;
-    }
+		Properties properties = new Properties();
+		properties.setProperty("mail.transport.protocol", "smtp");
+		properties.setProperty("mail.smtp.auth", "true");
+
+		javaMailSender.setJavaMailProperties(properties);
+
+		return javaMailSender;
+	}
 
 	@Bean
 	public BeanPostProcessor persistenceTranslation() {
@@ -209,22 +220,50 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
 	// Activiti configuration
 	// =================================================================================================
+	private @Autowired AutowireCapableBeanFactory beanFactory;
+
 	@Bean
-	public SpringProcessEngineConfiguration springProcessEngineConfiguration(DriverManagerDataSource dataSource,
+	public SpringProcessEngineConfiguration springProcessEngineConfiguration(DataSource dataSource,
 			PlatformTransactionManager txManager) {
 
 		SpringProcessEngineConfiguration speconfig = new SpringProcessEngineConfiguration();
 		speconfig.setDataSource(dataSource());
 		speconfig.setTransactionManager(txManager);
 		speconfig.setDatabaseSchemaUpdate("true");
-		speconfig.setJobExecutorActivate(false);
+		speconfig.setJobExecutorActivate(true);
+
+		speconfig.setMailServerDefaultFrom(env.getProperty("mail.username"));
+		speconfig.setMailServerHost(env.getProperty("mail.host"));
+		speconfig.setMailServerPort(env.getProperty("mail.port", Integer.class));
+		speconfig.setMailServerUsername(env.getProperty("mail.username"));
+		speconfig.setMailServerPassword(env.getProperty("mail.password"));
+		speconfig.setMailServerUseTLS(false);
+		speconfig.setMailServerUseSSL(false);
+
+		// register event listeners
+		ProcessEventListener eventListener = new ProcessEventListener();
+		beanFactory.autowireBean(eventListener);
+		List<ActivitiEventListener> listeners = new ArrayList<ActivitiEventListener>();
+
+		listeners.add(eventListener);
+		speconfig.setEventListeners(listeners);
+
+		List<BpmnParseHandler> bpmnParseHandlers = new ArrayList<BpmnParseHandler>();
+		bpmnParseHandlers.add(new CustomTaskFormFields());
+		bpmnParseHandlers.add(new StartEventFormFields());
+		speconfig.setPreBpmnParseHandlers(bpmnParseHandlers);
 
 		// add the custom types to the Activiti engine configuration
 		List<AbstractFormType> customFormTypes = new ArrayList<AbstractFormType>();
 		customFormTypes.add(new DocumentFormType());
+		customFormTypes.add(new ApproveFormType());
 		customFormTypes.add(new ConversationFormType());
+		customFormTypes.add(new MessageFormType());
+		customFormTypes.add(new EmailFormType());
+		customFormTypes.add(new TextareaFormType());
+		customFormTypes.add(new PositionFormType());
 		speconfig.setCustomFormTypes(customFormTypes);
-				
+
 		return speconfig;
 	}
 
@@ -270,23 +309,23 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 	public TaskService taskService(ProcessEngineFactoryBean pefb) throws Exception {
 		return pefb.getObject().getTaskService();
 	}
-	
+
 	@Autowired
-    public KeycloakClientRequestFactory keycloakClientRequestFactory;
+	public KeycloakClientRequestFactory keycloakClientRequestFactory;
 
 	@Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public KeycloakRestTemplate keycloakRestTemplate() {
-        return new KeycloakRestTemplate(keycloakClientRequestFactory);
-    }
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public KeycloakRestTemplate keycloakRestTemplate() {
+		return new KeycloakRestTemplate(keycloakClientRequestFactory);
+	}
 
 	// CMIS configuration
 	// =================================================================================================
 	@Bean(destroyMethod = "cleanUp")
 	public CMISSession cmisSession() {
-		
+
 		return new CMISSession(env.getProperty("cmis.service.url"), env.getProperty("cmis.repository.id"),
 				env.getProperty("cmis.username"), env.getProperty("cmis.password"));
 	}
-	
+
 }

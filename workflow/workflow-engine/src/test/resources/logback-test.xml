@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" debug="false">
+
+	<property resource="workflow-engine.properties" />
+
+	<appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
+		<target>System.err</target>
+		<filter class="gr.cyberstream.workflow.engine.common.ErrOutFilter" />
+		<encoder>
+			<charset>UTF-8</charset>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg\n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<target>System.out</target>
+		<filter class="gr.cyberstream.workflow.engine.common.StdOutFilter" />
+		<encoder>
+			<charset>UTF-8</charset>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg\n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="gr.cyberstream" additivity="false">
+		<appender-ref ref="STDERR" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<logger name="org.springframework" level="info" additivity="false">
+		<appender-ref ref="STDERR" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<logger name="org.hibernate" level="info" additivity="false">
+		<appender-ref ref="STDERR" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<!-- <logger name="org.hibernate.SQL" level="warn" additivity="false"> <appender-ref 
+		ref="STDERR" /> <appender-ref ref="STDOUT" /> <appender-ref ref="FILE" /> 
+		<appender-ref ref="ERRORFILE" /> </logger> -->
+
+	<!-- <logger name="org.springframework.security" level="info" additivity="false"> 
+		<appender-ref ref="STDOUT" /> </logger> -->
+
+	<root level="info">
+		<appender-ref ref="STDERR" />
+		<appender-ref ref="STDOUT" />
+	</root>
+
+</configuration>

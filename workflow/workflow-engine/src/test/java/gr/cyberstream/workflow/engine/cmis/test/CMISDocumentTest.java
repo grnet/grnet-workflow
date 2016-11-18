@@ -1,6 +1,8 @@
 package gr.cyberstream.workflow.engine.cmis.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
@@ -157,7 +159,7 @@ public class CMISDocumentTest {
 		for (Document doc : versions) {
 			String verId = doc.getId();
 			Document versDoc = (Document) session.getObject(verId);
-			String s = IOUtils.toString(versDoc.getContentStream().getStream());
+			String s = IOUtils.toString(versDoc.getContentStream().getStream(), "UTF-8");
 
 			assertEquals(contents[i], s);
 			i++;

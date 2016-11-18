@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.cyberstream.gr/workflow/vrilissia">
+  <process id="waterSupplyNetworkDamageIntergrationTest" name="Αναφορά βλάβης δικτύου ύδρευσης" isExecutable="true">
+    <startEvent id="startEvent" name="Start">
+      <extensionElements>
+        <activiti:formProperty id="name" name="Όνοματεπώνυμο" type="string" variable="name" required="true"></activiti:formProperty>
+        <activiti:formProperty id="email" name="Email" type="email" variable="email" required="true"></activiti:formProperty>
+        <activiti:formProperty id="phoneNo" name="Τηλ. Επικοινωνίας" type="string" variable="phoneNo" required="true"></activiti:formProperty>
+        <activiti:formProperty id="address" name="Θέση (Διεύθυνση)" type="string" variable="address"></activiti:formProperty>
+        <activiti:formProperty id="position" name="Θέση (Χάρτης)" type="position" variable="position" required="true"></activiti:formProperty>
+        <activiti:formProperty id="comment" name="Σχόλια" type="textarea" variable="comment"></activiti:formProperty>
+        <activiti:formProperty id="Photo" name="Photo" type="document" variable="photo"></activiti:formProperty>
+      </extensionElements>
+    </startEvent>
+    <userTask id="requestCheck" name="Έλεγχος Αναφοράς" activiti:candidateGroups="WaterSupply" activiti:dueDate="P20D">
+      <extensionElements>
+        <activiti:formProperty id="name" name="Ονοματεπώνυμο" type="string" variable="name" writable="false"></activiti:formProperty>
+        <activiti:formProperty id="email" name="Email" type="email" variable="email" writable="false"></activiti:formProperty>
+        <activiti:formProperty id="phoneNo" name="Τηλ. επικοινωνίας" type="string" variable="phoneNo" writable="false"></activiti:formProperty>
+        <activiti:formProperty id="address" name="Θέση (Διεύθυνση)" type="string" variable="address" writable="false"></activiti:formProperty>
+        <activiti:formProperty id="position" name="Θέση (Χάρτης)" type="position" variable="position" writable="false"></activiti:formProperty>
+        <activiti:formProperty id="comment" name="Σχόλια" type="textarea" variable="comment" writable="false"></activiti:formProperty>
+        <activiti:formProperty id="checkResult" name="Αποτέλεσμα Ελέγχου" type="enum" variable="checkResult" required="true">
+          <activiti:value id="reject" name="Απόρριψη"></activiti:value>
+          <activiti:value id="spotCheck" name="Αυτοψία"></activiti:value>
+          <activiti:value id="repair" name="Προς Επισκευή"></activiti:value>
+        </activiti:formProperty>
+        <activiti:formProperty id="checkComment" name="Σχόλια Ελέγχου" type="textarea" variable="checkComment"></activiti:formProperty>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway id="checkResultGateway" name="checkResultGateway"></exclusiveGateway>
+    <sequenceFlow id="flow3" sourceRef="requestCheck" targetRef="checkResultGateway"></sequenceFlow>
+    <endEvent id="endEvent" name="End"></endEvent>
+    <userTask id="spotCheck" name="Αυτοψία" activiti:candidateGroups="WaterSupply">
+      <extensionElements>
+        <activiti:formProperty id="address" name="Θέση (Διεύθυνση)" type="string" variable="address" writable="false"></activiti:formProperty>
+        <activiti:formProperty id="position" name="Θέση (Χάρτης)" type="position" variable="position" writable="false"></activiti:formProperty>
+        <activiti:formProperty id="comment" name="Σχόλια" type="textarea" variable="comment" writable="false"></activiti:formProperty>
+        <activiti:formProperty id="checkComment" name="Σχόλια Ελέγχου" type="textarea" variable="checkComment"></activiti:formProperty>
+        <activiti:formProperty id="spotCheckComment" name="Σχόλια Αυτοψίας" type="textarea" variable="spotCheckComment"></activiti:formProperty>
+        <activiti:formProperty id="spotCheckResult" name="Αποτέλεσμα Αυτοψίας" type="enum" variable="spotCheckResult" required="true">
+          <activiti:value id="repair" name="Προς Επισκευή"></activiti:value>
+          <activiti:value id="reject" name="Απόρριψη"></activiti:value>
+        </activiti:formProperty>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="check-spotCheck" name="Spot Check" sourceRef="checkResultGateway" targetRef="spotCheck">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${checkResult == "spotCheck"}]]></conditionExpression>
+    </sequenceFlow>
+    <serviceTask id="reject-mail" name="Reject Mail" activiti:class="gr.cyberstream.workflow.engine.customservicetasks.DocumentMail" activiti:extensionId="gr.cyberstream.workflow.designer.servicetasks.DocumentMail">
+      <extensionElements>
+        <activiti:field name="app">
+          <activiti:string>waterSupplyNetworkDamageReject</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>app@cyberstream.gr</activiti:string>
+        </activiti:field>
+        <activiti:field name="to">
+          <activiti:expression>kostas.koutros@cyberstream.gr</activiti:expression>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Απόρριψη Αιτήματος</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <sequenceFlow id="check-reject" name="Reject" sourceRef="checkResultGateway" targetRef="reject-mail">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${checkResult == "reject"}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="reject-to-end" name="Reject to end" sourceRef="reject-mail" targetRef="endEvent"></sequenceFlow>
+    <serviceTask id="repair-mail" name="Repair Mail" activiti:class="gr.cyberstream.workflow.engine.customservicetasks.DocumentMail" activiti:extensionId="gr.cyberstream.workflow.designer.servicetasks.DocumentMail">
+      <extensionElements>
+        <activiti:field name="app">
+          <activiti:string>waterSupplyNetworkDamageRepair</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>app@cyberstream.gr</activiti:string>
+        </activiti:field>
+        <activiti:field name="to">
+          <activiti:expression>kostas.koutros@cyberstream.gr</activiti:expression>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Επιδιόρθωση βλάβης δικτύου ύδρευσης</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <sequenceFlow id="check-repair" name="Repair" sourceRef="checkResultGateway" targetRef="repair-mail">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${checkResult == "repair"}]]></conditionExpression>
+    </sequenceFlow>
+    <serviceTask id="notification-mail" name="Supervisor Mail" activiti:class="gr.cyberstream.workflow.engine.customservicetasks.DocumentMail" activiti:extensionId="gr.cyberstream.workflow.designer.servicetasks.DocumentMail">
+      <extensionElements>
+        <activiti:field name="app">
+          <activiti:string>waterNetworkDamagePlanEmail</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>app@cyberstream.gr</activiti:string>
+        </activiti:field>
+        <activiti:field name="to">
+          <activiti:expression>kostas.koutros@cyberstream.gr</activiti:expression>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:expression>Προγραμματισμός επισκευής ${instanceReference}</activiti:expression>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <sequenceFlow id="to-supervisor-email" name="To supervisor mail" sourceRef="repair-mail" targetRef="notification-mail"></sequenceFlow>
+    <sequenceFlow id="supervisor-email-to-end" name="Mail supervisor to end" sourceRef="notification-mail" targetRef="endEvent"></sequenceFlow>
+    <serviceTask id="autopsy-reject-mail" name="Autopsy Reject Mail" activiti:delegateExpression="${documentMail}" activiti:extensionId="gr.cyberstream.workflow.designer.servicetasks.DocumentMail">
+      <extensionElements>
+        <activiti:field name="app">
+          <activiti:string>waterSupplyNetworkDamageAutopsyReject</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>app@cyberstream.gr</activiti:string>
+        </activiti:field>
+        <activiti:field name="to">
+          <activiti:expression>kostas.koutros@cyberstream.gr</activiti:expression>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Απόρριψη Αιτήματος</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <sequenceFlow id="autopsyReject-to-end" sourceRef="autopsy-reject-mail" targetRef="endEvent"></sequenceFlow>
+    <exclusiveGateway id="autopsyGw" name="Exclusive Gateway"></exclusiveGateway>
+    <sequenceFlow id="flow4" sourceRef="spotCheck" targetRef="autopsyGw"></sequenceFlow>
+    <sequenceFlow id="flow5" sourceRef="autopsyGw" targetRef="autopsy-reject-mail">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${spotCheckResult == "reject"}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow6" sourceRef="autopsyGw" targetRef="repair-mail">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${spotCheckResult == "repair"}]]></conditionExpression>
+    </sequenceFlow>
+    <serviceTask id="servicetask2" name="Template Mail" activiti:delegateExpression="${documentMail}" activiti:extensionId="gr.cyberstream.workflow.designer.servicetasks.DocumentMail">
+      <extensionElements>
+        <activiti:field name="app">
+          <activiti:string>waterSupplyNetworkDamageReceipt</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>app@cyberstream.gr</activiti:string>
+        </activiti:field>
+        <activiti:field name="to">
+          <activiti:expression>kostas.koutros@cyberstream.gr</activiti:expression>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string>Επιβεβαίωση</activiti:string>
+        </activiti:field>
+        <activiti:field name="attachment">
+          <activiti:string>photo</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <sequenceFlow id="flow7" sourceRef="startEvent" targetRef="servicetask2"></sequenceFlow>
+    <sequenceFlow id="flow8" sourceRef="servicetask2" targetRef="requestCheck"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_waterSupplyNetworkDamage">
+    <bpmndi:BPMNPlane bpmnElement="waterSupplyNetworkDamage" id="BPMNPlane_waterSupplyNetworkDamage">
+      <bpmndi:BPMNShape bpmnElement="startEvent" id="BPMNShape_startEvent">
+        <omgdc:Bounds height="35.0" width="35.0" x="10.0" y="140.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="requestCheck" id="BPMNShape_requestCheck">
+        <omgdc:Bounds height="55.0" width="105.0" x="270.0" y="130.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="checkResultGateway" id="BPMNShape_checkResultGateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="409.0" y="137.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endEvent" id="BPMNShape_endEvent">
+        <omgdc:Bounds height="35.0" width="35.0" x="858.0" y="140.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="spotCheck" id="BPMNShape_spotCheck">
+        <omgdc:Bounds height="55.0" width="105.0" x="480.0" y="130.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="reject-mail" id="BPMNShape_reject-mail">
+        <omgdc:Bounds height="55.0" width="105.0" x="588.0" y="240.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="repair-mail" id="BPMNShape_repair-mail">
+        <omgdc:Bounds height="55.0" width="105.0" x="588.0" y="30.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="notification-mail" id="BPMNShape_notification-mail">
+        <omgdc:Bounds height="55.0" width="105.0" x="823.0" y="30.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="autopsy-reject-mail" id="BPMNShape_autopsy-reject-mail">
+        <omgdc:Bounds height="55.0" width="105.0" x="700.0" y="130.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="autopsyGw" id="BPMNShape_autopsyGw">
+        <omgdc:Bounds height="40.0" width="40.0" x="620.0" y="137.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="servicetask2" id="BPMNShape_servicetask2">
+        <omgdc:Bounds height="55.0" width="105.0" x="100.0" y="130.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="flow3" id="BPMNEdge_flow3">
+        <omgdi:waypoint x="375.0" y="157.0"></omgdi:waypoint>
+        <omgdi:waypoint x="409.0" y="157.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="check-spotCheck" id="BPMNEdge_check-spotCheck">
+        <omgdi:waypoint x="449.0" y="157.0"></omgdi:waypoint>
+        <omgdi:waypoint x="480.0" y="157.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="55.0" x="448.0" y="187.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="check-reject" id="BPMNEdge_check-reject">
+        <omgdi:waypoint x="429.0" y="177.0"></omgdi:waypoint>
+        <omgdi:waypoint x="429.0" y="267.0"></omgdi:waypoint>
+        <omgdi:waypoint x="588.0" y="267.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="30.0" x="415.0" y="280.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="reject-to-end" id="BPMNEdge_reject-to-end">
+        <omgdi:waypoint x="693.0" y="267.0"></omgdi:waypoint>
+        <omgdi:waypoint x="875.0" y="267.0"></omgdi:waypoint>
+        <omgdi:waypoint x="875.0" y="175.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="63.0" x="803.0" y="281.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="check-repair" id="BPMNEdge_check-repair">
+        <omgdi:waypoint x="429.0" y="137.0"></omgdi:waypoint>
+        <omgdi:waypoint x="429.0" y="57.0"></omgdi:waypoint>
+        <omgdi:waypoint x="588.0" y="57.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="31.0" x="430.0" y="31.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="to-supervisor-email" id="BPMNEdge_to-supervisor-email">
+        <omgdi:waypoint x="693.0" y="57.0"></omgdi:waypoint>
+        <omgdi:waypoint x="823.0" y="57.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="88.0" x="708.0" y="30.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="supervisor-email-to-end" id="BPMNEdge_supervisor-email-to-end">
+        <omgdi:waypoint x="875.0" y="85.0"></omgdi:waypoint>
+        <omgdi:waypoint x="875.0" y="140.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="42.0" width="100.0" x="880.0" y="95.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="autopsyReject-to-end" id="BPMNEdge_autopsyReject-to-end">
+        <omgdi:waypoint x="805.0" y="157.0"></omgdi:waypoint>
+        <omgdi:waypoint x="858.0" y="157.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow4" id="BPMNEdge_flow4">
+        <omgdi:waypoint x="585.0" y="157.0"></omgdi:waypoint>
+        <omgdi:waypoint x="620.0" y="157.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow5" id="BPMNEdge_flow5">
+        <omgdi:waypoint x="660.0" y="157.0"></omgdi:waypoint>
+        <omgdi:waypoint x="700.0" y="157.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow6" id="BPMNEdge_flow6">
+        <omgdi:waypoint x="640.0" y="137.0"></omgdi:waypoint>
+        <omgdi:waypoint x="640.0" y="85.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow7" id="BPMNEdge_flow7">
+        <omgdi:waypoint x="45.0" y="157.0"></omgdi:waypoint>
+        <omgdi:waypoint x="100.0" y="157.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow8" id="BPMNEdge_flow8">
+        <omgdi:waypoint x="205.0" y="157.0"></omgdi:waypoint>
+        <omgdi:waypoint x="270.0" y="157.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

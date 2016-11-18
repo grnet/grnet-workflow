@@ -1,75 +1,86 @@
 html, body {
-    font-family: "Open Sans", sans-serif;
+	font-family: "Open Sans", sans-serif;
+	width: 100%;
+	height: 100%;
 }
 
-p,h3{
-	margin:0px;
+body {
+	background-color: #e0e0e0;
+}
+
+p, h3 {
+	margin: 0px;
 }
 
 md-icon:focus {
-    outline:0;
+	outline: 0;
+}
+
+md-content.page {
+	background-color: #e0e0e0;
 }
 
 .layout-content {
-    max-width: 960px;
-    margin: auto;
+	max-width: 960px;
+	margin: auto;
 }
 
 .mainList {
-   /*height: 600px; */
+	/*height: 600px; */
+	
 }
 
 .noselect {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
 
 .avatar {
-    width: 40px;
-    height: 40px;
+	width: 40px;
+	height: 40px;
 }
 
 .third-state {
-    background-color: lightgrey !important;
+	background-color: lightgrey !important;
 }
 
 .after-icon {
-    display: inline-block;
-    vertical-align: middle;
-    margin: 0 0 0 20px;
+	display: inline-block;
+	vertical-align: middle;
+	margin: 0 0 0 20px;
 }
 
 div.card-header {
-    margin-bottom: 30px;
+	margin-bottom: 15px;
 }
 
 .wait-icon {
-    position: absolute;
-    left: 50%;
-    top: 40%;
+	position: absolute;
+	left: 50%;
+	top: 40%;
 }
+
 .wait-icon md-progress-circular {
-    position: relative;
-    left: -50%;
-    top: -50%;
+	position: relative;
+	left: -50%;
+	top: -50%;
 }
 
 /* Loading Spinner ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 .spinner {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    background-color: rgb(63,81,181);
-
-    left: 50%;
-    top: 20%;
-    -webkit-animation: sk-rotate-plane 1.2s infinite ease-in-out;
-    animation: sk-rotate-plane 1.2s infinite ease-in-out;
-    z-index: 1000;
+	position: absolute;
+	width: 40px;
+	height: 40px;
+	background-color: rgb(63, 81, 181);
+	left: 50%;
+	top: 20%;
+	-webkit-animation: sk-rotate-plane 1.2s infinite ease-in-out;
+	animation: sk-rotate-plane 1.2s infinite ease-in-out;
+	z-index: 1000;
 }
 
 @-webkit-keyframes sk-rotate-plane {
@@ -93,49 +104,46 @@ div.card-header {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* Start new process selected item */
-
 .process-selected {
-	color: #660033;	
+	color: #660033;
 }
 
-
 /*Task's style class according to due date*/
-.delayed{
+.delayed {
 	color: red;
 }
 
-.nearDelayed{
+.nearDelayed {
 	color: #ffbb00;
 }
 
-.removeIcon{
+.removeIcon {
 	display: none;
 }
 
 .cardInline {
 	display: inline-block;
-	margin-left: 20px;
+	margin-left: 10px;
 	padding-left: 10px;
 	border-left: 1px solid #e0e0e0;
 }
 
 /* Application title / page title */
 .application-title {
-    padding-bottom: 0px;
-    padding-top: 2px;
-    font-size: 18px !important;
+	padding-bottom: 0px;
+	padding-top: 2px;
+	font-size: 18px !important;
 }
 
 .page-title {
-    padding-top: 2px;
-    padding-bottom: 0px;
-    font-size: 16px !important;
+	padding-top: 2px;
+	padding-bottom: 0px;
+	font-size: 16px !important;
 }
 
 /* md-container custom classes with buttons*/
-
 .wf-with-confirm {
-    margin-right: 35px;
+	margin-right: 35px;
 }
 
 .wf-with-confirm.md-has-icon {
@@ -143,18 +151,17 @@ div.card-header {
 	padding-left: 0px;
 }
 
-.wf-with-confirm.md-has-icon > label{
+.wf-with-confirm.md-has-icon>label {
 	left: 0px !important;
 }
 
-.wf-label{
+.wf-label {
 	padding-top: 15px;
 	font-size: 13px;
 	padding-left: 2px;
 }
 
 /* Select all checkboxes/etc */
-
 .wf-selectAll {
 	font-size: 18px;
 }
@@ -197,24 +204,138 @@ div.card-header {
 
 .docInputDoc {
 	padding-right: 5px;
-    margin-right: 10px;
+	margin-right: 10px;
 }
 
 .docInputRef {
-	 margin-left: 10px;
+	margin-left: 10px;
 }
 
-nlk-process-form-item{
-	display:block;
+nlk-process-form-item {
+	display: block;
 }
 
-.print *{
+.print * {
 	color: black !important;
 }
 
 @media print {
-	
 	* {
 		color: black !important;
 	}
+	
+	.printBtnSection {
+		display: none;
+	}
+	
+	.docInputRef {
+		margin-top: 0
+	}
+	
+	.docInputDoc {
+		margin-top: 0
+	}
+	
+	.documentActions{
+		display: none;
+	}
+	
+	.printWrapper {
+		padding-top: 0px;
+	}
+}
+
+.printWrapper .documentActions {
+	display: none;
+}
+
+.card-header h2 {
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+#pac-input {
+	background-color: #fff;
+	font-size: 15px;
+	font-weight: 300;
+	margin-left: 12px;
+	padding: 0 11px 0 13px;
+	text-overflow: ellipsis;
+	width: 300px;
+}
+
+#pac-input:focus {
+	border-color: #4d90fe;
+}
+
+.controls {
+	margin-top: 10px;
+	border: 1px solid transparent;
+	border-radius: 2px 0 0 2px;
+	box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	height: 32px;
+	outline: none;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+#type-selector {
+	color: #fff;
+	background-color: #4d90fe;
+	padding: 5px 11px 0px 11px;
+}
+
+#type-selector label {
+	font-family: Roboto;
+	font-size: 13px;
+	font-weight: 300;
+}
+
+#target {
+	width: 345px;
+}
+
+.navListItem>button {
+	white-space: nowrap !important;
+}
+
+.transparent {
+	background-color: transparent;
+}
+
+.nonTransparent {
+	background-color: white !important;
+}
+
+.wf-tabs md-tab-item {
+	background-color: white;
+}
+
+.wf-tabs md-tab-content {
+	background-color: #e9e9e9;
+}
+
+.infoMessage {
+	font-size: 16px;
+}
+
+.enabledLabel {
+	opacity: 0.8;
+	color: #9c27b0;
+}
+
+.disabledLabel {
+	color: rgba(0,0,0,0.26) !important;
+}
+
+.dialogActions {
+	padding-left: 0px;
+	width: 100%;
+	background-color: rgba(0, 0, 0, 0.03);
+	border-top-color: rgba(0, 0, 0, 0.12);
+	border-top: 1px solid rgba(0, 0, 0, .12);
+}
+
+.navItemSelected {
+    background-color: rgba(158,158,158,0.2);
 }

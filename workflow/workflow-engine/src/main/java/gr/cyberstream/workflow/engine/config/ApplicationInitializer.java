@@ -1,6 +1,3 @@
-/**
- * @author nlyk
- */
 package gr.cyberstream.workflow.engine.config;
 
 import javax.servlet.Filter;

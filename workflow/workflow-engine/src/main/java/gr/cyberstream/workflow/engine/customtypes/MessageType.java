@@ -71,7 +71,7 @@ public class MessageType implements Serializable {
 	/**
 	 * return a ConversationType Object de-serializing a JSon string
 	 * 
-	 * @param jsonSerialization
+	 * @param jsonSerialization The serialized string
 	 * @return
 	 * @throws JsonParseException
 	 * @throws JsonMappingException

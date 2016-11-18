@@ -1,10 +1,10 @@
-<project name="WorkflowWorkspace" default="deploy" basedir=".">
+<project name="Grnet WorkflowWorkspace" default="deploy" basedir=".">
 	
     <description>
-        Workflow workspace
+    	Grnet Workflow workspace
     </description>
 	
-	<property name="dest" location="C:/Apache2.4/htdocs/workflow-workspace"/>
+	<property name="dest" location="C:/apps/Apache24/htdocs/grnet/workflow-workspace"/>
 		
 	<target name="deploy" description="deploy project" >
 		<!-- Create the distribution directory -->
@@ -13,6 +13,8 @@
 		<copy todir="${dest}">
 			<fileset dir=".">
 				<exclude name="build.xml"/>
+				<exclude name="**/bower_components/**" />
+				<exclude name="**/test/**" />
 			</fileset>
 		</copy>
 	</target>

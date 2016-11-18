@@ -1,0 +1,66 @@
+<md-toolbar>
+	<div class="md-toolbar-tools">
+	
+		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
+			<md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+		</md-button>
+		
+		<md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
+		
+		<div hide-sm layout-padding>
+			<h1 class="md-title application-title">workflow::workspace</h1>
+			<h2 class="md-subhead page-title">{{ 'executionsInProgress' | translate }}</h2>
+		</div>
+		
+		<span flex></span>
+		
+		<md-button class="md-icon-button" ng-click="showProcessFilterDialog($event)" aria-label="filter" hide-gt-sm>
+			<md-icon md-svg-icon="img/icons/filter.svg"></md-icon>
+		</md-button>
+	</div>
+</md-toolbar>
+
+<section layout="row" style="overflow: hidden;" flex>
+	
+	<div layout="column" flex="35" ng-if="instances != null && instances.length > 0">
+		<md-card style="margin-right:0">
+			<md-subheader class="md-primary">{{ 'definitionSelection' | translate }}</md-subheader>
+				<md-card-content style="padding-top: 0;">
+					<md-radio-group>
+						<md-radio-button class="md-primary wf-selectAll" ng-click="showAllInstances()" ng-value="TRUE">{{ 'showAll' | translate }}</md-radio-button>
+						<md-radio-button ng-repeat="(key, value) in instancesMapByDefinitions" ng-value="key" class="md-primary" ng-click="selectionChanged(key)">{{key}}</md-radio-button>
+					</md-radio-group>
+				</md-card-content>
+		</md-card>
+	</div>
+	
+	<md-content flex class="transparent">
+	
+		<div layout="row" layout-align="center start" flex class="infoMessage" ng-if="instances === null || instances.length == 0">
+			<md-card style="width:100%; line-height: 32px; background-color: #d84315">
+				<md-card-content layout-align="center center">
+					<md-icon md-svg-icon="img/icons/info.svg" style="height: 32px; width: 32px; margin-right: 10px;"></md-icon>
+					<span style="display: inline-block; vertical-align: middle;color:white">{{'noInstancesForProcess' | translate }}</span>
+				</md-card-content>
+			</md-card>
+		</div>
+	
+		<section layout="column" class="wait-icon" ng-if="showProgress">
+			<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
+		</section>
+		
+		<md-list flex style="padding-top: 0;">
+			<md-card ng-repeat="instance in instances">
+				<md-list-item class="md-2-line" ng-click="goTo('/instance/' + instance.id)">
+					<img ng-src="{{imagePath + instance.definitionIcon}}" class="md-avatar" alt="{{instance.title}}"/>
+					<div  class="md-list-item-text" layout="column">
+						<h3>{{instance.title}}</h3>
+						<p>{{ 'supervisor' | translate }}: {{instance.supervisor}}
+							<span class="cardInline">{{ 'startedAt' | translate }}: {{ instance.startDate | date:'d/M/yyyy'}}</span>
+						</p>
+					</div>
+				</md-list-item>
+			</md-card>
+		</md-list>
+	</md-content>
+</section>

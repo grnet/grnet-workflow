@@ -1,56 +1,48 @@
 <md-dialog aria-label="Upload file" ng-style="{'min-width': '600px'}">
-    <md-toolbar>
-        <div class="md-toolbar-tools">
-            <h2>{{ 'uploadFile' | translate }}</h2>
-            <span flex></span>
-            <md-button class="md-icon-button" ng-click="cancel()">
-                <md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
-            </md-button>
-        </div>
-    </md-toolbar>
-
-    <form>
-
-        <md-content layout-padding>
-
-			<section layout="column">
-				<md-input-container flex>
-			        <label for="title">{{ 'title' | translate }}</label>
-			        <input type="text" id="title" name="title" ng-model="document.title"/>
-			    </md-input-container>
-			    
-			    <md-input-container flex>
-			        <label for="refNo">{{ 'referenceNumber' | translate }}</label>
-			        <input type="text" id="refNo" name="refNo" ng-model="document.refNo"/>
-			    </md-input-container>
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>{{ 'uploadFile' | translate }}</h2>
+			
+			<span flex></span>
+			
+			<md-button class="md-icon-button" ng-click="cancel()">
+				<md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+	
+	<md-dialog-content layout-padding>
+		<md-content>
 		
-	            <section layout="row">
-	                
-	                <md-input-container flex>
-	                    <label for="filename">{{ 'file' | translate }}</label>
-	                    <input type="text" readonly id="filename" name="filename" ng-model="file.name"/>
-	                </md-input-container>
-	                
-					<input type="file" id="file" name="file" ng-style="{'display': 'none'}"
-						ng-model="file" onchange="angular.element(this).scope().setFile(this)"/>
-	
-	                <md-button class="md-icon-button" onclick="(document.querySelector('#file')).click()">
-	                    <md-icon md-svg-src="img/icons/drive-file.svg" aria-label="Upload file"></md-icon>
-	                </md-button>
-	
-	            </section>
+			<md-input-container flex class="md-block">
+				<label for="title">{{ 'title' | translate }}</label>
+				<input type="text" id="title" name="title" ng-model="document.title"/>
+			</md-input-container>
+			
+			<md-input-container flex class="md-block" style="margin-bottom: 0;">
+				<label for="refNo">{{ 'referenceNumber' | translate }}</label>
+				<input type="text" id="refNo" name="refNo" ng-model="document.refNo"/>
+			</md-input-container>
+			
+			<section layout="row" layout-align="center center">
+			
+				<md-input-container flex class="md-block">
+					<label for="filename">{{ 'file' | translate }}</label>
+					<input type="text" readonly id="filename" name="filename" ng-model="file.name"/>
+				</md-input-container>
+				
+				<input type="file" id="file" name="file" ng-style="{'display': 'none'}" ng-model="file" onchange="angular.element(this).scope().setFile(this)"/>
+				
+				<md-button class="md-icon-button md-primary" onclick="(document.querySelector('#file')).click()">
+					<md-icon md-svg-src="img/icons/drive-file.svg" aria-label="Upload file"></md-icon>
+				</md-button>
+				
 			</section>
-        </md-content>
-
-        <div class="md-actions" layout="row">
-        	<span flex></span>
-            <md-button ng-click="save()" ng-disabled="document.title === '' || document.title === undefined">
-                {{ 'save' | translate }}
-            </md-button>
-            <md-button ng-click="cancel()" style="margin-right:20px;" >
-                {{ 'cancel' | translate }}
-            </md-button>
-        </div>
-
-    </form>
+		</md-content>
+	</md-dialog-content>
+	
+	<md-dialog-actions layout="row" layout-align="left center" class="dialogActions">
+		<md-button class="md-raised md-primary" ng-click="save()" ng-disabled="document.title === '' || document.title === undefined">{{ 'save' | translate }}</md-button>
+		<md-button class="md-raised" ng-click="cancel()" style="margin-right:20px;">{{ 'cancel' | translate }}</md-button>
+	</md-dialog-actions>
 </md-dialog>

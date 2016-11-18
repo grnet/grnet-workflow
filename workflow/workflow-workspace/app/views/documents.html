@@ -1,58 +1,63 @@
-<section layout="column">
-
-	<md-toolbar>
-	<div class="md-toolbar-tools">
-
-		<md-button id="menu-button" class="md-icon-button" aria-label="Menu"
-			ng-click="toggle()" hide-gt-md> <md-icon
-			md-svg-icon="img/icons/menu.svg"></md-icon> </md-button>
-
-		<md-icon md-svg-icon="img/icons/wf-logo.svg"
-			style="height: 48px; width: 48px"></md-icon>
-
+<md-toolbar>
+	<div class="md-toolbar-tools" style="padding-left:0px;">
+	
+		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
+			<md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+		</md-button>
+		
+		<md-button id="back-button" class="md-icon-button" aria-label="Back" ng-click="back()">
+			<md-icon md-svg-icon="img/icons/back.svg"></md-icon>
+		</md-button>
+		
+		<md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
+		
 		<span class="md-title" hide-sm layout-padding>workflow::workspace</span>
+		
 		<span flex></span>
-
-		<md-button class="md-icon-button"
-			ng-click="showProcessSelectDialog($event)"
-			aria-label="choose process" hide-gt-sm> <md-icon
-			md-svg-icon="img/icons/filter.svg"></md-icon> </md-button>
 	</div>
-	</md-toolbar>
+</md-toolbar>
 
-	<section layout="column">
-		<md-list ng-if="documents.length > 0" flex>
-			<md-list-item class="md-2-line" ng-repeat="document in documents">
-				<div class="md-list-item-text" layout="column">
+<section layout="row" style="overflow: hidden;height: 100%" flex>
+
+	<div layout="row" layout-align="center center" flex ng-if="showProgress">
+		<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
+	</div>
+	
+	<md-content flex class="transparent" style="padding-top: 8px;position:relative" ng-if="!showProgress">
+		<md-list ng-if="documents.length > 0" flex style="padding-top: 0px;">
+		
+			<md-card ng-repeat="document in documents">
+				<md-list-item class="md-2-line" ng-href="{{documentPath}}{{document.documentId}}" target="_blank">
+					<md-icon md-svg-icon="img/icons/pdf.svg" ng-if="document.title.indexOf('pdf') > 0"></md-icon>
+					<md-icon md-svg-icon="img/icons/excel.svg" ng-if="document.title.indexOf('xls') > 0 || document.title.indexOf('xlsx') > 0"></md-icon>
+					<md-icon md-svg-icon="img/icons/file.svg" ng-if="document.title.indexOf('xls') == -1 && document.title.indexOf('xlsx') == -1 && document.title.indexOf('pdf') == -1"></md-icon>
 					
-					<a ng-href="{{documentPath}}{{document.documentId}}" target="_blank">
+					<div class="md-list-item-text" layout="column" flex>
 						<h3>{{document.title}} v.{{document.version}}</h3>
-					</a>
-					<p>{{getDateString(document.submittedDate)}}</p>
-					
-					<md-list ng-if="document.versions.length > 0">
-						<md-list-item class="md-2-line" ng-repeat="version in document.versions">
+						<p>{{getDateString(document.submittedDate)}}
 						
-							<div class="md-list-item-text" layout="column">
-								<a ng-href="{{documentPath}}{{version.documentId}}" target="_blank">
-									<h3>{{version.title}} v.{{version.version}}</h3>
-								</a>
-								<p>{{getDateString(version.submittedDate)}}</p>
-							</div>
-						</md-list-item>
-					</md-list>
-				</div>
-			</md-list-item>
+							<span>
+								<section ng-repeat="version in document.versions" ng-if="document.versions.length > 0">
+									<md-list-item class="md-2-line" ng-href="{{documentPath}}{{version.documentId}}" target="_blank">
+										<h3>{{version.title}} v.{{version.version}}</h3>
+										<p>{{getDateString(version.submittedDate)}}</p>
+									</md-list-item>
+								</section>
+							</span>
+						</p>
+					</div>
+				</md-list-item>
+			</md-card>
 		</md-list>
-
-		<div ng-if="documents.length == 0" layout-padding>{{
-			'noDocumentsAvailable' | translate }}</div>
-
-		<div class="md-primary md-raised" layout="row"
-			layout-align="left bottom" layout-padding>
-			<md-button class="md-accent md-raised" ng-click="back()">{{
-			'back' | translate }}</md-button>
+		
+		<div layout="row" layout-align="center start" flex class="infoMessage" ng-if="documents.length == 0">
+			<md-card style="width:100%; line-height: 32px; margin-top: 0; background-color: #d84315">
+				<md-card-content layout-align="center center">
+					<md-icon md-svg-icon="img/icons/info.svg" style="height: 32px; width: 32px; margin-right: 10px;"></md-icon>
+					<span style="display: inline-block; vertical-align: middle; color:white">{{'noDocumentsAvailable' | translate }}</span>
+				</md-card-content>
+			</md-card>
 		</div>
-
-	</section>
+		
+	</md-content>
 </section>

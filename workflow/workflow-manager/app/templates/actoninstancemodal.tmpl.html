@@ -1,17 +1,27 @@
-<md-dialog aria-label="{{ 'suspendExecution' | translate }}" ng-style="{'min-width': '600px'}">
+<md-dialog aria-label="{{ 'suspendExecution' | translate }}">
+
 	<md-toolbar>
 	    <div class="md-toolbar-tools">
 	        <h2>{{ 'confirmAction' | translate }}</h2>
+	        
 	        <span flex></span>
+	        
+   			<md-button class="md-icon-button" ng-click="cancel()">
+				<md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+			</md-button>
 	    </div>
 	</md-toolbar>
 	
-	<md-dialog-content layout-padding>
-		<div>{{ 'youAreAboutTo' | translate }} {{action | translate }} {{ 'execution' | translate }}
-			 {{instance.title}} {{ 'with' | translate }} id {{instance.id}}.</div>
+	<md-dialog-content>
+	
+		<md-content layout="row" layout-align="center center" layout-padding style="min-height: 55px; padding-left:0px">
+			<span ng-if="action === 'resume'">{{ 'resumeInstance' | translate }} "{{instance.title}}". ({{ 'femaleDisabled' | translate }})</span>
+			<span ng-if="action === 'suspend'">{{ 'suspendInstance' | translate }} "{{instance.title}}".</span>
+		</md-content>
+		
   	</md-dialog-content>
 	
-	<md-dialog-actions layout="row" layout-align="left center">
+	<md-dialog-actions layout="row" layout-align="left center" class="dialogActions">
 		<md-button class="md-raised md-primary" ng-click="confirm()">{{ 'confirm' | translate }}</md-button>
 		<md-button class="md-raised md-warn" ng-click="cancel()">{{ 'cancel' | translate }}</md-button>
 	</md-dialog-actions>

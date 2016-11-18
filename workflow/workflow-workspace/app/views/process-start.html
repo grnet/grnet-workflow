@@ -1,79 +1,76 @@
-<section layout="column">
+<md-toolbar>
+	<div class="md-toolbar-tools">
+	
+		<md-button class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
+			<md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+		</md-button>
+		
+		<md-button class="md-icon-button" aria-label="Menu" ng-click="goTo('/process')">
+			<md-icon md-svg-icon="img/icons/back.svg"></md-icon>
+		</md-button>
+		
+		<md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
+		
+		<div hide-sm layout-padding>
+			<h1 class="md-title application-title">workflow::workspace</h1>
+			<h2 class="md-subhead page-title">{{ 'startNewProcess' | translate }}</h2>
+		</div>
+		
+		<span flex></span>
+	</div>
+</md-toolbar>
 
-    <md-toolbar>
-        <div class="md-toolbar-tools">
 
-            <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
-                <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
-            </md-button>
-
-            <md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
-
-            <div hide-sm layout-padding>
-            	<h1 class="md-title application-title">workflow::workspace</h1>
-            	<h2 class="md-subhead page-title">{{ 'startNewProcess' | translate }}</h2>
-            </div>
-            
-            <span flex></span>
-        </div>
-    </md-toolbar>
-
-    <section layout="row">
-        <!-- Process to start ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-        <md-content flex layout-padding ng-if="process !== null">
-        
-        	<div layout="row" layout-sm="column" layout-align="space-around" ng-if="showProgress">
-              	<md-progress-circular md-mode="indeterminate"></md-progress-circular>
-           	</div>
-           	
-            <md-card style="width: 100%" ng-if="!showProgress">
-            
-                <md-card-content>
-                    <div class="card-header">
-                        <md-icon md-svg-src="{{'img/avatars/'+process.icon}}" class="md-avatar"
-                                 style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
-                        <h2 class="md-title after-icon">{{process.name}}</h2>
-                    </div>
-
+<section layout="row" style="overflow: hidden;" flex>
+	<md-content flex class="transparent" ng-if="process !== null">
+			
+		<div layout="row" layout-sm="column" layout-align="space-around" ng-if="showProgress">
+			<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
+		</div>
+		
+		<ng-form name="startForm" flex>	
+			<md-card ng-if="!showProgress" style="position: relative;">
+				<md-card-content>
+				
+					<div class="card-header">
+						<md-icon md-svg-src="{{'img/avatars/'+process.icon}}" class="md-avatar" style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
+						<h2 class="md-title after-icon">{{process.name}}</h2>
+					</div>
+		
 					<div>{{instanceTitle}}</div>
 					
-                    <ng-form name="startForm">
-                    
-	           			<md-input-container ng-if="process.description" class="md-block">
-	                        <label for="processDescription">{{ 'description' | translate }}</label>
-	                        <textarea id="processDescription" ng-model="process.description" readonly></textarea>
-	                    </md-input-container>
-	
-						<md-input-container class="md-block" >
-                        	<label for="title">{{ 'executionTitle' | translate }}</label>
-                        	<textarea ng-model="instance.title" ng-required="true"></textarea>
-                    	</md-input-container>
-                    	
-						<md-input-container class="md-block" style="width: 500px;">
-	        				<label>{{ 'coordinator' | translate }}</label>
-						    <md-select ng-model="instance.supervisor" ng-required="true">
-						        <md-option ng-repeat="supervisor in supervisors" ng-value="supervisor.email">{{supervisor.lastName}} {{supervisor.firstName}}</md-option>
-						    </md-select>
-	      				</md-input-container>
-	      				
-	      				<nlk-process-form-item ng-repeat="item in process.processForm" ng-model="item" wf-document-path="{{documentPath}}"></nlk-process-form-item>
-	      				
-                    </ng-form>
+					<md-input-container ng-if="process.description" class="md-block">
+						<label for="processDescription" class="disabledLabel">{{ 'description' | translate }}</label>
+						<textarea id="processDescription" ng-model="process.description" readonly class="disabledLabel" disabled></textarea>
+					</md-input-container>
 					
-					<md-divider></md-divider>
+					<md-input-container class="md-block">
+						<label for="title" class="enabledLabel">{{ 'executionTitle' | translate }}</label>
+						<textarea ng-model="instance.title" ng-required="true" class="enabledLabel"></textarea>
+					</md-input-container>
 					
-					<div layout="row" layout-align="start center" style="margin-top:10px">
-                        <md-button class="md-raised" ng-class="{'md-accent': (startForm.$valid) }"
-                                   ng-disabled="!startForm.$valid"
-                                   ng-click="startProcess()"
-                                   style="margin-left: 0px;">{{ 'start' | translate }}
-                        </md-button>
-                        
-                        <md-button class="md-raised" ng-click="goTo('/process')">{{ 'cancel' | translate }}</md-button>  
-                    </div>
-                </md-card-content>
-            </md-card>
-        </md-content>
-    </section>
-
+					<md-input-container class="md-block">
+						<label class="enabledLabel">{{ 'coordinator' | translate }}</label>
+						<md-select ng-model="instance.supervisor" ng-required="true">
+							<md-option ng-repeat="supervisor in supervisors" ng-value="supervisor.email">{{supervisor.lastName}} {{supervisor.firstName}}</md-option>
+						</md-select>
+					</md-input-container>
+					
+					<section layout="row" layout-align="center center" style="position: absolute;top: 98%;right: 54px;bottom: 0px;">
+						<md-button class="md-fab md-primary" aria-label="Start Process" ng-disabled="!startForm.$valid"ng-click="startProcess()">
+							<md-icon md-svg-src="img/icons/start.svg"></md-icon>
+						</md-button>
+					</section>
+					
+				</md-card-content>
+			</md-card>
+			
+			<md-card ng-if="!showProgress">
+				<md-card-content>
+					<nlk-process-form-item ng-repeat="item in process.processForm" ng-model="item" wf-document-path="{{documentPath}}"></nlk-process-form-item>
+				</md-card-content>
+			</md-card>
+			
+		</ng-form>
+	</md-content>
 </section>

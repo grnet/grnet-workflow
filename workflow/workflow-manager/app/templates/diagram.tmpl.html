@@ -1,7 +1,8 @@
-<md-dialog aria-label="{{'diagram' | translate }}" >
+<md-dialog aria-label="{{definitionName}}" >
     <md-toolbar>
         <div class="md-toolbar-tools">
-            <h2>{{process.name}} {{'diagram' | translate }}</h2>
+            <h2 ng-if="task.name">{{task.name}}</h2>
+            <h2 ng-if="!task.name">{{definitionName}}</h2>
             <span flex></span>
             <md-button class="md-icon-button" ng-click="cancel()">
                 <md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
@@ -12,13 +13,18 @@
     <md-dialog-content layout-padding>
 
        	<div layout="row" layout-sm="column" layout-align="space-around" class="progressBar">
-           	<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+           	<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
        	</div>
 
-        <section layout="column" layout-align="start start" style="min-height: 450px">
-            <img ng-src="{{service}}/process/{{process.id}}/diagram"
-                 onload="document.querySelector('.progressBar').style.display = 'none'">
+        <section layout="column" layout-align="start start" style="min-height: 200px">
+        	<img style="max-width: 1300px;" ng-if="task" ng-src="{{service}}/process/{{process}}/diagram?task={{task.taskDetails.taskId}}"
+        		onload="document.querySelector('.progressBar').style.display = 'none'">
+       		<img style="max-width: 1300px;" ng-if="!task" ng-src="{{service}}/process/{{process}}/diagram" onload="document.querySelector('.progressBar').style.display = 'none'">
         </section>
+        
+   		<section layout="row" layout-align="start start" style="width: 100%;padding-top: 10px;border-top: 1px solid #3f51b5;">
+   			<span>{{definitionName}}</span>
+		</section>
         
     </md-dialog-content>
 </md-dialog>

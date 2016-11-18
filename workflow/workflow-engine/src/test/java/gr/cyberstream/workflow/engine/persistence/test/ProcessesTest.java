@@ -1,6 +1,6 @@
 package gr.cyberstream.workflow.engine.persistence.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 import java.util.List;
@@ -8,9 +8,6 @@ import java.util.function.Consumer;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-
-import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
-import gr.cyberstream.workflow.engine.persistence.Processes;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +18,9 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
+import gr.cyberstream.workflow.engine.persistence.Processes;
 
 @ContextConfiguration(classes = PersistenceConfiguration.class)
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -90,6 +90,17 @@ public class ProcessesTest {
 		dummyProcess.setName(null);
 
 		dummyProcess = processRepository.save(dummyProcess);
+	}
+
+	@Test
+	public void shouldGetDefinition() {
+		try {
+			WorkflowDefinition def = processRepository.getProcessByDefinitionId("waterSupplyNetworkDamage:1:5004");
+			logger.info(def.getName());
+			assertTrue(def != null);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
 	}
 
 }

@@ -1,7 +1,7 @@
 <md-toolbar>
 	<div class="md-toolbar-tools">
 	
-		<md-button id="back-button" class="md-icon-button" aria-label="Back" ng-click="goTo('/history')">
+		<md-button id="back-button" class="md-icon-button" aria-label="Back" ng-click="goBack()">
 			<md-icon md-svg-icon="img/icons/back.svg"></md-icon>
 		</md-button>
 		
@@ -25,8 +25,16 @@
 	</div>
 </md-toolbar>
 
-<md-content flex class="mainList" layout-padding ng-style="{position: 'relative'}">
-	<div ng-if="tasks === null || tasks.length==0">{{'noTasksFound' | translate }}</div>
+<md-content flex class="transparent">
+	
+	<div layout="row" layout-align="center start" flex class="infoMessage" ng-if="tasks === null || tasks.length==0">
+		<md-card style="width:100%; line-height: 32px; background-color: #d84315">
+			<md-card-content layout-align="center center">
+				<md-icon md-svg-icon="img/icons/info.svg" style="height: 32px; width: 32px; margin-right: 10px;"></md-icon>
+				<span style="display: inline-block; vertical-align: middle; color:white">{{'noTasksFound' | translate }}</span>
+			</md-card-content>
+		</md-card>
+	</div>
 	
 	<md-list flex>
 		<md-card ng-repeat="task in tasks">

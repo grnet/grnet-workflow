@@ -16,35 +16,51 @@
 	</div>
 </md-toolbar>
 
-<section layout="row" layout-padding>
-	<section layout="column" style="margin-bottom: 32px" flex="25">
-		<md-radio-group>
-			<md-radio-button class="md-primary wf-selectAll" ng-click="selectAll()" ng-value="TRUE">{{'showAll' | translate }}</md-radio-button>
-			
-			<md-divider></md-divider>
-			
-			<md-radio-button ng-repeat="workflowName in workflowNames" ng-value="workflowName" 
-				class="md-primary" ng-click="selectionChanged(workflowName)">{{workflowName}}
-			</md-radio-button>
-		</md-radio-group>
-	</section>
-	
-	<md-list flex>
-		<md-card ng-repeat="task in filteredTasks">
-			<md-list-item class="md-2-line" ng-click="goTo('/task/details/' + task.id)">
-				<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
-				<div class="md-list-item-text" layout="column">
-					<h3>{{task.processInstance.title}}</h3>
-					<p> {{task.name}}
-						<span class="cardInline" ng-if="task.assignee">{{'worker' | translate }} : {{task.assignee}}</span>
-						<span class="cardInline" ng-if="task.dueDate">{{'dueTo'|translate}} : {{task.dueDate | date:'d/M/yyyy'}}</span>
-						
-						<md-icon ng-class="taskDelay(task.dueDate) < 1 ? (taskDelay(task.dueDate) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"
-							md-svg-icon="img/icons/delayed-notification.svg">
-						</md-icon>
-					</p>
-				</div>
-			</md-list-item>
+<section layout="row" style="overflow: hidden; height: 100%">
+
+	<!-- Filtering options -->
+	<div layout="column" flex="35">
+		<md-card style="margin-right: 0;">
+			<md-card-content>
+				<md-radio-group>
+					<md-radio-button class="md-primary wf-selectAll" ng-click="selectAll()" ng-value="TRUE">{{'showAll' | translate }}</md-radio-button>
+					<md-divider></md-divider>
+					<md-radio-button ng-repeat="workflowName in workflowNames" ng-value="workflowName" 
+						class="md-primary" ng-click="selectionChanged(workflowName)">{{workflowName}}
+					</md-radio-button>
+				</md-radio-group>
+			</md-card-content>
 		</md-card>
-	</md-list>
+	</div>
+	
+	<md-content flex class="transparent">
+	
+		<div layout="row" layout-align="center start" flex class="infoMessage" ng-if="filteredTasks === null || filteredTasks.length == 0">
+			<md-card style="width:100%; line-height: 32px; background-color: #d84315">
+				<md-card-content layout-align="center center">
+					<md-icon md-svg-icon="img/icons/info.svg" style="height: 32px; width: 32px; margin-right: 10px;"></md-icon>
+					<span style="display: inline-block; vertical-align: middle; color:white">{{'noTasksFound' | translate }}</span>
+				</md-card-content>
+			</md-card>
+		</div>
+		
+		<md-list flex style="padding-top:0">
+			<md-card ng-repeat="task in filteredTasks">
+				<md-list-item class="md-2-line" ng-click="goTo('/task/details/' + task.id)">
+					<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
+					<div class="md-list-item-text" layout="column">
+						<h3>{{task.processInstance.title}}</h3>
+						<p> {{task.name}}
+							<span class="cardInline" ng-if="task.assignee">{{'worker' | translate }} : {{task.assignee}}</span>
+							<span class="cardInline" ng-if="task.dueDate">{{'dueTo'|translate}} : {{task.dueDate | date:'d/M/yyyy'}}</span>
+							
+							<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"
+								md-svg-icon="img/icons/delayed-notification.svg">
+							</md-icon>
+						</p>
+					</div>
+				</md-list-item>
+			</md-card>
+		</md-list>
+	</md-content>
 </section>
