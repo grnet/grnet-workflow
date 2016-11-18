@@ -14,9 +14,8 @@ public class ServletInitializer implements WebApplicationInitializer {
 
 	@Override
 	public void onStartup(ServletContext servletContext) throws ServletException {
-		
-		ServletRegistration.Dynamic documentServlet =
-				servletContext.addServlet("document", new DocumentServlet());
+
+		ServletRegistration.Dynamic documentServlet = servletContext.addServlet("document", new DocumentServlet());
 		documentServlet.setLoadOnStartup(0);
 		documentServlet.addMapping("/document/*");
 	}

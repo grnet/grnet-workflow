@@ -1,102 +1,97 @@
-<section layout="column">
+<md-toolbar>
+	<div class="md-toolbar-tools">
+	
+		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
+			<md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+		</md-button>
+		
+		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="goBack()">
+			<md-icon md-svg-icon="img/icons/back.svg"></md-icon>
+		</md-button>
+		
+		<md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
+		
+		<div hide-sm layout-padding>
+			<h1 class="md-title application-title">workflow::workspace</h1>
+			<h2 class="md-subhead page-title">{{ 'taskDetails' | translate }}</h2>
+		</div>
+		
+		<span flex></span>
+		
+		<md-button id="menu-button" ng-if="task.taskDetails.description" class="md-icon-button" aria-label="task details" ng-click="showTaskDetails($event)">
+			<md-icon md-svg-icon="img/icons/info.svg"></md-icon>
+		</md-button>
+		
+		<md-button id="menu-button" class="md-icon-button" aria-label="task details" ng-click="showTaskProcessDiagram($event)">
+			<md-icon md-svg-icon="img/icons/bpmn.svg"></md-icon>
+		</md-button>
+		
+		<md-button class="md-icon-button" aria-label="print start form" ng-click="goTo('/print/instance/' + task.processInstance.id + '/task/' + task.id)">
+			<md-icon md-svg-icon="img/icons/print.svg"></md-icon>
+		</md-button>
+	</div>
+</md-toolbar>
 
-    <md-toolbar>
-        <div class="md-toolbar-tools">
-
-          	<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
-                <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
-            </md-button>
-
-            <md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
-
-			<div hide-sm layout-padding>
-            	<h1 class="md-title application-title">workflow::workspace</h1>
-            	<h2 class="md-subhead page-title">{{ 'taskDetails' | translate }}</h2>
-            </div>
-            
-            <span flex></span>
-            
-            <md-button id="menu-button" ng-if="task.taskDetails.description" class="md-icon-button" aria-label="task details" ng-click="showTaskDetails()">
-                <md-icon md-svg-icon="img/icons/info.svg"></md-icon>
-            </md-button>
-      		
-        </div>
-    </md-toolbar>
-
-   <section layout="row">
-        <md-content flex layout-padding ng-if="process !== null">
-            <md-card style="width: 100%">
-               <ng-form name="taskForm">
-                <md-card-content>
-                    <div class="card-header">
-                     	<md-icon md-svg-src="img/avatars/{{task.icon}}" class="md-avatar"
-                               style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
-       					<h2 class="md-title after-icon">{{ 'executionName' | translate }} : {{task.processInstance.title}}</h2>
-                     	<p class="md-subhead">{{ 'taskName' | translate }} : {{task.name}}</p>
-                    </div>
-                    
-                    <section layout="row" layout-sm="column" layout-align="left center" layout-wrap>
-	                    <md-input-container>
-		                   	<label for="startDate">{{ 'startDate' | translate }}</label>
-		                  	<input id="startDate" ng-model="startDate" readonly style="width:100px; margin-right:20px"></input>
-		                </md-input-container>
-		                
-		                 <md-input-container ng-if="task.dueDate" style="margin-right:20px"">
-		                   	<label for="dueDate">{{ 'dueTo' | translate }}</label>
-		                  	<input id="dueDate" ng-model="dueDate" readonly style="width:100px"></input>
-		                  	
-		                  	<md-icon ng-class="taskDelay(task.dueDate) < 1 ? (taskDelay(task.dueDate) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'" 
-		                  		md-svg-icon="img/icons/delayed-notification.svg">
-							</md-icon>
-		                </md-input-container>
-		                
-		                 <md-input-container ng-if="task.endDate">
-		                 	<label for="endDate">{{ 'endDate' | translate }}</label>
-		                  	<input id="endDate" ng-model="endDate" readonly style="width:100px"></input>
-		                  	
-		                 </md-input-container>
-		            </section>
-                    
-                    <section layout="row" layout-sm="column" layout-align="left center" layout-wrap ng-if="task.endDate">
-						<md-input-container>
-	                       	<label for="taskAssignee">{{ 'completedBy' | translate }}</label>
-	                       	<input id="taskAssignee" ng-model="task.assignee" readonly style="width:350px" ng-required="true"></input>
-	                   	</md-input-container>
-	                </section>  
-	                
-	                 <section layout="row" layout-sm="column" layout-align="left center" layout-wrap ng-if="!task.endDate">
-						<md-input-container>
-	                       	<label for="taskAssignee">{{ 'assignedTo' | translate }}</label>
-	                       	<input id="taskAssignee" ng-model="task.assignee" readonly style="width:350px" ng-required="true"></input>
-	                   	</md-input-container>
-	                </section>  	
-						
-                    <md-input-container ng-if="task.description" class="md-block">
-                        <label for="processDescription">{{ 'description' | translate }}</label>
-                        <textarea id="processDescription" ng-model="task.description" readonly></textarea>
-                    </md-input-container>
-                    
-                    
-<!--                    <nlk-process-form-item ng-repeat="item in task.taskForm" ng-model="item"  -->
-<!--                    		wf-document-path="{{documentPath}}" wf-preview="true" ng-if="item.writable"> -->
-<!--                    </nlk-process-form-item> -->
-						
-						<div>
-							<nlk-process-form-item ng-repeat="item in task.taskForm" wf-preview="true" ng-model="item" 
-								wf-document-path="{{documentPath}}" ng-if="item.writable" >
-							</nlk-process-form-item>
-                    	</div>	
-                   
-                </md-card-content>
-                
-                <md-divider></md-divider>
-                
-	                 <div class="md-actions" layout="row" layout-align="start center" style="margin-top:10px">
-	                    <md-button class="md-raised" ng-click="goBack()" arial-label="close">{{ 'close' | translate }}</md-button>
-	                </div>
-	                
-                </ng-form>
-            </md-card>
-        </md-content>
-    </section>
-</section>
+<md-content ng-if="process !== null" class="transparent">
+	<md-card>
+		<md-card-content style="position: relative;">
+		
+			<div class="card-header">
+				<md-icon md-svg-src="img/avatars/{{task.icon}}" class="md-avatar" style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
+				<div class="after-icon">
+					<h2 class="md-title">{{task.processInstance.title}}</h2>
+					<p class="md-subhead" style="display:block">{{task.name}}</p>
+				</div>
+			</div>
+			
+			<section layout="row" layout-sm="column" layout-align="start center">
+			
+				<md-input-container class="md-block" flex="15" style="padding-right:15px">
+					<label for="startDate" class="disabledLabel">{{ 'startDate' | translate }}</label>
+					<input id="startDate" ng-model="startDate" readonly class="disabledLabel" disabled>
+				</md-input-container>
+				
+				<div ng-if="diffInDays < 1" layout="row" layout-align="start start" style="margin-right:15px">
+					<md-icon ng-class="diffInDays < 1 ? (diffInDays < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'" 
+						style="position: relative; top: -12px" md-svg-icon="img/icons/delayed-notification.svg">
+					</md-icon>
+				</div>
+			
+				<md-input-container class="md-block" ng-if="task.dueDate" flex="15" style="padding-right:15px">
+					<label for="dueDate" class="disabledLabel">{{ 'dueTo' | translate }}</label>
+					<input id="dueDate" ng-model="dueDate" readonly class="disabledLabel" disabled>
+				</md-input-container>
+			
+				<md-input-container class="md-block" ng-if="task.endDate" flex="15">
+					<label for="endDate" class="disabledLabel">{{ 'endDate' | translate }}</label>
+					<input id="endDate" ng-model="endDate" readonly class="disabledLabel" disabled>
+				</md-input-container>
+				
+			</section>
+			
+			<section layout="row" layout-sm="column" layout-align="start center">
+			
+				<md-input-container ng-if="task.description" class="md-block" flex>
+					<label for="processDescription" class="disabledLabel">{{ 'description' | translate }}</label>
+					<input id="processDescription" ng-model="task.description" readonly class="disabledLabel" disabled>
+				</md-input-container>
+				
+			</section>
+			
+			<section layout="row" layout-align="start center">
+			
+				<md-input-container class="md-block" flex="30" style="margin-top:0">
+					<label for="taskAssignee" class="disabledLabel">{{ 'processingBy' | translate }}</label>
+					<input type="email" id="taskAssignee" ng-model="task.assignee" readonly style="width:99%;text-overflow: ellipsis;" class="disabledLabel" disabled></input>
+				</md-input-container>
+			
+			</section>
+		</md-card-content>
+	</md-card>
+	
+	<md-card ng-if="task.taskForm.length > 0">
+		<md-card-content>
+			<nlk-process-form-item ng-repeat="item in task.taskForm" ng-model="item" wf-document-path="{{documentPath}}" wf-preview="true"></nlk-process-form-item>
+		</md-card-content>
+	</md-card>
+</md-content>

@@ -15,17 +15,17 @@ import org.apache.chemistry.opencmis.commons.enums.BindingType;
 public class OpenCMISSessionFactory {
 
 	public static Session createOpenCMISSession(String url, String repository, String username, String password) {
-		
+
 		Map<String, String> parameter = new HashMap<String, String>();
 		parameter.put(SessionParameter.USER, username);
 		parameter.put(SessionParameter.PASSWORD, password);
 		parameter.put(SessionParameter.BROWSER_URL, url);
 		parameter.put(SessionParameter.BINDING_TYPE, BindingType.BROWSER.value());
 		parameter.put(SessionParameter.REPOSITORY_ID, repository);
-		
+
 		SessionFactory factory = SessionFactoryImpl.newInstance();
-		
+
 		return factory.createSession(parameter);
 	}
-	
+
 }

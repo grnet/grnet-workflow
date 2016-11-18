@@ -1,24 +1,31 @@
 <md-dialog aria-label="{{ 'diagram' | translate }}" >
-    <md-toolbar>
-        <div class="md-toolbar-tools">
-        	<h2>{{ 'progress' | translate }} : {{instance.title}}</h2>
-            <span flex></span>
-            <md-button class="md-icon-button" ng-click="cancel()">
-                <md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
-            </md-button>
-        </div>
-    </md-toolbar>
-
-    <md-dialog-content layout-padding>
-
-       	<div layout="row" layout-sm="column" layout-align="space-around" class="progressBar">
-           	<md-progress-circular md-mode="indeterminate"></md-progress-circular>
-       	</div>
-
-        <section layout="column" layout-align="start start" style="min-height: 450px">
-            <img ng-src="{{service}}/instance/{{instance.id}}/diagram"
-                 onload="document.querySelector('.progressBar').style.display = 'none'">
-        </section>
-        
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+		
+			<h2>{{instance.title}}</h2>
+			
+			<span flex></span>
+			
+			<md-button class="md-icon-button" ng-click="cancel()">
+				<md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+			</md-button>
+			
+		</div>
+	</md-toolbar>
+	
+	<md-dialog-content layout-padding>
+	
+		<div layout="row" layout-sm="column" layout-align="space-around" class="progressBar">
+			<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
+		</div>
+		
+		<section layout="row" layout-align="center start" style="min-height: 200px">
+			<img style="max-width: 1300px;" ng-src="{{service}}/instance/{{instance.id}}/diagram" 
+				onload="document.querySelector('.progressBar').style.display = 'none'">
+		</section>
+		
+   		<section layout="row" layout-align="start start" style="width: 100%;padding-top: 10px;border-top: 1px solid #3f51b5;">
+   			<span style="font-size: 14px;">{{instance.definitionName}}</span>
+		</section>
     </md-dialog-content>
 </md-dialog>

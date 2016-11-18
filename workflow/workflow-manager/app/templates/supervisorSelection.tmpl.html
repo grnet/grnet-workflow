@@ -1,0 +1,38 @@
+<md-dialog aria-label="{{ 'supervisorSelection' | translate }}" style="min-height: 400px; width:400px">
+	
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>{{ 'supervisorSelection' | translate }}</h2>
+			
+            <span flex></span>
+            
+            <md-button class="md-icon-button" ng-click="cancel()">
+                <md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    
+    <md-dialog-content layout-padding ng-if="showProgressBar">
+	   	<div layout="row" layout-sm="column" layout-align="space-around">
+			<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
+		</div>
+	</md-dialog-content>
+	
+    <md-dialog-content layout-padding ng-if="!showProgressBar" style="padding-bottom:0px">
+    	<md-content layout-align="start start" flex style="max-height: 270px">
+    		<md-radio-group ng-model="instanceSupervisor.email">
+    			<md-radio-button ng-repeat="supervisor in supervisors" ng-value="supervisor.email">{{supervisor.lastName}} {{supervisor.firstName}}</md-radio-button>
+   			</md-radio-group>
+		</md-content>
+		
+		<section layout="column" layout-align="start start" ng-if="supervisor.length == 0">
+			<div>{{ 'noCandidatesFound' | translate }}</div>
+		</section>
+	</md-dialog-content>
+     
+     <md-dialog-actions ng-if="!showProgressBar" layout="row" layout-align="left center" class="dialogActions" style="position: absolute;bottom: 0px;">
+     	<md-button ng-if="supervisors.length > 0" class="md-raised md-primary" ng-click="confirm()">{{ 'confirm' | translate}}</md-button>
+     	<md-button class="md-raised" ng-click="cancel()">{{ 'cancel' | translate }}</md-button>
+  	</md-dialog-actions>
+  		
+</md-dialog>

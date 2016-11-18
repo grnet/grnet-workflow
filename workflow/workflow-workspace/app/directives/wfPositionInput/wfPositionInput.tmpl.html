@@ -1,6 +1,10 @@
 <section layout="row" layout-align="center center" class="{{ngRequired ? 'wf-required' : ''}}" style="width:100%; height:100%">
-	<md-input-container flex style="width: 100%; height: 100%">
+
+	<div flex style="width: 100%; height: 100%;padding-bottom: 15px;">
 		<label for="map" class="md-no-float">{{wfPositionLabel}}</label>
-		<div id="map" style="width: 100%; height: 400px"></div>
-	</md-input-container>
+		
+		<input id="pac-input" class="controls" type="text" placeholder="{{ 'addressSearch' | translate }}">
+		<div ng-if="wfIdPrefix" id="{{wfIdPrefix}}" style="width: 100%; height: 400px;"></div>
+		<div ng-if="!wfIdPrefix" id="map" style="width: 100%; height: 400px;"></div>
+	</div>
 </section>

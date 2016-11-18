@@ -11,10 +11,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class PositionType implements Serializable {
 
 	private static final long serialVersionUID = 7254062815823630898L;
-	
+
 	private double latitude;
 	private double longitude;
-	
+
 	public double getLatitude() {
 		return latitude;
 	}
@@ -30,7 +30,7 @@ public class PositionType implements Serializable {
 	public void setLongitude(double longitude) {
 		this.longitude = longitude;
 	}
-	
+
 	public String toString() {
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -48,7 +48,9 @@ public class PositionType implements Serializable {
 	 * Return a new PositionType Object de-serializing a JSon representation
 	 * 
 	 * @param jsonSerialization
-	 * @return
+	 *            The serialized string
+	 *            
+	 * @return {@link PositionType} from serialized string
 	 * @throws JsonParseException
 	 * @throws JsonMappingException
 	 * @throws IOException

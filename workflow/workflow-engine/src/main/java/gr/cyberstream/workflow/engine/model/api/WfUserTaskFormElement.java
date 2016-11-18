@@ -6,14 +6,16 @@ public class WfUserTaskFormElement {
 
 	private String description;
 	private String format;
+	private String device;
 
 	public WfUserTaskFormElement() {
 
 	}
 
 	public WfUserTaskFormElement(UserTaskFormElement userTaskFormElement) {
-		setDescription(userTaskFormElement.getDescription());
-		setFormat(userTaskFormElement.getFormat());
+		this.description = userTaskFormElement.getDescription();
+		this.format = userTaskFormElement.getFormat();
+		this.device = userTaskFormElement.getDevice();
 	}
 
 	public String getDescription() {
@@ -30,6 +32,14 @@ public class WfUserTaskFormElement {
 
 	public void setFormat(String format) {
 		this.format = format;
+	}
+
+	public String getDevice() {
+		return device;
+	}
+
+	public void setDevice(String device) {
+		this.device = device;
 	}
 
 }

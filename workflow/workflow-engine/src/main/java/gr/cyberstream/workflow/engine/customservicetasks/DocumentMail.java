@@ -36,15 +36,18 @@ import gr.cyberstream.workflow.engine.model.RESTRecipient;
 import gr.cyberstream.workflow.engine.service.InvalidRequestException;
 
 @Component
+@SuppressWarnings("unused")
 public class DocumentMail implements JavaDelegate {
 
-	final static Logger logger = LoggerFactory.getLogger(DocumentMail.class);
+	private static final Logger logger = LoggerFactory.getLogger(DocumentMail.class);
 
 	private Expression app;
 	private Expression from;
 	private Expression to;
 	private Expression subject;
 	private Expression attachment;
+	private Expression bcc;
+	private Expression cc;
 
 	@Autowired
 	CMISDocument cmisDocument;
@@ -57,23 +60,21 @@ public class DocumentMail implements JavaDelegate {
 
 		// Set the custom service task property values
 		String appName = (String) app.getValue(execution);
-		logger.debug("app:::" + appName);
+		logger.debug("app: " + appName);
 
 		String fromRecipient = (String) from.getValue(execution);
-		logger.debug("from:::" + fromRecipient);
+		logger.debug("from: " + fromRecipient);
 
 		String toRecipient = getStringFromField(to, execution);
-		logger.debug("to:::" + toRecipient);
+		logger.debug("to: " + toRecipient);
 
 		String msgSubject = (String) subject.getValue(execution);
-		logger.debug("subject:::" + msgSubject);
+		logger.debug("subject: " + msgSubject);
 
 		String documentVar = null;
-
-		if (attachment != null) {
-
+		
+		if (attachment != null)
 			documentVar = (String) attachment.getValue(execution);
-		}
 
 		// Add recipient to list
 		List<RESTRecipient> recipients = new ArrayList<RESTRecipient>();
@@ -155,10 +156,10 @@ public class DocumentMail implements JavaDelegate {
 		}
 
 		if (mailResponse == null) {
-			System.out.println("MailResponse is null");
+			logger.debug("MailResponse is null");
 			throw new InvalidRequestException("MailResponse is null");
 		} else
-			System.out.println("MailResponse:::" + mailResponse.getCode() + ", " + mailResponse.getDescription());
+			logger.debug("MailResponse: " + mailResponse.getCode() + ", " + mailResponse.getDescription());
 
 	}
 

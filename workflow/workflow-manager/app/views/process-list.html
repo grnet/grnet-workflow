@@ -1,88 +1,87 @@
-<section layout="column">
+<md-toolbar>
+	<div class="md-toolbar-tools">
+	
+		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
+			<md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+		</md-button>
+		
+		<md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
+		
+		<div hide-sm layout-padding>
+			<h1 class="md-title application-title">workflow::manager</h1>
+			<h2 class="md-subhead page-title">{{ 'processes' | translate }}</h2>
+		</div>
+		
+		<span flex></span>
+		
+		<md-button class="md-icon-button" aria-label="Add" ng-click="addProcess()">
+			<md-icon md-svg-icon="img/icons/add.svg"></md-icon>
+		</md-button>
+		
+		<div layout="column">
+			<md-menu md-position-mode="target-right target">
+			
+				<md-button aria-label="Sort-By" class="md-icon-button" ng-click="$mdOpenMenu($event)">
+					<md-icon md-menu-origin md-svg-icon="img/icons/sort-by.svg"></md-icon>
+				</md-button>
+				
+				<md-menu-content width="4">
+					<md-menu-item ng-repeat="option in options" ng-click="sortBy(option.id)">
+					
+						<md-button aria-label="a button">
+							<div layout="row">
+								<p flex>{{option.title | translate }}</p>
+							</div>
+						</md-button>
+					</md-menu-item>
+				</md-menu-content>
+			</md-menu>
+		</div>
+	</div>
+</md-toolbar>
 
-    <md-toolbar>
-        <div class="md-toolbar-tools">
+<section layout="row" style="overflow: hidden;">
 
-           <md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
-                <md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
-            </md-button>
-
-            <md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
-
-            <div hide-sm layout-padding>
-            	<h1 class="md-title application-title">workflow::manager</h1>
-            	<h2 class="md-subhead page-title">{{ 'processes' | translate }}</h2>
-           	</div>
-           	
-            <span flex></span>
-
-            <md-button class="md-icon-button" ng-click="showOwnerFilterDialog($event)" aria-label="filter" hide-gt-sm>
-                <md-icon md-svg-icon="img/icons/filter.svg"></md-icon>
-            </md-button>
-
-            <md-button class="md-icon-button" aria-label="Add" ng-click="addProcess()">
-                <md-icon md-svg-icon="img/icons/add.svg"></md-icon>
-            </md-button>
-
-       	 	<div layout="column">
-                <md-menu md-position-mode="target-right target">
-                    <md-button aria-label="Sort-By" class="md-icon-button" ng-click="$mdOpenMenu($event)">
-                        <md-icon md-menu-origin md-svg-icon="img/icons/sort-by.svg"></md-icon>
-                    </md-button>
-                    <md-menu-content width="4">
-                        <md-menu-item ng-repeat="option in options" ng-click="sortBy(option.id)">
-                            <md-button>
-                                <div layout="row">
-                                    <p flex>{{option.title | translate }}</p>
-                                </div>
-                            </md-button>
-                        </md-menu-item>
-                    </md-menu-content>
-                </md-menu>
-            </div>
-        </div>
-    </md-toolbar>
-
-
-    <section layout="row">
-
-        <!-- Process Owner filtering ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-        <section layout="column" layout-align="start center" hide-sm ng-if="groups.length >= 1">
-        	<md-list>
-                <md-list-item>
-                     <md-checkbox ng-change="updateOwnerSelection()" ng-model="status.allSelected"></md-checkbox>   
-                    <p class="md-subhead wf-selectAll" >{{ 'allOwners' | translate }}</p>
-                    <md-divider></md-divider>
-                </md-list-item>
-               
-                <md-list-item ng-repeat="g in groups">
-               		<md-checkbox ng-model="g.selected" ng-change="showProcessByOwners()"></md-checkbox>
-                    <p>{{g.group}}</p>
-                </md-list-item>  
-           	</md-list>
-        </section>
-       
-        <!-- Process Definitions List ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-        <md-content flex class="mainList" layout-padding ng-style="{position: 'relative'}">
-        
-           	<section layout="column" class="wait-icon wf-wait" ng-if="!workflowDefinitions">
-				<md-progress-circular md-mode="indeterminate"></md-progress-circular>
-			</section>
-        
-	   		<md-list flex>
-				<md-card ng-repeat="definition in workflowDefinitions | orderBy:orderByOption">
-					<md-list-item class="md-2-line" ng-click="goTo('/process/' + definition.id)">
-						<img ng-src="{{imagePath + definition.icon}}" class="md-avatar" alt="{{definition.name}}" />
-						<div class="md-list-item-text" layout="column">
-							<h3>{{definition.name}}</h3>
-							 <p>{{ 'owner' | translate }} {{definition.owner}}
-							 	<md-icon ng-if="!isActive(definition)" md-svg-src="img/icons/status/powered-off.svg" ng-style="{color: '#990000'}" class="s24" aria-label="Cake"></md-icon>
-                        	</p>
-						</div>
+	<!-- Process Filter -->
+	<div layout="column" flex="35" hide-sm ng-if="groups.length >= 1">
+		<md-card>
+			<md-card-content>
+				<md-list flex style="padding-top: 0px;">
+				
+					<md-list-item>
+						<md-checkbox ng-change="updateOwnerSelection()" ng-model="status.allSelected"></md-checkbox>
+							<p class="md-subhead wf-selectAll" >{{ 'allOwners' | translate }}</p>
+						<md-divider></md-divider>
 					</md-list-item>
-				</md-card>
-			</md-list>
-        </md-content>
-    </section>
-
+					
+					<md-list-item ng-repeat="g in groups">
+						<md-checkbox ng-model="g.selected" ng-change="showProcessByOwners()"></md-checkbox>
+						<p>{{g.group}}</p>
+					</md-list-item>
+					
+				</md-list>
+			</md-card-content>
+		</md-card>
+	</div>
+	
+	<md-content flex class="transparent">
+		
+		<section layout="row" layout-align="center center" class="wait-icon" ng-if="showProgressBar" style="position: relative;top: 25%;">
+			<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
+		</section>
+		
+		<md-list flex style="padding-top: 0px;" ng-if="!showProgressBar">
+			<md-card ng-repeat="definition in workflowDefinitions | orderBy:orderByOption" style="margin-left: 0;">
+				<md-list-item class="md-2-line" ng-click="goTo('/process/' + definition.id)">
+					<img ng-src="{{imagePath + definition.icon}}" class="md-avatar" alt="{{definition.name}}" />
+					<div class="md-list-item-text" layout="column">
+						<h3>{{definition.name}}</h3>
+						 <p>{{definition.owner}}
+						 	<md-icon ng-if="!isActive(definition)" md-svg-src="img/icons/status/powered-off.svg" ng-style="{color: '#990000'}" class="s24" aria-label="Cake"></md-icon>
+                       	</p>
+					</div>
+				</md-list-item>
+			</md-card>
+		</md-list>
+	</md-content>
 </section>

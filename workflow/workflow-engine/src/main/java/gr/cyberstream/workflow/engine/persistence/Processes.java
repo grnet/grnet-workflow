@@ -5,13 +5,7 @@ package gr.cyberstream.workflow.engine.persistence;
 
 import java.util.List;
 
-import org.springframework.transaction.annotation.Transactional;
-
 import gr.cyberstream.workflow.engine.model.DefinitionVersion;
-import gr.cyberstream.workflow.engine.model.ExternalForm;
-import gr.cyberstream.workflow.engine.model.ExternalGroup;
-import gr.cyberstream.workflow.engine.model.ExternalWrapper;
-import gr.cyberstream.workflow.engine.model.Registry;
 import gr.cyberstream.workflow.engine.model.TaskPath;
 import gr.cyberstream.workflow.engine.model.UserTaskDetails;
 import gr.cyberstream.workflow.engine.model.UserTaskFormElement;
@@ -33,43 +27,50 @@ public interface Processes {
 	 * @return list containing the processes
 	 */
 	public List<WorkflowDefinition> getAll();
-	
+
 	/**
 	 * Returns all active process definitions
 	 * 
-	 * @return
+	 * @return A list of {@link WorkflowDefinition} containing the active
+	 *         definitions
 	 */
 	public List<WorkflowDefinition> getActiveProcessDefintions();
 
 	/**
-	 * Saves the new process definition
+	 * Creates or updates a definition
 	 * 
-	 * @param process
-	 * @return
+	 * @param workflowDefinition
+	 *            The definition to be created or updated
+	 * 
+	 * @return The persisted {@link WorkflowDefinition}
 	 */
-	@Transactional
-	public WorkflowDefinition save(WorkflowDefinition process);
+	public WorkflowDefinition save(WorkflowDefinition workflowDefinition);
 
 	/**
-	 * Return the process definition for the given id
+	 * Return the definition for the given id
 	 * 
-	 * @param id
-	 * @return
+	 * @param definitionId
+	 *            Definition's id to be returned
+	 * 
+	 * @return {@link WorkflowDefinition}
 	 */
-	public WorkflowDefinition getById(int id);
-	
+	public WorkflowDefinition getById(int definitionId);
+
 	/**
-	 * Return the process definition for the given name
+	 * Returns definition by a given name
 	 * 
 	 * @param name
-	 * @return
+	 *            Definition's name to be returned
+	 * 
+	 * @return {@link WorkflowDefinition}
 	 */
 	public WorkflowDefinition getByName(String name);
 
 	/**
-	 * Deleted the process definition and all versions
+	 * Deletes a definition and all versions by a given id
 	 * 
 	 * @param processId
+	 *            Definition's id to be deleted
 	 */
 	public void delete(int processId);
 
@@ -83,7 +84,8 @@ public interface Processes {
 	public DefinitionVersion saveVersion(int processId, DefinitionVersion definitionVersion);
 
 	/**
-	 * Get the process definitions IDs (keys) for the provided workflow definition IDs
+	 * Get the process definitions IDs (keys) for the provided workflow
+	 * definition IDs
 	 * 
 	 * @param processIds
 	 * @return
@@ -100,11 +102,12 @@ public interface Processes {
 
 	/**
 	 * Return process definition version by id
+	 * 
 	 * @param versionId
 	 * @return
 	 */
 	public DefinitionVersion getVersionById(int versionId);
-	
+
 	/**
 	 * Get a process definition versions using the process id
 	 * 
@@ -117,15 +120,15 @@ public interface Processes {
 	 * Returns the process definition versions using the process definition id
 	 */
 	public DefinitionVersion getVersionByProcessDefinitionId(String processDefinitionId);
-	
+
 	/**
 	 * Saves a new process instance
 	 * 
-	 * @param instance
+	 * @param workflowInstance
 	 * @return
 	 */
-	public WorkflowInstance save(WorkflowInstance instance);
-	
+	public WorkflowInstance save(WorkflowInstance workflowInstance);
+
 	/**
 	 * Get the process instance by id
 	 * 
@@ -133,7 +136,7 @@ public interface Processes {
 	 * @return
 	 */
 	public WorkflowInstance getInstanceById(String instanceId);
-	
+
 	/**
 	 * 
 	 * @param ownerName
@@ -148,7 +151,7 @@ public interface Processes {
 	 * @return
 	 */
 	public UserTaskDetails save(UserTaskDetails userTaskDetails);
-	
+
 	/**
 	 * Return the UserTaskDetails entities of a DefinitionVersion object
 	 * 
@@ -156,7 +159,7 @@ public interface Processes {
 	 * @return
 	 */
 	public List<UserTaskDetails> getVersionTaskDetails(int versionId);
-	
+
 	/**
 	 * Saves a new UserTaskFormElement
 	 * 
@@ -164,15 +167,16 @@ public interface Processes {
 	 * @return
 	 */
 	public UserTaskFormElement save(UserTaskFormElement taskFormElement);
-	
+
 	/**
-	 * Returns a list of user task form elements by element id
+	 * Returns user task form elements by element id
 	 * 
-	 * @param taskDefinitionKey
+	 * @param elementId
+	 * @param userTaskDetailId
 	 * @return
 	 */
 	public List<UserTaskFormElement> getUserTaskFormElements(String elementId, int userTaskDetailId);
-	
+
 	/**
 	 * 
 	 * @param definition
@@ -182,22 +186,25 @@ public interface Processes {
 
 	/**
 	 * Return List of workflow instances by user id
+	 * 
 	 * @param userId
 	 * @return
 	 */
 	public List<WorkflowInstance> getSupervisedProcesses(String userId);
-	
+
 	/**
-	 * Get all instances of process with the specified id
+	 * Get all running instances by process definition id
 	 * 
-	 * @param id
+	 * @param processDefinitionId
+	 *            The definition's id to get running instances from
+	 * 
 	 * @return
 	 */
-	public List<WorkflowInstance> getActiveProcessInstances(int id);
-	
+	public List<WorkflowInstance> getActiveProcessInstances(int processDefinitionId);
 
 	/**
 	 * Returns a workflow definition by key
+	 * 
 	 * @param definitionKey
 	 * @return
 	 */
@@ -210,27 +217,28 @@ public interface Processes {
 	 * @return
 	 */
 	public UserTaskDetails getUserTaskDetailsById(int id);
-	
+
 	/**
 	 * Return the process instance with the specified id
 	 * 
 	 * @param id
 	 */
 	public WorkflowInstance getProcessInstance(String id);
-	
+
 	/**
 	 * Return all defined instances
 	 * 
 	 * @return list containing instances
 	 */
 	public Long getCheckInstanceName(String instanceName);
-	
+
 	/**
-	 * Delete process instance with the specified id.
+	 * Deletes a given instance
 	 * 
-	 * @param id
+	 * @param workflowInstance
+	 *            Instance to be deleted
 	 */
-	public void cancelProcessInstance(WorkflowInstance instance);
+	public void cancelProcessInstance(WorkflowInstance workflowInstance);
 
 	/**
 	 * Returns task details for a task
@@ -240,7 +248,7 @@ public interface Processes {
 	 * @return
 	 */
 	public List<UserTaskDetails> getUserTaskDetailsByDefinitionKey(String key, int definitionId);
-	
+
 	/**
 	 * Returns task details for a task
 	 * 
@@ -249,7 +257,7 @@ public interface Processes {
 	 * @return
 	 */
 	public UserTaskDetails getUserTaskDetailByDefinitionKey(String key, String definitionVersionKey);
-	
+
 	/**
 	 * Returns a WorkfloDefinition entity with the specified processDefinitionId
 	 * 
@@ -257,7 +265,6 @@ public interface Processes {
 	 * @return
 	 */
 	public WorkflowDefinition getProcessByDefinitionId(String processDefinitionId);
-	
 
 	/**
 	 * Selects all the required path for the task
@@ -267,126 +274,26 @@ public interface Processes {
 	 * @return
 	 */
 	public TaskPath getTaskPath(String instanceId, String taskId);
-	
+
 	/**
-	 * Returns the external form with the specified id
+	 * Returns system's settings
 	 * 
-	 * @param formId
-	 * @return
-	 */
-	public ExternalForm getFormById(String formId);
-	
-	/**
-	 * Updates a registry entry to the database
-	 * 
-	 * @param registry
-	 * @return
-	 */
-	public void update(Registry registry);
-	
-	/**
-	 * Checks if registry id exists
-	 * 
-	 * @param registryId
-	 */
-	public Long checkIfRegistryExists(String registryId);
-	
-	/**
-	 * Get registry by id
-	 * 
-	 * @param registryId
-	 * @return
-	 */
-	public Registry getRegistryById(String registryId);
-	
-	/**
-	 * Check if definitions has registry with the given registry id
-	 * 
-	 * @param registryId
-	 * @return
-	 */
-	public Long checkIfDefinitionHasRegistry(String registryId);
-	
-	/**
-	 * Returns the settings.
-	 * 
-	 * @return
+	 * @return {@link WorkflowSettings}
 	 */
 	public WorkflowSettings getSettings();
-	
+
 	/**
 	 * Update settings
 	 */
 	public WorkflowSettings updateSettings(WorkflowSettings settings);
-	
-	/**
-	 * Returns all external forms of a specified process
-	 * 
-	 * @param id
-	 * @return
-	 */
-	public List<ExternalForm> getProcessExternalForms(int id);
-	
-	/**
-	 * Returns all registries
-	 * 
-	 * @return
-	 */
-	public List<Registry> getRegistries();
-	
-	/**
-	 * Deletes a registry
-	 * 
-	 * @param registryId
-	 */
-	public void deleteRegistry(String registryId);
 
 	/**
-	 * Saves an external form
-	 * 
-	 * @param xform
-	 * @return
-	 */
-	public ExternalForm saveExternalForm(ExternalForm xform);
-	
-	/**
-	 * Returns the external form with the specified id
-	 * 
-	 * @param id
-	 * @return
-	 */
-	public ExternalForm getExternalForm(String id);
-	
-	/**
-	 * Delete the external form with the specified id
-	 * 
-	 * @param id
-	 */
-	public void deleteExternalForm(ExternalForm xform);
-	
-	/**
-	 * Check whether an external form with the same id exists in the database
-	 * 
-	 * @param id
-	 * @return
-	 */
-	public Long checkForExternalForm(String id);
-
-	/**
-	 * Get definitions by owners 
+	 * Get definitions by owners
 	 * 
 	 * @param owners
 	 * @return
 	 */
-	public List<WorkflowDefinition> getDefinitionsByOwners(List<String> owners); 
-	
-	/**
-	 * Return process instance by reference id
-	 * 
-	 * @param referenceId
-	 * @return
-	 */
-	public WorkflowInstance getInstanceByReferenceId(String referenceId);
+	public List<WorkflowDefinition> getDefinitionsByOwners(List<String> owners);
 
 	/**
 	 * Return a list of task form elements by definition version and task detail
@@ -400,97 +307,38 @@ public interface Processes {
 	/**
 	 * 
 	 * @param definitionVersion
-	 * @param taskDetailId
+	 * @param taskDefintionKey
 	 * @param elementId
 	 * @return
 	 */
 	public UserTaskFormElement getUserTaskFromElement(String definitionVersion, String taskDefintionKey, String elementId);
-	
+
 	/**
 	 * Returns a workflow instance by defintion version id
 	 * 
 	 * @param id
 	 */
 	public List<WorkflowInstance> getInstancesByDefinitionVersionId(int id);
-	
-	/**
-	 * Returns a list with all available external forms
-	 * 
-	 * @return
-	 */
-	public List<ExternalForm> getExternalForms();
-	
+
 	/**
 	 * Deletes an instance by instance id
+	 * 
 	 * @param instanceId
 	 */
 	public void deleteProcessInstance(String instanceId);
-	
-	/**
-	 * Get external groups ordered by order
-	 * 
-	 * @return
-	 */
-	public List<ExternalWrapper> getExternalFormsGroupsWrapped();
-	
-	/**
-	 * Get external forms by group id 
-	 * 
-	 * @param groupId
-	 * @return
-	 */
-	public List<ExternalForm> getExternalFormsByGroup(int groupId);
-	
-	/**
-	 * Creates new external group
-	 * 
-	 * @param externalGroup
-	 * @return
-	 */
-	public ExternalGroup createExternalGroup(ExternalGroup externalGroup);
 
 	/**
-	 * Checks if group name already exists
-	 * @param groupName
+	 * Returns a list of in progress instances
+	 * 
+	 * @return A list of {@link WorkflowInstance} containing in progress
+	 *         instances
+	 */
+	public List<WorkflowInstance> getInProgressInstances();
+
+	/**
+	 * 
+	 * @param definitionVersionId
 	 * @return
 	 */
-	public Long checkIfExternalGroup(String groupName);
-	
-	/**
-	 * Get all available groups
-	 * 
-	 * @return
-	 */
-	public List<ExternalGroup> getExternalGroups();
-	
-	/**
-	 * Deletes a public group
-	 * 
-	 * @param groupId
-	 */
-	public void deletePublicGroup(int groupId);
-	
-	/**
-	 * Returns an external group by id
-	 * 
-	 * @param groupId
-	 * @return
-	 */
-	public ExternalGroup getExternalGroupById(int groupId);
-	
-	/**
-	 * Checks if public group has public forms
-	 * 
-	 * @param groupId
-	 * @return
-	 */
-	public Long checkIfPublicGroupHasForms(int groupId);
-	
-	/**
-	 * Updates an external group
-	 * 
-	 * @param externalGroup
-	 * @return
-	 */
-	public ExternalGroup updatePublicGroup(ExternalGroup externalGroup);
+	public DefinitionVersion getDefinitionVersionById(Integer definitionVersionId);
 }

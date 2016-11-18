@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>gr.cyberstream</groupId>
 	<artifactId>workflow</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0</version>
 	<packaging>pom</packaging>
 	<name>grnet-workflow</name>
 	<description>workflow system</description>
@@ -28,7 +28,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.3</version>
+					<version>3.5.1</version>
 					<configuration>
 						<source>${java.version}</source>
 						<target>${java.version}</target>
@@ -47,16 +47,6 @@
 				<resources>
 					<resource>
 						<directory>src/main/resources/local</directory>
-					</resource>
-				</resources>
-			</build>
-		</profile>
-		<profile>
-			<id>grnet</id>
-			<build>
-				<resources>
-					<resource>
-						<directory>src/main/resources/grnet</directory>
 					</resource>
 				</resources>
 			</build>

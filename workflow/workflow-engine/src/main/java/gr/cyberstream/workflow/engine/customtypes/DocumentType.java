@@ -109,7 +109,7 @@ public class DocumentType implements Serializable {
 	/**
 	 * Return a new DocumentType Object de-serializing a JSon representation
 	 * 
-	 * @param jsonSerialization
+	 * @param jsonSerialization The serialized string
 	 * @return
 	 * @throws JsonParseException
 	 * @throws JsonMappingException

@@ -5,23 +5,19 @@
 
     'use strict';
     
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // system constants
-    var WORKFLOW_SERVICE_ENTRY = 'http://10.0.0.156:8085/workflow-engine/api';
-    var HOME_URL = 'http://10.0.0.156/workflow-workspace/index.html';
-    var WORKFLOW_DOCUMENTS_URL = 'http://10.0.0.156:8085/workflow-engine/document/';
+    var WORKFLOW_SERVICE_ENTRY = 'http://10.0.0.167:8080/grnet-workflow-engine/api';
+    var HOME_URL = 'http://10.0.0.167/workflow-workspace/index.html';
+    var WORKFLOW_DOCUMENTS_URL = 'http://10.0.0.167:8080/grnet-workflow-engine/document/';
     var AVATARS_PATH = 'img/avatars/';
     var DEFAULT_AVATAR = 'like.svg';
     var MAP_CENTER_LAT = 38.037496;
     var MAP_CENTER_LNG = 23.836321;
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    var POSTCODE = 15235;
     
     /* create controllers module */
     angular.module('wfworkspaceControllers', []);
 
-    /* create directives module */
-    angular.module('nlkDirectives', []);
-    
     /* create directives module */
     angular.module('wfDirectives', []);
 
@@ -34,7 +30,6 @@
         'ngMaterial',
         'wfworkspaceControllers',
         'wfworkspaceServices',
-        'nlkDirectives',
         'wfDirectives',
         'pascalprecht.translate',
         'ngMaterialDatePicker'
@@ -86,7 +81,7 @@
                 return response;
             },
             responseError: function (response) {
-            	if(response.status === 400 || response.status === 500) {
+            	if(response.status === 400 || response.status === 500 || response.status === 405) {
             		return $q.reject(response);
             	}
                 return authProvider.authErrorHandler($q, response);
@@ -104,7 +99,8 @@
 		        'AVATARS_PATH': AVATARS_PATH,
 		        'DEFAULT_AVATAR': DEFAULT_AVATAR,
 		        'MAP_CENTER_LAT': MAP_CENTER_LAT,
-		        'MAP_CENTER_LNG': MAP_CENTER_LNG
+		        'MAP_CENTER_LNG': MAP_CENTER_LNG,
+		        'POSTCODE': POSTCODE
 		    })
 		    
 		    .config(['$routeProvider', '$httpProvider', '$mdThemingProvider','authProvider', '$translateProvider',
@@ -145,7 +141,8 @@
 		                }).
 		                when('/completed', {
 		                    templateUrl: 'views/task-completed-list.html',
-		                    controller: 'CompletedTasksCtrl'
+		                    controller: 'CompletedTasksCtrl',
+		                    reloadOnSearch: false
 		                }).
 		                when('/completed/:taskId', {
 		                    templateUrl: 'views/task-completed-details.html',
@@ -155,13 +152,30 @@
 		                    templateUrl: 'views/documents.html',
 		                    controller: 'DocumentsCtrl'
 		                }).
+		                when('/instance/:instanceId/documents', {
+		                    templateUrl: 'views/documents.html',
+		                    controller: 'InstanceDocumentsCtrl'
+		                }).
 		                when('/activity', {
 		                    templateUrl: 'views/task-activity.html',
-		                    controller: 'TaskActivityListCtrl'
+		                    controller: 'TaskActivityListCtrl',
+		                    reloadOnSearch: false
 		                }).
 		                when('/startform/:mode/:instanceId', {
 		                    templateUrl: 'views/print-start-form.html',
 		                    controller: 'PrintStartFormCtrl'
+		                }).
+		                when('/print/instance/:instanceId/task/:taskId', {
+		                    templateUrl: 'views/print-start-form.html',
+		                    controller: 'PrintStartFormCtrl'
+		                }).
+		                when('/inprogress', {
+		                    templateUrl: 'views/in-progress.html',
+		                    controller: 'InProgressCtrl'
+		                }).
+		                when('/instance/:instanceId', {
+		                    templateUrl: 'views/instance-details.html',
+		                    controller: 'InstanceDetailsCtrl'
 		                }).
 		                otherwise({
 		                    redirectTo: '/task'
@@ -170,13 +184,15 @@
 	                // configure $http to use the new Promise interface
 	                $httpProvider.useLegacyPromiseExtensions(false);
 	                $httpProvider.defaults.useXDomain=true;
-
+	                delete $httpProvider.defaults.headers.common['Access-Control-Allow-Headers'];
+	                
 	                // configure authentication interceptors
 	                $httpProvider.interceptors.push('errorInterceptor');
 	                $httpProvider.interceptors.push('authInterceptor');
 
 	                authProvider.auth = auth;
 	                authProvider.addIgnorePath(/img\//);
+	                authProvider.addIgnorePath(/maps\.googleapis\.com\//);
 		
 		            // configure theming
 		            $mdThemingProvider.theme('default')

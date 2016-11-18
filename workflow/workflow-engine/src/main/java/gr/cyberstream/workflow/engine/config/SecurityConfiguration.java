@@ -2,8 +2,6 @@ package gr.cyberstream.workflow.engine.config;
 
 import org.keycloak.adapters.springsecurity.KeycloakSecurityComponents;
 import org.keycloak.adapters.springsecurity.config.KeycloakWebSecurityConfigurerAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -26,32 +24,32 @@ import org.springframework.web.filter.CorsFilter;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter {
 
-	final Logger logger = LoggerFactory.getLogger(SecurityConfiguration.class);
-
 	/**
 	 * Registers the KeycloakAuthenticationProvider with the authentication
-	 * manager.
+	 * manager
+	 * 
+	 * @param auth
+	 * @throws Exception
 	 */
 	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
 
 		auth.authenticationProvider(keycloakAuthenticationProvider());
 	}
-	
+
 	/**
 	 * Defines the session authentication strategy.
 	 */
 	@Bean
 	@Override
 	protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
-		// return new RegisterSessionAuthenticationStrategy(new SessionRegistryImpl());
+		// return new RegisterSessionAuthenticationStrategy(new
+		// SessionRegistryImpl());
 		return new NullAuthenticatedSessionStrategy();
 	}
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-
-		logger.info("Initializing Security configuration ...");
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		CorsConfiguration config = new CorsConfiguration();
@@ -66,14 +64,10 @@ public class SecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter 
 		CorsFilter filter = new CorsFilter(source);
 
 		super.configure(http);
-		http
-				.addFilterBefore(filter, ChannelProcessingFilter.class)
-				.csrf().disable()
-				.authorizeRequests()
-				.regexMatchers(HttpMethod.GET, "/api/process/[0-9]+/diagram").permitAll()
-				.regexMatchers(HttpMethod.GET, "/api/instance/[0-9]+/diagram").permitAll()
-				.antMatchers("/api/public/**").permitAll()
-				.antMatchers("/api/v2/public/**").permitAll()
+		http.addFilterBefore(filter, ChannelProcessingFilter.class).csrf().disable().authorizeRequests()
+				.regexMatchers(HttpMethod.GET, "/api/process/[0-9]+/diagram(\\?task=[^&]+)?").permitAll()
+				.regexMatchers(HttpMethod.GET, "/api/instance/[0-9]+/diagram").permitAll().antMatchers("/api/public/**")
+				.permitAll().antMatchers("/api/v2/public/**").permitAll().antMatchers("/api/getstatus").permitAll()
 				.antMatchers("/api/**").authenticated();
 	}
 }

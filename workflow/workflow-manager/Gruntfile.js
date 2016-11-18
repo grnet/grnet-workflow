@@ -42,15 +42,30 @@ module.exports = function (grunt) {
                     });
                 }
             }
-        }
+        },
+		jsdoc: {
+			dist: {
+			  src: [ 'app/js/controllers', 'app/js/services', 'app/directives/*', 'app/js/directives', 'app/js/types.js', 'app/js/app.js' ],
+			  options: {
+				destination: 'dist/docs',
+				configure: 'node_modules/angular-jsdoc/common/conf.json',
+				template: 'node_modules/angular-jsdoc/angular-template',
+				tutorial: 'Workflow-Manager',
+				readme: './README.md'
+			  }
+			}
+		}
     });
 
     // grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-open');
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-bower-concat');
+	grunt.loadNpmTasks('grunt-jsdoc');
 
     grunt.registerTask('libPrepare', ['bower_concat:all']);
+	
+	grunt.registerTask('doc', 'jsdoc');
 
 
     // grunt.registerTask('doc', ['clean:doc', 'jsdoc', 'connect']);

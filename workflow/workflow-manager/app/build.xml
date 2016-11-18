@@ -1,0 +1,25 @@
+<project name="Grnet WorkflowManager" default="deploy" basedir=".">
+	
+    <description>
+        Grnet Workflow Manager
+    </description>
+	
+	<property name="dest" location="C:/apps/Apache24/htdocs/grnet/workflow-manager"/>
+		
+	<target name="deploy" description="deploy project" >
+		<!-- Create the distribution directory -->
+		<mkdir dir="${dest}"/>
+		
+		<copy todir="${dest}">
+			<fileset dir=".">
+				<exclude name="build.xml"/>
+				<exclude name="**/bower_components/**" />
+				<exclude name="**/test/**" />
+			</fileset>
+		</copy>
+	</target>
+	
+	<target name="clean" description="clean up" >
+		<delete dir="${dest}"/>
+	</target>
+</project>

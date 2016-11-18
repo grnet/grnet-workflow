@@ -1,6 +1,6 @@
 (function () {
-    angular.module('nlkDirectives')
-        .directive('nlkFileInput', ['$parse', function ($parse) {
+    angular.module('wfDirectives').directive('nlkFileInput', ['$parse',
+        function ($parse) {
 
             return {
                 restrict: 'AE',
@@ -15,10 +15,9 @@
                         scope.$apply(function () {
                             modelSetter(scope, element[0].files[0]);
                         });
+
                     });
                 }
-
             };
-
         }]);
 })();

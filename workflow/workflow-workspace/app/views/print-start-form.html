@@ -1,14 +1,26 @@
-<div layout="column" layout-padding>
-	<nlk-print-form-item ng-repeat="item in taskForm" wf-preview="true" class="print" style="padding:5px 0px"
-		ng-model="item" wf-document-path="{{documentPath}}">
+<md-content class="nonTransparent printWrapper" style="height: 100%;padding-top: 15px; padding-left: 8px; padding-right: 8px; position:relative">
+	
+	<div layout="row" style="margin-bottom: 35px; border-bottom: 1px solid black; padding-bottom: 5px; display: inline-block; width: 100%" ng-if="taskForm.length > 0">
+		<h2 style="display: inline;font-size: 20px;">{{instance.title}}</h2>
+		<span style="display: block; padding-top: 5px;">{{instance.definitionName}}</span>
+		<span style="display: block;padding-top: 5px;">{{ 'startDate' | translate }}: {{instance.startDate | date:'d/M/yyyy'}}</span>
+	</div>
+
+	<nlk-print-form-item ng-repeat="item in taskForm" wf-preview="true" class="print" ng-model="item" wf-document-path="{{documentPath}}"></nlk-print-form-item>
+	
+	<div layout="row" ng-if="task.taskForm.length > 0"
+		style="margin-bottom: 35px; border-bottom: 1px solid black; border-top: 1px solid black; padding-bottom: 5px; display: inline-block; width: 100%;padding-top: 35px;">
+		<h2 style="display: inline;font-size: 20px;">{{ 'taskName' | translate }}: {{task.name}}</h2>
+	</div>
+	
+	<nlk-print-form-item ng-repeat="taskItem in uniqueTaskFormItems.formItems" wf-preview="true" class="print" ng-model="taskItem" wf-document-path="{{documentPath}}">
 	</nlk-print-form-item>
 	
-	<md-divider></md-divider>
-	
-<!-- 	<section layout="row"> -->
-<!-- 		<div class="printFooter"> -->
-<!-- 			<img ng-src="img/icons/wf-logo.svg" style="width: 100px"; height="100px"/> -->
-<!-- 			<h1 class="md-title application-title">GRNET::workflow</h1> -->
-<!-- 		</div> -->
-<!-- 	</section> -->
- </div>
+</md-content>
+ 
+<section layout="row" layout-align="start center" class="printBtnSection">
+	<md-button class="md-fab md-primary" aria-label="Select assignee" ng-click="print()"
+		style="margin-top:18px;position: absolute;right: 3%;bottom: 3%;">
+		<md-icon md-svg-src="img/icons/print.svg"></md-icon>
+	</md-button>
+</section>

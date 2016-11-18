@@ -1,10 +1,8 @@
-/**
- * @author nlyk
- */
 package gr.cyberstream.workflow.engine.service;
 
 /**
- * Exception Object specific for invalid (bad) requests. I.e. invalid arguments, invalid input files, etc.
+ * Exception Object specific for invalid (bad) requests. I.e. invalid arguments,
+ * invalid input files, etc.
  * 
  * @author nlyk
  *

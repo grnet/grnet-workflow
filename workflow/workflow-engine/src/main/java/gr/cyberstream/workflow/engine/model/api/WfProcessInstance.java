@@ -22,29 +22,13 @@ public class WfProcessInstance {
 	private Date startDate;
 	private String status;
 	private Date endDate;
-	
-	private String reference;
-	
-	private String captchaHash;
-	private String captchaAnswer;
 	private String definitionIcon;
+	private String definitionName;
 
+	/**
+	 * Default constructor
+	 */
 	public WfProcessInstance() {
-	}
-	
-	public WfProcessInstance(String id, String title, String folderId, String definitionVersionId, String supervisor,
-			List<WfFormProperty> processForm, String status, int version, Date startDate, String reference) {
-	
-		this.id = id;
-		this.title = title;
-		this.folderId = folderId;
-		this.definitionVersionId = definitionVersionId;
-		this.supervisor = supervisor;
-		this.processForm = processForm;
-		this.status = status;
-		this.version = version;
-		this.startDate = startDate;
-		this.reference = reference;
 	}
 
 	public WfProcessInstance(WorkflowInstance instance) {
@@ -57,33 +41,32 @@ public class WfProcessInstance {
 		this.setStartDate(instance.getStartDate());
 		this.setStatus(instance.getStatus());
 		this.setEndDate(instance.getEndDate());
-		this.setReference(instance.getReference());
 		this.setDefinitionIcon(instance.getDefinitionVersion().getWorkflowDefinition().getIcon());
+		this.definitionName = instance.getDefinitionVersion().getWorkflowDefinition().getName();
 	}
-	
 
 	public static List<WfProcessInstance> fromWorkflowInstances(List<WorkflowInstance> workflowInstances) {
 		List<WfProcessInstance> instances = new ArrayList<WfProcessInstance>();
 		for (WorkflowInstance instance : workflowInstances) {
 			instances.add(new WfProcessInstance(instance));
 		}
-		return instances;		
+		return instances;
 	}
-	
+
 	@JsonIgnore
-	public Map<String, String> getVariableValues(){
-		
+	public Map<String, String> getVariableValues() {
+
 		if (processForm == null) {
 			return null;
 		}
-		
+
 		Map<String, String> variableValues = new HashMap<String, String>();
-		
+
 		for (WfFormProperty property : processForm) {
-		
+
 			variableValues.put(property.getId(), property.getValue());
 		}
-		
+
 		return variableValues;
 	}
 
@@ -150,7 +133,7 @@ public class WfProcessInstance {
 	public void setStatus(String status) {
 		this.status = status;
 	}
-	
+
 	public List<WfFormProperty> getProcessForm() {
 		return processForm;
 	}
@@ -167,35 +150,19 @@ public class WfProcessInstance {
 		this.endDate = endDate;
 	}
 
-	public String getReference() {
-		return reference;
-	}
-
-	public void setReference(String reference) {
-		this.reference = reference;
-	}
-
-	public String getCaptchaHash() {
-		return captchaHash;
-	}
-
-	public void setCaptchaHash(String captchaHash) {
-		this.captchaHash = captchaHash;
-	}
-
-	public String getCaptchaAnswer() {
-		return captchaAnswer;
-	}
-
-	public void setCaptchaAnswer(String captchaAnswer) {
-		this.captchaAnswer = captchaAnswer;
-	}
-	
 	public String getDefinitionIcon() {
 		return definitionIcon;
 	}
 
 	public void setDefinitionIcon(String definitionIcon) {
 		this.definitionIcon = definitionIcon;
+	}
+
+	public String getDefinitionName() {
+		return definitionName;
+	}
+
+	public void setDefinitionName(String definitionName) {
+		this.definitionName = definitionName;
 	}
 }

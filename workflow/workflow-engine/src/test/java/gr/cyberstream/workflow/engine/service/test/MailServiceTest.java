@@ -9,11 +9,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
 
 import gr.cyberstream.workflow.engine.config.test.ApplicationConfiguration;
 import gr.cyberstream.workflow.engine.service.MailService;
 
 @ContextConfiguration(classes = ApplicationConfiguration.class)
+@WebAppConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class MailServiceTest {
 
@@ -21,10 +23,9 @@ public class MailServiceTest {
 
 	@Autowired
 	private MailService mailService;
-	
+
 	@Test
 	public void shouldSendMail() {
-		
-		mailService.sendTaskAssignedMail("george.tylissanakis@cyberstream.gr", "10023", "Form Review", new Date());
+		mailService.sendTaskAssignedMail("kostas.koutros@cyberstream.gr", "10023", "Form Review", new Date());
 	}
 }

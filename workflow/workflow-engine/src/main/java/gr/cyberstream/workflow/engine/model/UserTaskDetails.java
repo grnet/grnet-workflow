@@ -14,22 +14,23 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import gr.cyberstream.workflow.engine.model.api.WfTaskDetails;
 
 /**
- * The persistence class for the usertasksdetails table
+ * The persistence class for the UserTaskDetails table
  * 
  * @author vpap
  *
  */
-
 @Entity
 public class UserTaskDetails implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	public static final String USER_TASK = "USER_TASK";
 	public static final String START_EVENT_TASK = "START_EVENT";
 
@@ -41,6 +42,7 @@ public class UserTaskDetails implements Serializable {
 	private String taskId;
 
 	private String description;
+
 	private String name;
 
 	@JsonIgnore
@@ -48,13 +50,11 @@ public class UserTaskDetails implements Serializable {
 	@JoinColumn(name = "definitionversion_id")
 	private DefinitionVersion definitionVersion;
 
-	// TODO: REFACTOR RENAME TO assignBySuperVisor
 	private boolean assign;
-	
-	
+
 	@OneToMany(mappedBy = "userTaskDetail", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<UserTaskFormElement> userTaskFormElements;
-	
+
 	private String type;
 
 	public int getId() {
@@ -122,8 +122,32 @@ public class UserTaskDetails implements Serializable {
 	}
 
 	public void updateFrom(WfTaskDetails wfTaskDetails) {
-		this.setDescription(wfTaskDetails.getDescription());
-		this.setAssign(wfTaskDetails.isAssign());
+		this.description = wfTaskDetails.getDescription();
+		this.assign = wfTaskDetails.isAssign();
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		boolean result = false;
+		if (other instanceof UserTaskDetails) {
+			UserTaskDetails that = (UserTaskDetails) other;
+			result = (this.getId() == that.getId());
+		}
+		return result;
+	}
+
+	@Override
+	public int hashCode() {
+		HashCodeBuilder builder = new HashCodeBuilder();
+		builder.append(id);
+		builder.append(taskId);
+		builder.append(description);
+		builder.append(name);
+		builder.append(definitionVersion);
+		builder.append(assign);
+		builder.append(userTaskFormElements);
+		builder.append(type);
+		return builder.toHashCode();
 	}
 
 }

@@ -2,209 +2,403 @@ package gr.cyberstream.workflow.engine.service.test;
 
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
+import javax.inject.Inject;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
+import org.mockito.internal.util.collections.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
 import gr.cyberstream.workflow.engine.config.test.ApplicationConfiguration;
-import gr.cyberstream.workflow.engine.model.TaskPath;
-import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
-import gr.cyberstream.workflow.engine.model.api.WfDocument;
+import gr.cyberstream.workflow.engine.config.test.MockKeycloakAccount;
+import gr.cyberstream.workflow.engine.config.test.MockKeycloakAuthenticationToken;
+import gr.cyberstream.workflow.engine.model.UserTaskFormElement;
+import gr.cyberstream.workflow.engine.model.WorkflowInstance;
 import gr.cyberstream.workflow.engine.model.api.WfProcess;
 import gr.cyberstream.workflow.engine.model.api.WfProcessInstance;
+import gr.cyberstream.workflow.engine.model.api.WfProcessVersion;
 import gr.cyberstream.workflow.engine.model.api.WfTaskDetails;
-import gr.cyberstream.workflow.engine.persistence.Processes;
-import gr.cyberstream.workflow.engine.service.CustomException;
-import gr.cyberstream.workflow.engine.service.InvalidRequestException;
 import gr.cyberstream.workflow.engine.service.ProcessService;
 
 @ContextConfiguration(classes = ApplicationConfiguration.class)
+@WebAppConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@Transactional // in order to user rollback
+/**
+ * Few tests could throw a handled exception and fail.
+ * 
+ * Unhandled exceptions are issues.
+ * 
+ * On error function name will be printed as well for better logging.
+ * 
+ * @author kkoutros
+ *
+ */
 public class ProcessServiceTest {
 
-	final static Logger logger = LoggerFactory.getLogger(ProcessServiceTest.class);
+	private Logger logger = LoggerFactory.getLogger(ProcessServiceTest.class);
 
-	@Autowired
+	@Inject
 	private ProcessService processService;
-	
-	@Autowired
-	private Processes processRepository;
-		
-	@Test
-	public void shouldCreateNewProcessDefinition() {
-		
-		WorkflowDefinition process = new WorkflowDefinition();
-		process.setName("Test Workflow Definition");
-		process.setDescription("Test Workflow Definition Description");
-		process.setIcon("box.svg");
-		process.setKey(null);
-		process.setOwner("Procurements");
-		process.setAssignBySupervisor(true);
-		
-		WfProcess wfProcess = new WfProcess(process);
-		
-		try {
-			
-			processService.createNewProcessDefinition(wfProcess);
-			
-		} catch (InvalidRequestException e) {
-			
-			logger.error(e.getMessage());
 
-			assertTrue(false);
-		}
-	}
-	
-	@Test
-	public void shouldUpdateProcessDefinition() {
-		
-		WorkflowDefinition process = processRepository.getByName("process_pool");
-		
-		process.setName("Test Workflow Definition");
-		process.setDescription("Test Workflow Definition Description");
-		process.setIcon("box.svg");
-		
-		process.setOwner("Procurements");
-		process.setAssignBySupervisor(true);
-		
-		WfProcess wfProcess = new WfProcess(process);
-		
-		try {
-			
-			processService.update(wfProcess);
-			
-		} catch (InvalidRequestException e) {
+	@Before
+	public void setup() {
+		String name = "Kostas Koutros";
+		String email = "kostas.koutros@cyberstream.gr";
+		Set<String> roles = Sets.newSet(new String[] { "ROLE_User", "ROLE_Admin" });
+		List<String> groups = Arrays.asList(new String[] { "WaterSupply" });
 
-			assertTrue(false);
-		}
+		KeycloakAuthenticationToken authentication = new MockKeycloakAuthenticationToken(new MockKeycloakAccount(name, email, roles, groups));
+		SecurityContextHolder.getContext().setAuthentication(authentication);
 	}
-	
+
 	@Test
-	public void shouldCreateNewProcessDefinitionWithBPMN() {
-		
-		String filename = "temporary-public-tender-test.v0.2.bpmn";
-		
-		ClassPathResource bpmnFile = new ClassPathResource(filename);
-		
+	public void shouldGetProcessById() {
 		try {
-			
-			processService.createNewProcessDefinition(bpmnFile.getInputStream(), filename);
-			
-		} catch (IOException e) {
-			
-			e.printStackTrace();
-			
-		} catch (InvalidRequestException e) {
-			
+			int processId = 8;
+
+			WfProcess wfProcess = processService.getProcessById(processId);
+			assertTrue(wfProcess != null);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
 			assertTrue(false);
 		}
 	}
-	
+
 	@Test
-	public void shouldStartProcess() {
-		
-		int processId = 3;
-		
-		WfProcessInstance wfProcessInstance = new WfProcessInstance();
-		
-		wfProcessInstance.setTitle("Three in a row");
-				
-		try {	
-			processService.startProcess(processId, wfProcessInstance);
-			
-		} catch (CustomException e) {
-			logger.error(e.getMessage());
-			assertTrue(false);
-		}
-	}
-	
-	@Test
-	public void shouldSaveDocument() {
-		
-		String instanceId = "32501";
-		
-		WfDocument document = new WfDocument();
-		
-		document.setTitle("RFP Document");
-		document.setDocumentId("56b53cec-9405-4395-9fcf-1a506d5bfc8b");
-		document.setRefNo("12341234-12341234");
-		
-		ClassPathResource rfpFile = new ClassPathResource("Test.pdf");
-		String contentType = "application/pdf";
-		
+	public void shouldGetAllProcesses() {
 		try {
-			
-			processService.saveDocument(instanceId, "rfp", document, rfpFile.getInputStream(), contentType);
-			
-		} catch (InvalidRequestException e) {
-			
-			assertTrue(false);
-			
-		} catch (IOException e) {
-			
+			List<WfProcess> processList = processService.getAll();
+			assertTrue(processList != null && processList.size() > 0);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
 			assertTrue(false);
 		}
 	}
-	
+
 	@Test
-	public void shouldReturnTaskDetailsOfVersion(){
-		int versionId = 9;
-		
-		List<WfTaskDetails> wfTaskDetails;
-		try{
-			wfTaskDetails = processService.getVersionTaskDetails(versionId);
-			assertTrue(wfTaskDetails!=null);
-			for(WfTaskDetails wf : wfTaskDetails){
-				if(wf.getDefinitionVersionId()!=versionId)	assertTrue(false);
-			}
-		}
-		catch(Exception e){
+	public void shouldGetAllActiveDefinitions() {
+		try {
+			List<WfProcess> processList = processService.getActiveProcessDefinitions();
+			assertTrue(processList != null && processList.size() > 0);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
 			assertTrue(false);
-		}		
-	}
-	
-//	@Test
-//	public void getTaskForm(){
-//		
-//		List<WfTask> tasks = processService.getUnassingedTasksByInstanceIds(Arrays.asList(new String[]{"5001"}));
-//		
-//		assertTrue(tasks.size() > 0);
-//	}
-	
-	@Test
-	public void shouldClaimTasksAccordingUser(){
-		
-		@SuppressWarnings("unused")
-		String userId = "e5738b21-34b8-4d22-a195-b87f447b5ae9";
-		
-		try{
-			
-			assertTrue(processService.getCandidateUserTasks() != null);
 		}
-		catch(Exception e){
-			logger.error(e.getMessage());
-			assertTrue(false);
-		}	
-		
 	}
-	
+
 	@Test
-	public void shouldCreateTaskPath(){
-		
-		try{
-			TaskPath path = processRepository.getTaskPath("7502", "theTask");
-			logger.info("Definition name : " + path.getDefinition().getName());
-			assertTrue(processRepository.getTaskPath("7502", "theTask") != null);
-		}catch(Exception e){
-			logger.error(e.getMessage());
+	public void shouldGetVersionTaskDetails() {
+		try {
+			int versionId = 8;
+
+			List<WfTaskDetails> userTaskDetails = processService.getVersionTaskDetails(versionId);
+			assertTrue(userTaskDetails != null && userTaskDetails.size() > 0);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	@Test
+	public void shouldGetgetActiveProcessInstances() {
+		try {
+			int processId = 8;
+
+			List<WfProcessInstance> instances = processService.getActiveProcessInstances(processId);
+			assertTrue(instances != null);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	@Test
+	@Rollback(true)
+	public void shouldCancelInstance() {
+		try {
+			String instanceId = "20001";
+
+			processService.cancelProcessInstance(instanceId);
+			assertTrue(true);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	@Test
+	@Rollback(true)
+	public void shouldDeleteInstance() {
+		try {
+			String instanceId = "20001";
+
+			processService.deleteInstance(instanceId);
+			assertTrue(true);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	@Test
+	@Rollback(true)
+	public void shouldSuspendInstance() {
+		try {
+			String instanceId = "20001";
+
+			processService.suspendProcessInstance(instanceId);
+			assertTrue(true);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	@Test
+	@Rollback(true)
+	public void shouldResumeInstance() {
+		try {
+			String instanceId = "20001";
+
+			processService.resumeProcessInstance(instanceId);
+			assertTrue(true);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	@Test
+	public void shouldReturnDefinitionsByOwners() {
+		try {
+			List<String> owners = new ArrayList<>();
+			owners.add("WaterSupply");
+			owners.add("HR");
+
+			List<WfProcess> definitions = processService.getDefinitionsByOwners(owners);
+			assertTrue(definitions != null && definitions.size() > 0);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	@Test
+	@Rollback(true)
+	public void shouldUpdateProcess() {
+		try {
+			WfProcess wfProcess = new WfProcess();
+			wfProcess.setId(8);
+			wfProcess.setDescription("A description");
+			wfProcess.setOwner("WaterSupply");
+
+			assertTrue(processService.update(wfProcess) != null);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	@Test
+	@Rollback(true)
+	public void shouldUpdateProcessVersion() {
+		try {
+			int processId = 8;
+
+			WfProcessVersion wfProcessVersion = new WfProcessVersion();
+			wfProcessVersion.setId(8);
+			wfProcessVersion.setDeploymentdate(new Date());
+			wfProcessVersion.setStatus("active");
+			wfProcessVersion.setVersion(1);
+
+			assertTrue(processService.updateVersion(processId, wfProcessVersion) != null);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	@Test
+	@Rollback(true)
+	public void shouldDeleteProcessDefinition() {
+		try {
+			int processId = 8;
+
+			processService.deleteProcessDefinition(processId);
+			assertTrue(true);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	@Test
+	@Rollback(true)
+	public void shouldDeleteProcessDefinitionVersion() {
+		try {
+			int processId = 8;
+			String deploymentId = "15001";
+
+			assertTrue(processService.deleteProcessDefinitionVersion(processId, deploymentId) != null);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	@Test
+	@Rollback(true)
+	public void shouldSetActiveVersion() {
+		try {
+			int processId = 8;
+			int versionId = 8;
+
+			processService.setActiveVersion(processId, versionId);
+			assertTrue(true);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	@Test
+	@Rollback(true)
+	public void shouldDeactivateVersion() {
+		try {
+			int processId = 8;
+			int versionId = 8;
+
+			processService.deactivateVersion(processId, versionId);
+			assertTrue(true);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	public void shouldGetProcessMetadata() {
+		try {
+			int processId = 8;
+			String device = UserTaskFormElement.ALL_DEVICES;
+
+			assertTrue(processService.getProcessMetadata(processId, device) != null);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	/**
+	 * Will throw an exception if mailService is not started
+	 * 
+	 * A process with form properties will require to create them in order to
+	 * start the instance successfully
+	 */
+	@Test
+	@Rollback(true)
+	public void shouldStartInstance() {
+		try {
+			int processId = 9;
+
+			WfProcessInstance wfProcessInstance = new WfProcessInstance();
+			wfProcessInstance.setTitle("Instance v.Test v11"); // should be
+																// unique since
+																// a folder with
+																// that name
+																// will be
+																// created. As
+																// well the
+																// folder id
+			wfProcessInstance.setFolderId("a folder id v11");
+			wfProcessInstance.setSupervisor("kostas.koutros@cyberstream.gr");
+			wfProcessInstance.setStartDate(new Date());
+			wfProcessInstance.setStatus(WorkflowInstance.STATUS_RUNNING);
+
+			assertTrue(processService.startProcess(processId, wfProcessInstance) != null);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	@Test
+	public void shouldGetSupervisedInstances() {
+		try {
+			assertTrue(processService.getSupervisedInstances() != null);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	@Test
+	public void shouldGetInstanceDocuments() {
+		try {
+			String instanceId = "52533";
+
+			assertTrue(processService.getDocumentsByInstance(instanceId) != null);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	@Test
+	public void shouldGetInstanceDocumentsByTaskId() {
+		try {
+			int taskId = 52562;
+
+			assertTrue(processService.getProcessInstanceDocumentsByTask(taskId) != null);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
+			assertTrue(false);
+		}
+	}
+
+	@Test
+	public void shouldGetSupervisedTasks() {
+		try {
+			assertTrue(processService.getSupervisedTasks() != null);
+
+		} catch (Exception e) {
+			logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ": " + e.getMessage());
 			assertTrue(false);
 		}
 	}

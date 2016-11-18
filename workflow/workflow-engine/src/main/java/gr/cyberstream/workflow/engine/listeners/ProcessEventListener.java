@@ -13,30 +13,30 @@ import org.springframework.stereotype.Component;
 import gr.cyberstream.workflow.engine.service.ProcessService;
 
 @Component
-public class ProcessEventListener implements ActivitiEventListener{
-	
-	final static Logger logger = LoggerFactory.getLogger(ProcessService.class);
-	
+public class ProcessEventListener implements ActivitiEventListener {
+
 	@Autowired
 	private ProcessService processService;
-	
-	public ProcessEventListener(){
+
+	private static final Logger logger = LoggerFactory.getLogger(ProcessEventListener.class);
+
+	public ProcessEventListener() {
+
 	}
 
 	@Override
 	public void onEvent(ActivitiEvent event) {
-		
+
 		if (event.getType().equals(ActivitiEventType.PROCESS_COMPLETED)) {
-			
-			logger.info("*** processInstanceId:: " + event.getProcessInstanceId() + " has ended ***");
+			logger.debug("*** Instance with id: " + event.getProcessInstanceId() + " has ended ***");
 			processService.notifyInstanceEnding(event.getProcessInstanceId());
-			
-		} else if (event.getType().equals(ActivitiEventType.PROCESS_STARTED)) {			
-			logger.info("*** processInstanceId:: " + event.getProcessInstanceId() + " started ***");
-			//processService.setInstanceVariable(event.getExecutionId());
-			
-		} else if(event.getType().equals(ActivitiEventType.TASK_CREATED)){
-			logger.info("Task created::ExecutionId::" + event.getExecutionId());
+
+		} else if (event.getType().equals(ActivitiEventType.PROCESS_STARTED)) {
+			logger.debug("*** Instance with id: " + event.getProcessInstanceId() + " started ***");
+			processService.notifyInstanceStarted(event.getProcessInstanceId());
+
+		} else if (event.getType().equals(ActivitiEventType.TASK_CREATED)) {
+			logger.debug("Task created::ExecutionId::" + event.getExecutionId());
 			ActivitiEntityEventImpl eventImpl = (ActivitiEntityEventImpl) event;
 			Task task = (Task) eventImpl.getEntity();
 			processService.applyTaskSettings(task);
@@ -45,6 +45,6 @@ public class ProcessEventListener implements ActivitiEventListener{
 
 	@Override
 	public boolean isFailOnException() {
-		return false;
+		return true;
 	}
 }

@@ -1,54 +1,55 @@
-<section layout="row" layout-align="left center" ng-if="ngReadonly">
+<section layout="row" layout-align="start center" ng-if="ngReadonly">
 
-	<md-input-container flex class="docInputDoc">
-        <label for="title" style="white-space: nowrap;">{{wfDocumentLabel}}</label>
-        <input type="text" id="title" name="title" readonly="true" ng-model="ngModel.title"/>
-    </md-input-container>
-    
-    <a href="{{wfDocumentPath}}{{ngModel.documentId}}" flex="5" ng-show="ngModel.documentId" target="_blank">
-    	<md-icon md-svg-icon="img/icons/description.svg" class="md-primary" style="position: relative;top: -10px;">
-    		<md-tooltip md-direction="top">
-	       		<span ng-show="ngModel.author">{{ 'author' | translate }} : {{ngModel.author}}</span>
-	       		<span ng-show="ngModel.version">{{ 'version' | translate }} : {{ngModel.version}}</span>
-	       		<span ng-show="ngModel.submittedDate">({{getDateString(ngModel.submittedDate)}})</span>
+	<md-input-container flex class="docInputDoc md-block">
+		<label for="title" ng-if="wfDocumentLabel" style="white-space: nowrap;" class="disabledLabel">{{wfDocumentLabel}}</label>
+		<label for="title" ng-if="!wfDocumentLabel" style="white-space: nowrap;">{{ 'file' | translate }}</label>
+		<input type="text" id="title" name="title" aria-label="ngModel.title" readonly="true" ng-model="ngModel.title" class="disabledLabel" disabled/>
+	</md-input-container>
+	
+	<a href="{{wfDocumentPath}}{{ngModel.documentId}}" flex="5" ng-show="ngModel.documentId" target="_blank">
+		<md-icon md-svg-icon="img/icons/description.svg" class="md-primary documentActions" style="position: relative;top: -10px;">
+			<md-tooltip md-direction="top">
+				<span ng-show="ngModel.author">{{ 'author' | translate }}: {{ngModel.author}}</span>
+		       	<span ng-show="ngModel.version">{{ 'version' | translate }}: {{ngModel.version}}</span>
+		       	<span ng-show="ngModel.submittedDate">({{getDateString(ngModel.submittedDate)}})</span>
 	       	</md-tooltip>
-    	</md-icon>
-    </a>
-    
-	<md-input-container flex class="docInputRef">
-        <label for="refNo">{{ 'referenceNumber' | translate }}</label>
-        <input type="text" id="refNo" name="refNo" readonly="true" ng-model="ngModel.refNo"/>
-    </md-input-container>
-    
-    <md-button flex="5" class="md-icon-button" aria-label="Add File" ng-click="showAddFile()" ng-disabled="true" style="padding:0px">
+      	</md-icon>
+   	</a>
+   	
+   	<md-input-container flex class="docInputRef">
+   		<label for="refNo" style="white-space: nowrap;" class="disabledLabel">{{ 'referenceNumber' | translate }}</label>
+   		<input type="text" id="refNo" name="refNo" ng-model="ngModel.refNo" readonly class="disabledLabel" disabled/>
+	</md-input-container>
+	
+	<md-button class="md-icon-button documentActions" aria-label="Add File" ng-click="showAddFile()" ng-disabled="true" style="padding:0px">
 		<md-icon md-svg-icon="img/icons/add.svg" ng-show="!ngModel.file" style="position: relative;top: -10px;"></md-icon>
 	</md-button>
-    
+	
 </section>
 
-<section layout="row" layout-align="center center" ng-if="!ngReadonly" class="{{ngRequired ? 'wf-required' : ''}}">
+<section layout="row" layout-align="start center" ng-if="!ngReadonly" class="{{ngRequired ? 'wf-required' : ''}}">
 
-	<md-input-container flex class="docInputDoc">
-        <label for="title" style="white-space: nowrap;">{{wfDocumentLabel}}</label>
-        <input type="text" id="title" name="title" readonly="true" ng-model="ngModel.title" ng-required="true"/>
+	<md-input-container flex class="docInputDoc md-block">
+		<label for="title" style="white-space: nowrap;" class="enabledLabel">{{wfDocumentLabel}}</label>
+        <input type="text" id="title" name="title" readonly="true" ng-model="ngModel.title" ng-required="ngRequired"/>
     </md-input-container>
     
     <a href="{{wfDocumentPath}}{{ngModel.documentId}}" flex="5" ng-show="ngModel.documentId" target="_blank">
     	<md-icon md-svg-icon="img/icons/description.svg" class="md-primary" style="position: relative;top: -10px;">
     		<md-tooltip md-direction="top">
-	       		<span ng-show="ngModel.author">{{ 'author' | translate }} : {{ngModel.author}}</span>
-	       		<span ng-show="ngModel.version">{{ 'version' | translate }} : {{ngModel.version}}</span>
+	       		<span ng-show="ngModel.author">{{ 'author' | translate }}: {{ngModel.author}}</span>
+	       		<span ng-show="ngModel.version">{{ 'version' | translate }}: {{ngModel.version}}</span>
 	       		<span ng-show="ngModel.submittedDate">({{getDateString(ngModel.submittedDate)}})</span>
 	       	</md-tooltip>
     	</md-icon>
     </a>
     
-	<md-input-container flex class="docInputRef">
-        <label for="refNo">{{ 'referenceNumber' | translate }}</label>
+	<md-input-container flex class="docInputRef md-block">
+        <label for="refNo" class="enabledLabel">{{ 'referenceNumber' | translate }}</label>
         <input type="text" id="refNo" name="refNo" readonly="true" ng-model="ngModel.refNo"/>
     </md-input-container>
     
-    <md-button flex="5" class="md-icon-button" aria-label="Add File" ng-click="showAddFile()" style="padding:0px">
+    <md-button class="md-icon-button" aria-label="Add File" ng-click="showAddFile()" style="padding:0px">
 		<md-icon md-svg-icon="img/icons/add.svg" ng-show="!ngModel.file" class="md-primary" style="position: relative;top: -10px;"></md-icon>
 		<md-icon md-svg-icon="img/icons/filter.svg" ng-show="ngModel.file" style="position: relative;top: -10px;"></md-icon>
 	</md-button>

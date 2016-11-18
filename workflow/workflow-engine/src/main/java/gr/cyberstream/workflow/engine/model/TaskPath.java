@@ -12,18 +12,16 @@ public class TaskPath {
 	private WorkflowInstance instance;
 	private DefinitionVersion definitionVersion;
 	private WorkflowDefinition definition;
-	
-	public TaskPath(){
-		
+
+	public TaskPath() {
+
 	}
 
-	public TaskPath(UserTaskDetails taskDetails, WorkflowInstance instance, DefinitionVersion definitionVersion,
-			WorkflowDefinition definition) {
+	public TaskPath(UserTaskDetails taskDetails, WorkflowInstance instance, DefinitionVersion definitionVersion, WorkflowDefinition definition) {
 		this.taskDetails = taskDetails;
 		this.instance = instance;
 		this.definitionVersion = definitionVersion;
 		this.definition = definition;
-
 	}
 
 	public UserTaskDetails getTaskDetails() {
@@ -57,5 +55,4 @@ public class TaskPath {
 	public void setDefinition(WorkflowDefinition definition) {
 		this.definition = definition;
 	}
-
 }
