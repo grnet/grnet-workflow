@@ -133,6 +133,23 @@
                                 });
                         };
 
+                        $scope.notifyAdmin = function () {
+                            $scope.showProgressBar = false;
+
+                            processService.notifyNoCandidates($scope.task.id).then(
+                                //success callback
+                                function () {
+                                    $scope.showProgressBar = false;
+                                    $mdDialog.hide();
+                                },
+                                // error callback
+                                function (response) {
+                                    $scope.showProgressBar = false;
+                                    exceptionModal(response);
+                                }
+                            );
+                        }
+
                         $scope.getCandidatesForTask = function () {
                             $scope.showProgressBar = true;
 

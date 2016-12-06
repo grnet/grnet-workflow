@@ -189,6 +189,15 @@ public class MailService {
 		}
 	}
 
+	public void sendNoCandidatesEmail(String administrator, String taskName, String taskId) throws MessagingException {
+		String subject = "Σφάλμα ανάθεσης εργασίας";
+
+		String content = "<p>Δεν βρέθηκαν υποψήφιοι για την ανάθεση της εργασίας με όνομα '" + taskName
+				+ "' και κωδικό '" + taskId + "'.</p>";
+
+		sendMail(administrator, subject, content, "");
+	}
+
 	private void sendMail(String to, String subject, String content, String cc) throws MessagingException {
 
 		MimeMessage message = mailSender.createMimeMessage();

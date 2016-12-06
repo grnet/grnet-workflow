@@ -149,6 +149,18 @@ public class ExecutionController {
 	}
 
 	/**
+	 * Sends an e-mail to administrator because no candidates
+	 * were found for the assignment of the task
+	 *
+	 * @param taskId
+	 *            Task's id
+	 */
+	@RequestMapping(value = "/task/{taskId}/candidates/nocandidates", method = RequestMethod.PUT)
+	public void notifyAdminForTask(@PathVariable String taskId) throws InvalidRequestException {
+		processService.notifyAdminForTask(taskId);
+	}
+
+	/**
 	 * Returns tasks by instance
 	 * 
 	 * @param instanceId

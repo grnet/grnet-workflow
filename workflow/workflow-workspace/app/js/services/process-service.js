@@ -66,11 +66,22 @@
              * @memberOf processService
              * @function getAllCandidates
              * @desc Returns all users as candidates
-             * 
+             *
              * @returns {HttpPromise}
              */
             this.getAllCandidates = function (taskId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/candidates/all');
+            };
+
+            /**
+             * @memberOf processService
+             * @function notifyNoCandidates
+             * @desc Notifies administrator for no available candidates
+             *
+             * @returns {HttpPromise}
+             */
+            this.notifyNoCandidates = function (taskId) {
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/task/'+ taskId + '/candidates/nocandidates');
             };
 
             /**
