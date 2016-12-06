@@ -28,12 +28,14 @@
 		
 		<section layout="column" layout-align="start start" ng-if="candidates.length == 0 && !showProgressBar">
 			<div>{{ 'noCandidatesFound' | translate }}</div>
+			<div>{{ 'notifyAdminDescription' | translate }}</div>
 		</section>
 	</md-dialog-content>
 	
      <md-dialog-actions layout="row" layout-align="left center" style="padding-left: 0px;position: absolute;bottom: 0px;width: 100%;background-color: white;" 
      	ng-if="!showProgressBar">
      	<md-button ng-if="candidates.length > 0" class="md-raised md-primary" ng-click="confirm()">{{ 'confirm' | translate}}</md-button>
+		<md-button ng-if="candidates.length == 0" class="md-raised md-primary" ng-click="notifyAdmin()">{{'notifyAdmin' | translate}}</md-button>
      	<md-button ng-if="candidates.length == 0" class="md-raised md-primary" ng-click="getAllCandidates()">{{ 'showAll' | translate }}</md-button>
      	<md-button class="md-raised" ng-click="cancel()">{{ 'cancel' | translate }}</md-button>
   	</md-dialog-actions>

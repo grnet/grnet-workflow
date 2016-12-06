@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import javax.mail.MessagingException;
 import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
 import javax.xml.stream.XMLInputFactory;
@@ -2680,6 +2681,30 @@ public class ProcessService {
 
 		return candidates;
 	}
+
+	/**
+	 * <p>
+	 * This function is called when there is no candidate for a specific task.
+	 * </p>
+	 * <p>
+	 * Sends an e-mail to the administrator to notify him for the absence of
+	 * candidates for assigning the task to.
+	 * </p>
+	 *
+	 * @param taskId
+	 *            The ID of the task that has no candidates
+	 */
+	public void notifyAdminForTask(String taskId) throws InvalidRequestException {
+        String adminEmail = environment.getProperty("mail.admin");
+        Task workflowTask = activitiTaskSrv.createTaskQuery().taskId(taskId).singleResult();
+
+        try {
+            mailService.sendNoCandidatesEmail(adminEmail, workflowTask.getName(), workflowTask.getId());
+        } catch (MessagingException e) {
+            throw new InvalidRequestException("The e-mail could not be sent to the administrator. Please contact " +
+                    "administrator directly.");
+        }
+    }
 
 	/**
 	 * Returns from in progress instances assigned tasks to logged in user
