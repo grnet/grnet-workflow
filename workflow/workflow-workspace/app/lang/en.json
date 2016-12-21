@@ -97,5 +97,6 @@
 	"claimTaskInstanceEnded": "you cannot claim the task because the instance has been completed",
 	"noAuthorizedToAssignTask": "you are not authorized to assign the task. Please contact instance's supervisor",
 	"notifyAdminDescription": "use the button below to notify the administrator",
-	"notifyAdmin": "notify admin"
+	"notifyAdmin": "notify admin",
+	"instanceTitleUnique": "The instance title should be unique."
 }
