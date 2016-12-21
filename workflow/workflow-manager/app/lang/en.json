@@ -7,7 +7,7 @@
 	"userActivity": "user history",
 	"settings": "settings",
 	"externalForms": "external forms",
-	"processDetail" "process",
+	"processDetail": "process",
 	"processTitle": "process title",
 	"processRegistry": "process registry",
 	"processActiveVersion": "process active version",
@@ -31,7 +31,6 @@
 	"inProgress": "in progress",
 	"noInstancesForProcess": "no executions found",
 	"startedAt": "started at",
-	"externalForms": "external forms",
 	"noExternalForms": "no external forms found",
 	"suspendExecution": "suspend execution",
 	"confirmAction": "confirm action",
@@ -152,7 +151,10 @@
 	"femaleDisabled": "disabled",
 	"permInstanceDel": "Permanent delete of instance with title",
 	"permInstanceSuspend": "Terminate the instance with title",
+	"cautionCantResume": "Caution! You will not be able to resume the instance.",
 	"clearFilters": "Clear filters",
 	"instanceDocuments": "Instance documents",
-	"documents": "documents"
+	"documents": "documents",
+	"ended": "ended",
+	"deleted": "deleted"
 }
