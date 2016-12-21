@@ -1193,7 +1193,7 @@ public class ProcessService {
 
 		// check if title is unique
 		if (processRepository.getCheckInstanceName(instanceData.getTitle()) > 0)
-			throw new InvalidRequestException("The instance title should be unique");
+			throw new InvalidRequestException("instanceTitleUnique");
 
 		// check user's roles/groups
 		if (hasGroup(workflowDefinition.getOwner()) || hasRole(ROLE_ADMIN))
@@ -1232,7 +1232,7 @@ public class ProcessService {
 
 		// check if title is unique
 		if (processRepository.getCheckInstanceName(wfProcessInstance.getTitle()) > 0)
-			throw new InvalidRequestException("The instance title should be unique");
+			throw new InvalidRequestException("instanceTitleUnique");
 
 		try {
 			if (wfProcessInstance.getProcessForm() != null) {
@@ -1341,7 +1341,7 @@ public class ProcessService {
 
 		// check if title is unique
 		if (processRepository.getCheckInstanceName(wfProcessInstance.getTitle()) > 0)
-			throw new InvalidRequestException("The instance title should be unique");
+			throw new InvalidRequestException("instanceTitleUnique");
 
 		// create a map used to hold the files
 		Map<String, MultipartFile> filesMap = new HashMap<String, MultipartFile>();
