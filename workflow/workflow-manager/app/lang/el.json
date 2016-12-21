@@ -31,7 +31,6 @@
 	"inProgress": "σε εξέλιξη",
 	"noInstancesForProcess": "δεν βρέθηκαν εκτελέσεις",
 	"startedAt": "ξεκίνησε στις",
-	"externalForms": "εξωτερικές φόρμες",
 	"noExternalForms": "δεν βρέθηκαν εξωτερικές φόρμες",
 	"suspendExecution": "αναστολλή εκτέλεσης",
 	"confirmAction": "επιβεβαίωση ενέργειας",
@@ -147,12 +146,15 @@
 	"formItems": "πεδία φόρμας",
 	"referenceNumber": "αριθμός αναφοράς",
 	"assignedByCoordinator": "ανάθεση από συντονιστή",
-	"resumeInstance": "Ενεργοποίηση της εκτέλεσης με τίτλο",
-	"suspendInstance": "Απενεργοποίηση της εκτέλεσης με τίτλο",
-	"femaleDisabled": "απενεργοποιημένη",
+	"resumeInstance": "Συνέχιση της εκτέλεσης με τίτλο",
+	"suspendInstance": "Προσωρινή διακοπή της εκτέλεσης με τίτλο",
+	"femaleDisabled": "έχει διακοπεί προσωρινά",
 	"permInstanceDel": "Οριστική διαγραφή της εκτέλεσης με τίτλο",
 	"permInstanceSuspend": "Τερματισμός της εκτέλεσης με τίτλο",
+	"cautionCantResume": "Προσοχή! Δε θα είναι δυνατή η επανεκκίνηση της εκτέλεσης.",
 	"clearFilters": "καθαρισμός φίλτρων",
 	"instanceDocuments": "αρχεία εκτέλεσης",
-	"documents": "αρχεία"
+	"documents": "αρχεία",
+	"ended": "ολοκληρώθηκε",
+	"deleted": "διαγράφηκε"
 }
