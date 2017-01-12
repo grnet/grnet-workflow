@@ -44,11 +44,6 @@
 
 					$scope.initializeCriteria();
 					$scope.showTasksByFilters();
-                },
-                // error callback
-                function (response) {
-					exceptionModal(response);
-
                 }).finally(function () {
 					$scope.showProgressBar = false;
                 });
@@ -118,11 +113,9 @@
 							$scope.instances.push(task.processInstance);
 						});
 					},
-
 					function (response) {
 						exceptionModal(response);
 					}
-
 				).finally(function () {
 					$scope.showProgressBar = false;
 				});

@@ -26,10 +26,6 @@
 					//success callback
 					function (response) {
 						$scope.tasks = response.data;
-
-						//error callback	
-					}, function (response) {
-
 					}
 				);
 
@@ -131,12 +127,7 @@
 
 							//error callback	
 						}, function (response) {
-							$mdDialog.show($mdDialog.alert()
-								.parent(document.body)
-								.clickOutsideToClose(true)
-								.title('Error')
-								.content(response.data)
-								.ok('Ok'))
+                            exceptionModal(response, $scope.task);
 						}
 					);
 				};
@@ -185,11 +176,6 @@
 									function (response) {
 										$scope.showProgressBar = false;
 										$scope.candidates = response.data;
-									},
-									// error callback
-									function (response) {
-										$scope.showProgressBar = false;
-										exceptionModal(response);
 									});
 							};
 
@@ -201,12 +187,8 @@
 									function (response) {
 										$scope.showProgressBar = false;
 										$scope.candidates = response.data;
-
-										// error callback
-									}, function (response) {
-										$scope.showProgressBar = false;
-										exceptionModal(response);
-									});
+									}
+								);
 							};
 
 							$scope.getCandidatesForTask();
@@ -236,7 +218,7 @@
 							}
 							// error callback
 							, function (response) {
-
+                                exceptionModal(response, $scope.task);
 							});
 					} else {
 						$scope.activeView = "taskList";
@@ -258,32 +240,32 @@
 						$location.path("/inprogress");
 				};
 
-				/**
-				 * @memberof InstanceDetailsCtrl
-				 * @desc Displays a modal panel showing the exception message
-				 * 
-				 * @param {any} response
-				 * @param {event} $event
-				 */
-				function exceptionModal(response, $event) {
-					$mdDialog.show({
-						controller: function ($scope, $mdDialog, error) {
+                /**
+                 * @memberof InstanceDetailsCtrl
+                 * @desc Displays a modal panel, showing the exception message
+                 *
+                 * @param {any} response
+                 * @param {event} event
+                 */
+                function exceptionModal(response, task, event) {
+                    $mdDialog.show({
+                        controller: function ($scope, $mdDialog) {
+                            $scope.error = response.data;
 
-							$scope.error = error;
+							$scope.map = {};
+							$scope.map["supervisor"] = task.processInstance.supervisor;
+							$scope.map["taskID"] = task.id;
 
-							$scope.cancel = function () {
-								$mdDialog.cancel();
-							};
-						},
-						templateUrl: 'templates/exception.tmpl.html',
-						parent: angular.element(document.body),
-						targetEvent: $event,
-						clickOutsideToClose: false,
-						locals: {
-							'error': response.data
-						}
-					});
-				};
+                            $scope.cancel = function () {
+                                $mdDialog.hide();
+                            };
+                        },
 
-			}]);
+                        templateUrl: 'templates/exception.tmpl.html',
+                        parent: angular.element(document.body),
+                        targetEvent: event,
+                        clickOutsideToClose: false
+                    })
+                };
+            }]);
 })(angular);

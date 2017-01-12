@@ -76,7 +76,7 @@
                     }
                     // error callback
                     , function (response) {
-                        exceptionModal(response);
+                        exceptionModal(response, $scope.task);
                     }
                 );
             };
@@ -125,11 +125,6 @@
                                 function (response) {
                                     $scope.showProgressBar = false;
                                     $scope.candidates = response.data;
-                                },
-                                // error callback
-                                function (response) {
-                                    $scope.showProgressBar = false;
-                                    exceptionModal(response);
                                 });
                         };
 
@@ -158,11 +153,6 @@
                                 function (response) {
                                     $scope.showProgressBar = false;
                                     $scope.candidates = response.data;
-
-                                    // error callback
-                                }, function (response) {
-                                    $scope.showProgressBar = false;
-                                    exceptionModal(response);
                                 });
                         };
 
@@ -188,7 +178,6 @@
             $scope.showTaskDetails = function () {
                 $mdDialog.show({
                     controller: function ($mdDialog) {
-
                         $scope.cancel = function () {
                             $mdDialog.hide();
                         };
@@ -241,10 +230,14 @@
              * @param {any} response
              * @param {event} $event
              */
-            function exceptionModal(response, $event) {
+            function exceptionModal(response, task, $event) {
                 $mdDialog.show({
                     controller: function ($scope, $mdDialog) {
                         $scope.error = response.data;
+
+                        $scope.map = {};
+                        $scope.map["supervisor"] = task.processInstance.supervisor;
+                        $scope.map["taskID"] = task.id;
 
                         $scope.cancel = function () {
                             $mdDialog.hide();

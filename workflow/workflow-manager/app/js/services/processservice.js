@@ -291,20 +291,34 @@
             };
 
             /**
-             * @memberof processService
-             * @desc Search for ended instance's tasks by given criteria
-             * API: @name ProcessController#getEndedProcessInstancesTasks 
-             * 
-             * @param {String} title - Instance's title 
-             * @param {Number} after - The instance is completed after
-             * @param {Number} before - The instance is completed before
-             * @param {Boolean} anonymous - If the user requesting is supervisor
+             * @memberOf processService
+             * @function getActiveProcesses
+             * @desc Gets all active processes
+             *
              * @returns {HttpPromise}
              */
-            this.getEndedInstancesTasks = function (title, after, before, anonymous) {
-                var url = config.WORKFLOW_SERVICE_ENTRY + '/process/instance/ended/search:' + title + "," + after + "," + before + "," + anonymous;
+            this.getActiveProcesses = function () {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/active');
+            };
 
-                return $http.get(url);
+            /**
+             * @memberOf processService
+             * @function getEndedInstances
+             * @desc Searches for ended instances based on given criteria
+             *
+             * @param {String} definitionName
+             * @param {String} instanceTitle
+             * @param {Number} dateAfterTime
+             * @param {Number} dateBeforeTime
+             * @returns {HttpPromise}
+             */
+            this.getEndedInstances = function (definitionName, instanceTitle, dateAfterTime, dateBeforeTime) {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/instances/ended/search:{definitionName},{instanceTitle},{dateAfter},{dateBefore}'
+                    + definitionName + ","
+                    + instanceTitle + ","
+                    + dateAfterTime + ","
+                    + dateBeforeTime
+                );
             };
 
             /**

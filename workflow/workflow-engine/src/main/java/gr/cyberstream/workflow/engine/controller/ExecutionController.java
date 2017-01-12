@@ -1,40 +1,25 @@
 package gr.cyberstream.workflow.engine.controller;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
-import javax.servlet.annotation.MultipartConfig;
-
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gr.cyberstream.workflow.engine.model.api.*;
+import gr.cyberstream.workflow.engine.service.InternalException;
+import gr.cyberstream.workflow.engine.service.InvalidRequestException;
+import gr.cyberstream.workflow.engine.service.ProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gr.cyberstream.workflow.engine.model.api.WfDocument;
-import gr.cyberstream.workflow.engine.model.api.WfFormProperty;
-import gr.cyberstream.workflow.engine.model.api.WfProcessInstance;
-import gr.cyberstream.workflow.engine.model.api.WfTask;
-import gr.cyberstream.workflow.engine.model.api.WfUser;
-import gr.cyberstream.workflow.engine.service.InternalException;
-import gr.cyberstream.workflow.engine.service.InvalidRequestException;
-import gr.cyberstream.workflow.engine.service.ProcessService;
+import javax.servlet.annotation.MultipartConfig;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 /**
  * Implements all RESTfull requests related to process execution
@@ -167,11 +152,10 @@ public class ExecutionController {
 	 *            Instance's id
 	 * 
 	 * @return List of {@link WfTask}
-	 * @throws InvalidRequestException
 	 */
 	@RequestMapping(value = "/tasks/instance/{instanceId}", method = RequestMethod.GET)
 	@ResponseBody
-	public List<WfTask> getTaskByInstanceId(@PathVariable String instanceId) throws InvalidRequestException {
+	public List<WfTask> getTaskByInstanceId(@PathVariable String instanceId) {
 
 		return processService.getTasksByInstanceId(instanceId);
 	}
@@ -201,12 +185,11 @@ public class ExecutionController {
 	 * all tasks returned
 	 * 
 	 * @return List of {@link WfTask}
-	 * @throws InvalidRequestException
 	 */
 	@RequestMapping(value = "/tasks/supervised", method = RequestMethod.GET)
 	@ResponseBody
 	@PreAuthorize("hasAnyRole('Supervisor','Admin')")
-	public List<WfTask> getUnassingedTasksByInstancesIds() throws InvalidRequestException {
+	public List<WfTask> getUnassingedTasksByInstancesIds() {
 
 		return processService.getSupervisedTasks();
 	}
@@ -215,11 +198,10 @@ public class ExecutionController {
 	 * Returns Assigned tasks for the user in context (Logged in user)
 	 * 
 	 * @return List of {@link WfTask}
-	 * @throws InvalidRequestException
 	 */
 	@RequestMapping(value = "/task/inprogress/user", method = RequestMethod.GET)
 	@ResponseBody
-	public List<WfTask> getTasksForUser() throws InvalidRequestException {
+	public List<WfTask> getTasksForUser() {
 
 		return processService.getTasksForUser();
 	}
@@ -590,11 +572,10 @@ public class ExecutionController {
 	 * Returns tasks which can be claimed by logged in user
 	 * 
 	 * @return List of {@link WfTask}
-	 * @throws InvalidRequestException
 	 */
 	@RequestMapping(value = "/tasks/claim", method = RequestMethod.GET)
 	@ResponseBody
-	public List<WfTask> getClaimTasks() throws InvalidRequestException {
+	public List<WfTask> getClaimTasks() {
 
 		return processService.getCandidateUserTasks();
 	}
@@ -681,11 +662,10 @@ public class ExecutionController {
 	 *            Instance's id
 	 * 
 	 * @return List of {@link WfFormProperty}
-	 * @throws InvalidRequestException
 	 */
 	@RequestMapping(value = "/instance/{instanceId}/startform", method = RequestMethod.GET)
 	@ResponseBody
-	public List<WfFormProperty> getStartForm(@PathVariable String instanceId) throws InvalidRequestException {
+	public List<WfFormProperty> getStartForm(@PathVariable String instanceId) {
 
 		return processService.getStartFormByInstanceId(instanceId);
 	}
@@ -736,15 +716,37 @@ public class ExecutionController {
 
 	/**
 	 * Returns a list of all in progress instances
-	 * 
+	 *
 	 * @return List of {@link WfProcessInstance}
-	 * @throws InvalidRequestException
 	 */
 	@RequestMapping(value = "/inprogress/instances", method = RequestMethod.GET)
 	@ResponseBody
-	public List<WfProcessInstance> getInProgressInstances() throws InvalidRequestException {
+	public List<WfProcessInstance> getInProgressInstances() {
 
 		return processService.getInProgressInstances();
+	}
+
+	/**
+	 * Returns a list of all ended instances
+	 *
+	 * @param definitionName
+	 *            The definition's name to get its ended instances
+	 * @param instanceTitle
+	 *            The process instance title
+	 * @param dateAfter
+	 *            The date after which to get the ended instances
+	 * @param dateBefore
+	 *            The date before which to get the ended instances
+	 *
+	 * @return List of {@link WfProcessInstance}
+	 * @throws InvalidRequestException
+	 */
+	@RequestMapping(value = "/instances/ended/search:{definitionName},{instanceTitle},{dateAfter},{dateBefore}", method = RequestMethod.GET)
+	@ResponseBody
+	public List<WfProcessInstance> getEndedProgressInstances(@PathVariable String definitionName, @PathVariable String instanceTitle,
+			 @PathVariable long dateAfter, @PathVariable long dateBefore) throws InvalidRequestException {
+
+		return processService.getEndedProcessInstances(definitionName, instanceTitle, dateAfter, dateBefore);
 	}
 
 	/**

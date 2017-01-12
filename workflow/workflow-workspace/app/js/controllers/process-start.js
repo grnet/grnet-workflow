@@ -37,10 +37,6 @@
                 // success callback
                 function (response) {
                     $scope.supervisors = response.data;
-                },
-                // error callback
-                function (response) {
-                    exceptionModal(response);
                 }
             );
 

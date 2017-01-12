@@ -1,41 +1,26 @@
 package gr.cyberstream.workflow.engine.service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-
-import javax.mail.MessagingException;
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gr.cyberstream.workflow.engine.cmis.CMISDocument;
+import gr.cyberstream.workflow.engine.cmis.CMISFolder;
+import gr.cyberstream.workflow.engine.config.SettingsStatus;
+import gr.cyberstream.workflow.engine.customtypes.ConversationType;
+import gr.cyberstream.workflow.engine.customtypes.DocumentType;
+import gr.cyberstream.workflow.engine.customtypes.MessageType;
+import gr.cyberstream.workflow.engine.listeners.CustomTaskFormFields;
+import gr.cyberstream.workflow.engine.model.*;
+import gr.cyberstream.workflow.engine.model.api.*;
+import gr.cyberstream.workflow.engine.persistence.Processes;
+import gr.cyberstream.workflow.engine.util.string.StringUtil;
 import org.activiti.bpmn.BpmnAutoLayout;
 import org.activiti.bpmn.exceptions.XMLException;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.FormValue;
 import org.activiti.bpmn.model.StartEvent;
 import org.activiti.bpmn.model.UserTask;
-import org.activiti.engine.ActivitiException;
-import org.activiti.engine.ActivitiIllegalArgumentException;
-import org.activiti.engine.ActivitiObjectNotFoundException;
-import org.activiti.engine.FormService;
-import org.activiti.engine.HistoryService;
-import org.activiti.engine.RepositoryService;
-import org.activiti.engine.RuntimeService;
-import org.activiti.engine.TaskService;
+import org.activiti.engine.*;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.StartFormData;
 import org.activiti.engine.form.TaskFormData;
@@ -74,36 +59,18 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gr.cyberstream.workflow.engine.cmis.CMISDocument;
-import gr.cyberstream.workflow.engine.cmis.CMISFolder;
-import gr.cyberstream.workflow.engine.config.SettingsStatus;
-import gr.cyberstream.workflow.engine.customtypes.ConversationType;
-import gr.cyberstream.workflow.engine.customtypes.DocumentType;
-import gr.cyberstream.workflow.engine.customtypes.MessageType;
-import gr.cyberstream.workflow.engine.listeners.CustomTaskFormFields;
-import gr.cyberstream.workflow.engine.model.DefinitionVersion;
-import gr.cyberstream.workflow.engine.model.TaskPath;
-import gr.cyberstream.workflow.engine.model.UserTaskDetails;
-import gr.cyberstream.workflow.engine.model.UserTaskFormElement;
-import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
-import gr.cyberstream.workflow.engine.model.WorkflowDefinitionStatus;
-import gr.cyberstream.workflow.engine.model.WorkflowInstance;
-import gr.cyberstream.workflow.engine.model.WorkflowSettings;
-import gr.cyberstream.workflow.engine.model.api.WfDocument;
-import gr.cyberstream.workflow.engine.model.api.WfFormProperty;
-import gr.cyberstream.workflow.engine.model.api.WfProcess;
-import gr.cyberstream.workflow.engine.model.api.WfProcessInstance;
-import gr.cyberstream.workflow.engine.model.api.WfProcessVersion;
-import gr.cyberstream.workflow.engine.model.api.WfSettings;
-import gr.cyberstream.workflow.engine.model.api.WfTask;
-import gr.cyberstream.workflow.engine.model.api.WfTaskDetails;
-import gr.cyberstream.workflow.engine.model.api.WfUser;
-import gr.cyberstream.workflow.engine.persistence.Processes;
-import gr.cyberstream.workflow.engine.util.string.StringUtil;
+import javax.mail.MessagingException;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Implements all the business rules related to process definitions and process
@@ -242,10 +209,10 @@ public class ProcessService {
 
 	/**
 	 * Returns all running instances by process definition id
-	 * 
+	 *
 	 * @param processDefinitionId
 	 *            The definition's id to get running instances from
-	 * 
+	 *
 	 * @return A list of {@link WfProcessInstance}
 	 */
 	public List<WfProcessInstance> getActiveProcessInstances(int processDefinitionId) {
@@ -279,7 +246,7 @@ public class ProcessService {
 			instance = processRepository.getInstanceById(instanceId);
 
 		} catch (NoResultException | EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("Process instance with id " + instanceId + " not found");
+			throw new InvalidRequestException("processIntanceNotFound");
 		}
 
 		if (hasRole(ROLE_ADMIN) || hasGroup(instance.getDefinitionVersion().getWorkflowDefinition().getOwner())) {
@@ -294,7 +261,7 @@ public class ProcessService {
 			processRepository.save(instance);
 
 		} else
-			throw new InvalidRequestException("You are not authorized to cancel that instance");
+			throw new InvalidRequestException("notAuthorizedToCancel");
 	}
 
 	/**
@@ -314,7 +281,7 @@ public class ProcessService {
 			instance = processRepository.getInstanceById(instanceId);
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("Process instance with id " + instanceId + " not found");
+			throw new InvalidRequestException("processIntanceNotFound");
 		}
 
 		if (hasRole(ROLE_ADMIN) || hasGroup(instance.getDefinitionVersion().getWorkflowDefinition().getOwner())) {
@@ -327,7 +294,7 @@ public class ProcessService {
 			processRepository.cancelProcessInstance(instance);
 
 		} else
-			throw new InvalidRequestException("You are not authorized to delete that instance");
+			throw new InvalidRequestException("notAuthorizedToDelete");
 	}
 
 	/**
@@ -348,7 +315,7 @@ public class ProcessService {
 			instance = processRepository.getInstanceById(instanceId);
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("Process instance with id " + instanceId + " not found");
+			throw new InvalidRequestException("processIntanceNotFound");
 		}
 
 		if (hasRole(ROLE_ADMIN) || hasGroup(instance.getDefinitionVersion().getWorkflowDefinition().getOwner())) {
@@ -357,7 +324,7 @@ public class ProcessService {
 				activitiRuntimeSrv.suspendProcessInstanceById(instanceId);
 
 			} catch (ActivitiException e) {
-				throw new InvalidRequestException("Suspending the instance has failed. " + e.getMessage());
+				throw new InvalidRequestException("suspendingFailed");
 			}
 
 			instance.setStatus(WorkflowInstance.STATUS_SUSPENDED);
@@ -386,11 +353,11 @@ public class ProcessService {
 			instance = processRepository.getInstanceById(instanceId);
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("Process instance with id " + instanceId + " not found");
+			throw new InvalidRequestException("processIntanceNotFound");
 		}
 
 		if (instance.getStatus().equals(WorkflowInstance.STATUS_RUNNING))
-			throw new InvalidRequestException("Instance is already running");
+			throw new InvalidRequestException("instanceAlreadyRunning");
 
 		if (hasRole(ROLE_ADMIN) || hasGroup(instance.getDefinitionVersion().getWorkflowDefinition().getOwner())) {
 
@@ -398,7 +365,7 @@ public class ProcessService {
 				activitiRuntimeSrv.activateProcessInstanceById(instanceId);
 
 			} catch (ActivitiException e) {
-				throw new InvalidRequestException("Resuming the instance has failed. " + e.getMessage());
+				throw new InvalidRequestException("resumingFailed");
 			}
 
 			instance.setStatus(WorkflowInstance.STATUS_RUNNING);
@@ -407,7 +374,7 @@ public class ProcessService {
 			return new WfProcessInstance(instance);
 
 		} else
-			throw new InvalidRequestException("You are not authorized to resume the instance");
+			throw new InvalidRequestException("notAuthorizedToResume");
 	}
 
 	/**
@@ -442,14 +409,14 @@ public class ProcessService {
 			definition = processRepository.getById(process.getId());
 
 		} catch (NoResultException | EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("No process found with the given id");
+			throw new InvalidRequestException("noProcessWithId");
 		}
 
 		if (hasRole(ROLE_ADMIN) || hasGroup(definition.getOwner())) {
 
 			// 1. apply some rules
 			if (StringUtil.isEmpty(definition.getName()))
-				throw new InvalidRequestException("the name is required for the process definition");
+				throw new InvalidRequestException("nameRequired");
 
 			try {
 				Long nameCount = processRepository.getCheckName(definition);
@@ -469,7 +436,7 @@ public class ProcessService {
 			processRepository.save(definition);
 
 		} else
-			throw new InvalidRequestException("Seems you are not authorized to update the definition");
+			throw new InvalidRequestException("notAuthorizedToUpdateDefinition");
 
 		return new WfProcess(definition);
 	}
@@ -498,7 +465,7 @@ public class ProcessService {
 
 		} catch (IOException e) {
 			logger.error("Unable to read BPMN Input Stream. " + e.getMessage());
-			throw new InvalidRequestException("Unable to read BPMN Input Stream.");
+			throw new InvalidRequestException("Unable to read BPMN Input Stream");
 		}
 
 		// parse the id of the process from the bpmn file
@@ -508,11 +475,11 @@ public class ProcessService {
 		// file exists
 		if (processId == null) {
 			logger.error("Process Definition Key is null");
-			throw new InvalidRequestException("Process key is null.");
+			throw new InvalidRequestException("processKeyNull");
 
 		} else if (definitionExistenceCheck(processId)) {
 			logger.error("Process Definition Key " + processId + " already exists");
-			throw new InvalidRequestException("Process with key " + processId + " already exists.");
+			throw new InvalidRequestException("processWithKeyAlreadyExists");
 		}
 
 		// 1. Deploy the BPMN file to Activiti repository service
@@ -523,7 +490,7 @@ public class ProcessService {
 			deployment = activitiRepositorySrv.createDeployment().addString("input.bpmn20.xml", bpmn).name(filename)
 					.deploy();
 		} catch (XMLException | ActivitiIllegalArgumentException ex) {
-			String message = "The BPMN input is not valid. Error string: " + ex.getMessage();
+			String message = "BPMNInputNotValid";
 			logger.error(message);
 			throw new InvalidRequestException(message);
 		}
@@ -532,7 +499,7 @@ public class ProcessService {
 		// definition ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		if (deployment == null) {
 			logger.error("BPMN file error");
-			throw new InvalidRequestException("The BPMN input is not valid");
+			throw new InvalidRequestException("BPMNInputNotValid");
 		}
 
 		logger.info("New BPMN deployment: " + deployment.getName());
@@ -542,7 +509,7 @@ public class ProcessService {
 
 		if (processDef == null) {
 			logger.error("BPMN file error");
-			throw new InvalidRequestException("The BPMN input is not valid");
+			throw new InvalidRequestException("BPMNInputNotValid");
 		}
 
 		WorkflowDefinition workflow = new WorkflowDefinition();
@@ -617,7 +584,7 @@ public class ProcessService {
 			workflowDefinition = processRepository.getById(definitionId);
 
 		} catch (NoResultException | EmptyResultDataAccessException noRes) {
-			throw new InvalidRequestException("No process definition found with that id");
+			throw new InvalidRequestException("noProcessDefinitionWithID");
 		}
 
 		// check user's roles/groups
@@ -629,7 +596,7 @@ public class ProcessService {
 
 			} catch (IOException e) {
 				logger.error("Unable to read BPMN Input Stream. " + e.getMessage());
-				throw new InvalidRequestException("Unable to read BPMN Input Stream.");
+				throw new InvalidRequestException("Unable to read BPMN Input Stream");
 			}
 
 			// parse the id of the process from the bpmn file
@@ -638,8 +605,8 @@ public class ProcessService {
 			// verify that the latest version has a bpmn file with the same
 			// process id
 			if (!definitionVersionExistenceCheck(definitionId, processId)) {
-				logger.error("Successive process versions should have the same key");
-				throw new InvalidRequestException("Successive process versions should have the same key");
+				logger.error("successiveVersionsSameKey");
+				throw new InvalidRequestException("successiveVersionsSameKey");
 			}
 
 			try {
@@ -677,7 +644,7 @@ public class ProcessService {
 			return new WfProcessVersion(definitionVersion);
 
 		} else
-			throw new InvalidRequestException("You are not authorized to update that process definition");
+			throw new InvalidRequestException("notAuthorizedToUpdateDefinition");
 	}
 
 	/**
@@ -702,7 +669,7 @@ public class ProcessService {
 			definitionVersion = processRepository.getVersionById(wfProcessVersion.getId());
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("No process version found with the given id");
+			throw new InvalidRequestException("noProcessVersionWithId");
 		}
 
 		if (hasRole(ROLE_ADMIN) || hasGroup(definitionVersion.getWorkflowDefinition().getOwner())) {
@@ -712,7 +679,7 @@ public class ProcessService {
 			return new WfProcessVersion(definitionVersion);
 
 		} else
-			throw new InvalidRequestException("The definition you are trying to edit doesn't belong to your group");
+			throw new InvalidRequestException("definitionNotInYourGroup");
 	}
 
 	/**
@@ -812,7 +779,7 @@ public class ProcessService {
 			definition = processRepository.getById(processId);
 
 		} catch (NoResultException | EmptyResultDataAccessException noResult) {
-			throw new InvalidRequestException("No process with that id found");
+			throw new InvalidRequestException("noProcessWithId");
 		}
 
 		if (hasRole(ROLE_ADMIN) || hasGroup(definition.getOwner())) {
@@ -827,8 +794,7 @@ public class ProcessService {
 			}
 
 			if (found)
-				throw new InvalidRequestException("The process definition with id: " + processId
-						+ " could not be deleted. There are associated entries");
+				throw new InvalidRequestException("definitionNotDeletedAssociatedEntries");
 
 			// delete all process definitions (all versions)
 			String activeDeploymentId = definition.getActiveDeploymentId();
@@ -871,11 +837,11 @@ public class ProcessService {
 				cmisFolder.deleteFolderById(definition.getFolderId());
 
 			} catch (Exception e) {
-				throw new InvalidRequestException("Error deleting definition's folder");
+				throw new InvalidRequestException("errorDeletingDefinitionFolder");
 			}
 
 		} else
-			throw new InvalidRequestException("You are not authorized to delete the definition");
+			throw new InvalidRequestException("notAuthorizedToDeleteDefinition");
 	}
 
 	/**
@@ -896,13 +862,13 @@ public class ProcessService {
 			workflowDefinition = processRepository.getById(processId);
 
 		} catch (EmptyResultDataAccessException | NoResultException noRes) {
-			throw new InvalidRequestException("No process found");
+			throw new InvalidRequestException("noProcessWithId");
 		}
 
 		// check if the version id the last one
 		if (workflowDefinition.getDefinitionVersions().size() < 2)
 			throw new InvalidRequestException(
-					"Trying to delete the last version. Delete the process definition instead.");
+					"errorDeleteLastVersion");
 
 		// no need to check anything
 		if (hasRole(ROLE_ADMIN) || hasGroup(workflowDefinition.getOwner())) {
@@ -933,13 +899,11 @@ public class ProcessService {
 			}
 			// definition version not found
 			if (!found)
-				throw new InvalidRequestException("The process definition version with id: " + deploymentId
-						+ " does not exist in process " + processId);
+				throw new InvalidRequestException("processDefinitionNotInProcess");
 
 			// definition with the specific version is used
 			if (used)
-				throw new InvalidRequestException("The process definition version with id: " + deploymentId
-						+ " could not be deleted. There are associated entries");
+				throw new InvalidRequestException("definitionNotDeletedAssociatedEntries");
 
 			// delete the deployment
 			activitiRepositorySrv.deleteDeployment(deploymentId);
@@ -957,7 +921,7 @@ public class ProcessService {
 			return new WfProcess(processRepository.save(workflowDefinition));
 
 		} else
-			throw new InvalidRequestException("The definition you are trying to edit doesn't belong to your group");
+			throw new InvalidRequestException("definitionNotInYourGroup");
 	}
 
 	/**
@@ -982,7 +946,7 @@ public class ProcessService {
 			workflowDefinition = processRepository.getById(processId);
 
 		} catch (EmptyResultDataAccessException | NoResultException noRes) {
-			throw new InvalidRequestException("No process found");
+			throw new InvalidRequestException("noProcessWithId");
 		}
 
 		// check user's roles/groups
@@ -1008,13 +972,12 @@ public class ProcessService {
 			}
 
 			if (!found)
-				throw new InvalidRequestException("The process definition version with id: " + versionId
-						+ " does not exist in process " + workflowDefinition.getId());
+				throw new InvalidRequestException("processDefinitionNotInProcess");
 
 			return new WfProcess(processRepository.save(workflowDefinition));
 
 		} else
-			throw new InvalidRequestException("The definition you are trying to edit doesn't belong to your group");
+			throw new InvalidRequestException("definitionNotInYourGroup");
 	}
 
 	/**
@@ -1037,7 +1000,7 @@ public class ProcessService {
 			workflowDefinition = processRepository.getById(processId);
 
 		} catch (EmptyResultDataAccessException | NoResultException noRes) {
-			throw new InvalidRequestException("No process found");
+			throw new InvalidRequestException("noProcessWithId");
 		}
 
 		DefinitionVersion definitionVersion = workflowDefinition.getVersion(versionId);
@@ -1054,7 +1017,7 @@ public class ProcessService {
 			return new WfProcessVersion(processRepository.saveVersion(processId, definitionVersion));
 
 		} else
-			throw new InvalidRequestException("The definition you are trying to edit doesn't belong to your group");
+			throw new InvalidRequestException("definitionNotInYourGroup");
 	}
 
 	/**
@@ -1080,7 +1043,7 @@ public class ProcessService {
 			workflowDefinition = processRepository.getById(processId);
 
 		} catch (EmptyResultDataAccessException | NoResultException noRes) {
-			throw new InvalidRequestException("No process found");
+			throw new InvalidRequestException("noProcessWithId");
 		}
 
 		WfProcess process = new WfProcess(workflowDefinition);
@@ -1151,13 +1114,13 @@ public class ProcessService {
 			workflowDefinition = processRepository.getById(processId);
 
 		} catch (NoResultException | EmptyResultDataAccessException noRes) {
-			throw new InvalidRequestException("No process found to start that instance");
+			throw new InvalidRequestException("noProcessFoundToStartInstance");
 		}
 
 		if (hasGroup(workflowDefinition.getOwner()) || hasRole(ROLE_ADMIN))
 			return startProcess(workflowDefinition, instanceData, token.getEmail());
 		else
-			throw new InvalidRequestException("You are not authorized to start the instance");
+			throw new InvalidRequestException("notAuthorizedToStart");
 	}
 
 	/**
@@ -1188,7 +1151,7 @@ public class ProcessService {
 			workflowDefinition = processRepository.getById(processId);
 
 		} catch (EmptyResultDataAccessException | NoResultException noRes) {
-			throw new InvalidRequestException("No process found to start the instance");
+			throw new InvalidRequestException("noProcessFoundToStartInstance");
 		}
 
 		// check if title is unique
@@ -1199,7 +1162,7 @@ public class ProcessService {
 		if (hasGroup(workflowDefinition.getOwner()) || hasRole(ROLE_ADMIN))
 			return startProcess(workflowDefinition, instanceData, token.getEmail(), token.getName(), files);
 		else
-			throw new InvalidRequestException("You are not authorized to start the instance");
+			throw new InvalidRequestException("notAuthorizedToStart");
 	}
 
 	/**
@@ -1224,11 +1187,11 @@ public class ProcessService {
 
 		// check if definition has an active version
 		if (activeVersion == null)
-			throw new InvalidRequestException("the process definition version is not active");
+			throw new InvalidRequestException("processDefinitionVersionNotActive");
 
 		// check if instance has title
 		if (wfProcessInstance.getTitle() == null || wfProcessInstance.getTitle().length() == 0)
-			throw new InvalidRequestException("the process title is not set");
+			throw new InvalidRequestException("The process title is not set");
 
 		// check if title is unique
 		if (processRepository.getCheckInstanceName(wfProcessInstance.getTitle()) > 0)
@@ -1333,11 +1296,11 @@ public class ProcessService {
 
 		// check if definition has version
 		if (activeVersion == null)
-			throw new InvalidRequestException("the process definition version is not active");
+			throw new InvalidRequestException("processDefinitionVersionNotActive");
 
 		// check if instance has title
 		if (wfProcessInstance.getTitle() == null || wfProcessInstance.getTitle().length() == 0)
-			throw new InvalidRequestException("the process title is not set");
+			throw new InvalidRequestException("The process title is not set");
 
 		// check if title is unique
 		if (processRepository.getCheckInstanceName(wfProcessInstance.getTitle()) > 0)
@@ -1517,7 +1480,7 @@ public class ProcessService {
 			instance = processRepository.getInstanceById(instanceId);
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("The process instance ID is not valid.");
+			throw new InvalidRequestException("processInstanceIDNotValid");
 		}
 
 		Folder folder = cmisFolder.getFolderById(instance.getFolderId());
@@ -1547,7 +1510,7 @@ public class ProcessService {
 			throws InvalidRequestException {
 
 		if (wfDocument.getDocumentId() == null)
-			throw new InvalidRequestException("the document ID is null.");
+			throw new InvalidRequestException("documentIDNull");
 
 		Document document = cmisDocument.updateDocumentById(wfDocument.getDocumentId(), wfDocument.getTitle());
 		document.refresh();
@@ -1606,7 +1569,7 @@ public class ProcessService {
 				document = cmisDocument.createDocument(folder, wfDocument.getTitle(), contentType, inputStream);
 
 			} catch (CmisStorageException e) {
-				throw new InvalidRequestException("Duplicate document title.");
+				throw new InvalidRequestException("duplicateDocumentTitle");
 			}
 		}
 
@@ -1632,7 +1595,7 @@ public class ProcessService {
 			instance = processRepository.getInstanceById(task.getProcessInstanceId());
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("The process instance ID is not valid.");
+			throw new InvalidRequestException("processInstanceIDNotValid");
 		}
 
 		Folder folder = cmisFolder.getFolderById(instance.getFolderId());
@@ -1689,7 +1652,7 @@ public class ProcessService {
 			instance = processRepository.getInstanceById(instanceId);
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("The process instance ID is not valid.");
+			throw new InvalidRequestException("processInstanceIDNotValid");
 		}
 
 		Folder folder = cmisFolder.getFolderById(instance.getFolderId());
@@ -1734,7 +1697,7 @@ public class ProcessService {
 	 * 
 	 * @return List of {@link WfTask}
 	 */
-	public List<WfTask> getSupervisedTasks() throws InvalidRequestException {
+	public List<WfTask> getSupervisedTasks() {
 
 		List<Task> tasks = new ArrayList<Task>();
 		List<WfTask> returnList = new ArrayList<WfTask>();
@@ -1776,7 +1739,7 @@ public class ProcessService {
 	 * @param instanceId
 	 * @return
 	 */
-	public List<WfTask> getTasksByInstanceId(String instanceId) throws InvalidRequestException {
+	public List<WfTask> getTasksByInstanceId(String instanceId) {
 		List<WfTask> returnList = new ArrayList<WfTask>();
 		List<HistoricTaskInstance> historicTasks = new ArrayList<HistoricTaskInstance>();
 
@@ -1934,7 +1897,7 @@ public class ProcessService {
 								processInstanceIds.add(processInstance.getId());
 							}
 						} catch (EmptyResultDataAccessException e) {
-							throw new InvalidRequestException("No instance found for the selected process");
+							throw new InvalidRequestException("noInstanceFoundForProcess");
 						}
 
 					}
@@ -1998,7 +1961,7 @@ public class ProcessService {
 								processInstanceIds.add(processInstance.getId());
 							}
 						} catch (EmptyResultDataAccessException e) {
-							throw new InvalidRequestException("No instance found for the selected process");
+							throw new InvalidRequestException("noInstanceFoundForProcess");
 						}
 					}
 
@@ -2154,7 +2117,7 @@ public class ProcessService {
 			task = activitiHistorySrv.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
 
 		} catch (ActivitiException noRes) {
-			throw new InvalidRequestException("There is no task with the given id");
+			throw new InvalidRequestException("noTaskWithID");
 		}
 
 		WfTask wfTask = new WfTask(task);
@@ -2354,12 +2317,12 @@ public class ProcessService {
 
 			} catch (NoResultException | EmptyResultDataAccessException noResult) {
 				throw new InvalidRequestException(
-						"The task's instance does not exists. Please contact system administrator");
+						"taskInstanceNotExistsContactAdmin");
 			}
 			// task's assignee not matched with the person who requests to
 			// complete it or not admin
 		} else
-			throw new InvalidRequestException("Seems you are not the authorized to complete the task");
+			throw new InvalidRequestException("notAuthorizedToCompleteTask");
 	}
 
 	/**
@@ -2452,7 +2415,7 @@ public class ProcessService {
 
 		} catch (NoResultException | EmptyResultDataAccessException noResult) {
 			throw new InvalidRequestException(
-					"The task's instance does not exists. Please contact system administrator");
+					"taskInstanceNotExistsContactAdmin");
 		}
 	}
 
@@ -2540,7 +2503,7 @@ public class ProcessService {
 
 		} catch (NoResultException | EmptyResultDataAccessException noResult) {
 			throw new InvalidRequestException(
-					"The task's instance does not exists. Please contact system administrator");
+					"taskInstanceNotExistsContactAdmin");
 		}
 	}
 
@@ -2571,7 +2534,7 @@ public class ProcessService {
 
 		} catch (NoResultException | EmptyResultDataAccessException noResult) {
 			throw new InvalidRequestException(
-					"The task's instance does not exists. Please contact system administrator");
+					"taskInstanceNotExistsContactAdmin");
 		}
 	}
 
@@ -2701,8 +2664,7 @@ public class ProcessService {
         try {
             mailService.sendNoCandidatesEmail(adminEmail, workflowTask.getName(), workflowTask.getId());
         } catch (MessagingException e) {
-            throw new InvalidRequestException("The e-mail could not be sent to the administrator. Please contact " +
-                    "administrator directly.");
+            throw new InvalidRequestException("emailNotSentContactAdmin");
         }
     }
 
@@ -2711,7 +2673,7 @@ public class ProcessService {
 	 * 
 	 * @return A list of {@link WfTask}
 	 */
-	public List<WfTask> getTasksForUser() throws InvalidRequestException {
+	public List<WfTask> getTasksForUser() {
 		List<WfTask> returnList = new ArrayList<WfTask>();
 		List<Task> taskList = new ArrayList<Task>();
 		String userId = getAccessToken().getEmail();
@@ -2975,7 +2937,7 @@ public class ProcessService {
 	 * 
 	 * @return
 	 */
-	public List<WfTask> getCandidateUserTasks() throws InvalidRequestException {
+	public List<WfTask> getCandidateUserTasks() {
 
 		// list to store tasks according to user role/group
 		List<Task> taskList = new ArrayList<Task>();
@@ -3190,7 +3152,7 @@ public class ProcessService {
 			taskDetails = processRepository.getUserTaskDetailsById(wfTaskDetails.getId());
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("No task details entity was found with the given id");
+			throw new InvalidRequestException("noTaskDetailsEntity");
 		}
 
 		if (hasRole(ROLE_ADMIN) || hasGroup(taskDetails.getDefinitionVersion().getWorkflowDefinition().getOwner())) {
@@ -3199,7 +3161,7 @@ public class ProcessService {
 
 			return new WfTaskDetails(taskDetails);
 		} else
-			throw new InvalidRequestException("You are not authorized to update the task details");
+			throw new InvalidRequestException("notAuthorizedToUpdateTaskDetails");
 	}
 
 	/**
@@ -3525,9 +3487,8 @@ public class ProcessService {
 	 * 
 	 * @param instanceId
 	 * @return
-	 * @throws InvalidRequestException
 	 */
-	public List<WfFormProperty> getStartFormByInstanceId(String instanceId) throws InvalidRequestException {
+	public List<WfFormProperty> getStartFormByInstanceId(String instanceId) {
 
 		List<WfFormProperty> returnList = new ArrayList<WfFormProperty>();
 
@@ -3609,7 +3570,7 @@ public class ProcessService {
 		try {
 			wfProcessInstance = new WfProcessInstance(processRepository.getInstanceById(instanceId));
 		} catch (Exception e) {
-			throw new InvalidRequestException("Request not found");
+			throw new InvalidRequestException("processIntanceNotFound");
 		}
 
 		return wfProcessInstance;
@@ -3646,13 +3607,53 @@ public class ProcessService {
 	 * Returns all in progress instances
 	 * 
 	 * @return a list of in progress instances
-	 * @throws InvalidRequestException
 	 */
-	public List<WfProcessInstance> getInProgressInstances() throws InvalidRequestException {
+	public List<WfProcessInstance> getInProgressInstances() {
 		ArrayList<WfProcessInstance> returnList = new ArrayList<WfProcessInstance>();
 
 		returnList.addAll(WfProcessInstance.fromWorkflowInstances(processRepository.getInProgressInstances()));
 
+		return returnList;
+	}
+
+	/**
+	 * Returns all ended instances by given criteria
+	 *
+	 * @param definitionName
+	 *            The definition's name to get its ended instances
+	 * @param instanceTitle
+	 *            The process instance title
+	 * @param after
+	 *            The date after which to get the ended instances
+	 * @param before
+	 *            The date before which to get the ended instances
+	 *
+	 * @return A list of {@link WfProcessInstance}
+	 */
+	public List<WfProcessInstance> getEndedProcessInstances(String definitionName, String instanceTitle, long after,
+			long before) {
+		ArrayList<WfProcessInstance> returnList = new ArrayList<>();
+		Date dateAfter = new Date(after);
+		Date dateBefore = new Date(before);
+
+		for(WfProcessInstance instance : WfProcessInstance.fromWorkflowInstances(processRepository.getEndedProgressInstances())) {
+			if (instance != null) {
+				String title = instance.getTitle().toLowerCase();
+				String name = instance.getDefinitionName().toLowerCase();
+
+				if (dateBefore.getTime() == 0) {
+					dateBefore = new Date();
+				}
+
+				if ((instance.getStatus().equals(WorkflowInstance.STATUS_ENDED) || instance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
+						&& (instanceTitle == null || instanceTitle.toLowerCase().equals(title))
+						&& (definitionName == null || definitionName.toLowerCase().equals(name))
+						&& instance.getEndDate().after(dateAfter) && instance.getEndDate().before(dateBefore)) {
+
+					returnList.add(instance);
+				}
+			}
+		}
 		return returnList;
 	}
 
@@ -3666,7 +3667,7 @@ public class ProcessService {
 			instance.setSupervisor(supervisor);
 			processRepository.save(instance);
 		} catch (Exception e) {
-			throw new InvalidRequestException("Instance supervisor change failed");
+			throw new InvalidRequestException("instanceSupervisorChangeFailed");
 		}
 	}
 
@@ -3701,9 +3702,8 @@ public class ProcessService {
 	 * 
 	 * @return {@link WfTask} The hydrated task
 	 * 
-	 * @throws InvalidRequestException
 	 */
-	private WfTask hydrateTask(WfTask wfTask) throws InvalidRequestException {
+	private WfTask hydrateTask(WfTask wfTask) {
 		List<WfFormProperty> formProperties = new ArrayList<WfFormProperty>();
 
 		// for task which is running
@@ -4139,7 +4139,7 @@ public class ProcessService {
 	 * 
 	 * Parses the bpmn file to retrieve the id of the process.
 	 * 
-	 * @param inputStream
+	 * @param bpmn
 	 * @return
 	 * @throws InvalidRequestException
 	 */

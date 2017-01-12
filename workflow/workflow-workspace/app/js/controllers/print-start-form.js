@@ -21,16 +21,16 @@
 				function (response) {
 					$scope.taskForm = response.data;
 					checkTask();
-
-					//error callback	
-				}, function (response) {
-					exceptionModal(response);
 				});
 
 			processService.getInstanceById(instanceId).then(
 				function (response) {
 					$scope.instance = response.data;
-				}
+                },
+                //error callback
+                function (response) {
+                    exceptionModal(response);
+                }
 			);
 
 			/**
@@ -70,29 +70,28 @@
 				window.print();
 			};
 
-			/**
-			 * @memberof PrintStartFormCtrl
-			 * @desc A modal panel used to show any exception message
-			 * 
-			 * @param {any} response
-			 * @param {event} event
-			 */
-			function exceptionModal(response, event) {
-				$mdDialog.show({
-					controller: function ($scope, $mdDialog) {
+            /**
+             * @memberof TaskDetailCtrl
+             * @desc Displays a modal panel, showing the exception message
+             *
+             * @param {any} response
+             * @param {event} event
+             */
+            function exceptionModal(response, event) {
+                $mdDialog.show({
+                    controller: function ($scope, $mdDialog) {
+                        $scope.error = response.data;
 
-						$scope.error = response.data;
+                        $scope.cancel = function () {
+                            $mdDialog.hide();
+                        };
+                    },
 
-						$scope.cancel = function () {
-							$mdDialog.hide();
-						};
-					},
-					templateUrl: 'templates/exception.tmpl.html',
-					parent: angular.element(document.body),
-					targetEvent: event,
-					clickOutsideToClose: false
-				});
-			};
-
+                    templateUrl: 'templates/exception.tmpl.html',
+                    parent: angular.element(document.body),
+                    targetEvent: event,
+                    clickOutsideToClose: false
+                })
+            };
 		}]);
 })(angular);

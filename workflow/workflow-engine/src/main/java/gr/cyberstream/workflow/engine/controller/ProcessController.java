@@ -1,39 +1,22 @@
 package gr.cyberstream.workflow.engine.controller;
 
-import java.io.IOException;
-import java.util.List;
-
-import javax.servlet.annotation.MultipartConfig;
-
+import gr.cyberstream.workflow.engine.model.WorkflowSettings;
+import gr.cyberstream.workflow.engine.model.api.*;
+import gr.cyberstream.workflow.engine.service.InternalException;
+import gr.cyberstream.workflow.engine.service.InvalidRequestException;
+import gr.cyberstream.workflow.engine.service.ProcessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import gr.cyberstream.workflow.engine.model.WorkflowSettings;
-import gr.cyberstream.workflow.engine.model.api.ErrorResponse;
-import gr.cyberstream.workflow.engine.model.api.WfProcess;
-import gr.cyberstream.workflow.engine.model.api.WfProcessInstance;
-import gr.cyberstream.workflow.engine.model.api.WfProcessVersion;
-import gr.cyberstream.workflow.engine.model.api.WfSettings;
-import gr.cyberstream.workflow.engine.model.api.WfTask;
-import gr.cyberstream.workflow.engine.model.api.WfTaskDetails;
-import gr.cyberstream.workflow.engine.model.api.WfUser;
-import gr.cyberstream.workflow.engine.service.InternalException;
-import gr.cyberstream.workflow.engine.service.InvalidRequestException;
-import gr.cyberstream.workflow.engine.service.ProcessService;
+import javax.servlet.annotation.MultipartConfig;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Implements all RESTfull requests related to Process Definitions and Instances
@@ -66,12 +49,11 @@ public class ProcessController {
 	 * Returns all active process definitions
 	 * 
 	 * @return List of {@link WfProcess}
-	 * @throws InvalidRequestException
 	 */
 	@RequestMapping(value = "/process/active", method = RequestMethod.GET)
 	@ResponseBody
 	@PreAuthorize("hasAnyRole('ProcessAdmin','Admin','User')")
-	public List<WfProcess> getAtiveProcessDefinitions() throws InvalidRequestException {
+	public List<WfProcess> getAtiveProcessDefinitions() {
 
 		return processService.getActiveProcessDefinitions();
 	}
@@ -113,11 +95,10 @@ public class ProcessController {
 	 *            The id of Definition
 	 * 
 	 * @return List of {@link WfProcessInstance}
-	 * @throws InvalidRequestException
 	 */
 	@RequestMapping(value = "/process/{id}", method = RequestMethod.GET)
 	@ResponseBody
-	public WfProcess getProcessDefinition(@PathVariable int id) throws InvalidRequestException {
+	public WfProcess getProcessDefinition(@PathVariable int id) {
 
 		return processService.getProcessById(id);
 	}
