@@ -162,7 +162,7 @@
                     },
                     // error callback
                     function (response) {
-                        exceptionModal(response);
+                        exceptionModal(response, $scope.task);
 
                     }).finally(function () {
                         $scope.showProgress = false;
@@ -184,7 +184,7 @@
                     },
                     // error callback
                     function (response) {
-                        exceptionModal(response);
+                        exceptionModal(response, $scope.task);
                     }
 
                 ).finally(function () {
@@ -210,7 +210,7 @@
                     },
                     // error callback
                     function (response) {
-                        exceptionModal(response);
+                        exceptionModal(response, $scope.task);
                     }
 
                 ).finally(function () {
@@ -256,10 +256,6 @@
                     processService.getCompletedTasksByInstances($scope.task.processInstance.id).then(
                         function (response) {
                             $scope.historyTasks = response.data;
-                        },
-                        //error callback
-                        function (response) {
-                            exceptionModal(response);
                         });
                 } else
                     $scope.executionActiveView = "list";
@@ -308,7 +304,7 @@
                     },
                     //error callback
                     function (response) {
-                        exceptionModal(response);
+                        exceptionModal(response, $scope.task);
                     }
 
                 ).finally(function () {
@@ -367,10 +363,14 @@
              * @param {any} response
              * @param {event} event
              */
-            function exceptionModal(response, event) {
+            function exceptionModal(response, task, event) {
                 $mdDialog.show({
                     controller: function ($scope, $mdDialog) {
                         $scope.error = response.data;
+
+                        $scope.map = {};
+                        $scope.map["supervisor"] = task.processInstance.supervisor;
+                        $scope.map["taskID"] = task.id;
 
                         $scope.cancel = function () {
                             $mdDialog.hide();

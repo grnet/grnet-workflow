@@ -44,11 +44,8 @@
 
 					$scope.initializeCriteria();
 					$scope.showTasksByFilters();
-				},
-				// error callback
-				function (response) {
-					exceptionModal(response);
-				});
+				}
+			);
 
 			/**
 			 * @memberof CompletedTasksCtrl
@@ -99,7 +96,6 @@
 					//error callback
 					function (response) {
 						exceptionModal(response);
-
 					}).finally(function () {
 						$scope.showProgress = false;
 					});

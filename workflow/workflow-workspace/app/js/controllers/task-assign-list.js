@@ -89,27 +89,6 @@
 					//filter list with selected definitions
 					//in this case all available definitions are selected
 					$scope.updateFilteredTasks();
-				},
-				//fail
-				function (response) {
-					$mdDialog.show({
-						controller: function ($scope, $mdDialog, error) {
-							$scope.error = error;
-
-							$scope.cancel = function () {
-								$mdDialog.hide();
-							};
-						},
-						scope: $scope,
-						preserveScope: true,
-						templateUrl: 'templates/exception.tmpl.html',
-						parent: angular.element(document.body),
-						targetEvent: event,
-						locals: {
-							'error': response.data
-						}
-					})
-
 				}).finally(function () {
 					$scope.showProgressBar = false;
 				});

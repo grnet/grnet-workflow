@@ -25,7 +25,7 @@
                 },
                 // error callback
                 function (response) {
-
+                    exceptionModal(response);
                 }
             );
 
@@ -50,5 +50,28 @@
                 return date.toLocaleString();
             };
 
+            /**
+             * @memberof InstanceDocumentsCtrl
+             * @desc Displays a modal panel, showing the exception message
+             *
+             * @param {any} response
+             * @param {event} event
+             */
+            function exceptionModal(response, event) {
+                $mdDialog.show({
+                    controller: function ($scope, $mdDialog) {
+                        $scope.error = response.data;
+
+                        $scope.cancel = function () {
+                            $mdDialog.hide();
+                        };
+                    },
+
+                    templateUrl: 'templates/exception.tmpl.html',
+                    parent: angular.element(document.body),
+                    targetEvent: event,
+                    clickOutsideToClose: false
+                })
+            };
         }]);
 })(angular);

@@ -3,15 +3,9 @@
  */
 package gr.cyberstream.workflow.engine.persistence;
 
-import java.util.List;
+import gr.cyberstream.workflow.engine.model.*;
 
-import gr.cyberstream.workflow.engine.model.DefinitionVersion;
-import gr.cyberstream.workflow.engine.model.TaskPath;
-import gr.cyberstream.workflow.engine.model.UserTaskDetails;
-import gr.cyberstream.workflow.engine.model.UserTaskFormElement;
-import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
-import gr.cyberstream.workflow.engine.model.WorkflowInstance;
-import gr.cyberstream.workflow.engine.model.WorkflowSettings;
+import java.util.List;
 
 /**
  * Process repository interface. Access to process entities.
@@ -253,7 +247,7 @@ public interface Processes {
 	 * Returns task details for a task
 	 * 
 	 * @param key
-	 * @param definitionId
+	 * @param definitionVersionKey
 	 * @return
 	 */
 	public UserTaskDetails getUserTaskDetailByDefinitionKey(String key, String definitionVersionKey);
@@ -299,7 +293,7 @@ public interface Processes {
 	 * Return a list of task form elements by definition version and task detail
 	 * 
 	 * @param definitionVersion
-	 * @param elementId
+	 * @param taskDetailId
 	 * @return
 	 */
 	public List<UserTaskFormElement> getUserTaskFromElements(String definitionVersion, int taskDetailId);
@@ -329,11 +323,19 @@ public interface Processes {
 
 	/**
 	 * Returns a list of in progress instances
-	 * 
+	 *
 	 * @return A list of {@link WorkflowInstance} containing in progress
 	 *         instances
 	 */
 	public List<WorkflowInstance> getInProgressInstances();
+
+	/**
+	 * Returns a list of ended progress instances
+	 *
+	 * @return A list of {@link WorkflowInstance} containing ended
+	 *         instances
+	 */
+	public List<WorkflowInstance> getEndedProgressInstances();
 
 	/**
 	 * 

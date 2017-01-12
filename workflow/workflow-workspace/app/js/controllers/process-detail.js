@@ -42,10 +42,6 @@
 
                     if (response.data.length > 0)
                         $scope.processSelectionChanged(response.data[0].id);
-                },
-                // error callback
-                function (response) {
-
                 }
             );
 
@@ -73,10 +69,6 @@
                                 }
                             }
                         }
-
-                    },
-                    // error callback
-                    function (response) {
 
                     }
                 );

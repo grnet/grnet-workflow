@@ -24,6 +24,9 @@ public class DocumentMail extends AbstractCustomServiceTask{
 	@Property(type = PropertyType.TEXT, displayName = "subject", required = true)
 	private String subject;
 
+	@Property(type = PropertyType.MULTILINE_TEXT, displayName = "body", required = true)
+	private String body;
+
 	@Property(type = PropertyType.TEXT, displayName = "attachment", required = false)
 	private String attachment;
 

@@ -22,12 +22,7 @@
 
 					$scope.instances = $scope.allInstances;
 					$scope.instancesMapByDefinitions = ArrayUtil.mapByProperty($scope.allInstances, "definitionName");
-
-					//error callback	
-				}, function (response) {
-
 				}
-
 			).finally(function () {
 				$scope.showProgress = false;
 			});

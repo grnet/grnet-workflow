@@ -211,7 +211,7 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
 		Properties properties = new Properties();
 		properties.setProperty("mail.transport.protocol", "smtp");
-		properties.setProperty("mail.smtp.auth", env.getProperty("mail.smtp.auth"));
+		properties.setProperty("mail.smtp.auth", "true");
 		properties.setProperty("mail.debug", "false");
 
 		javaMailSender.setJavaMailProperties(properties);

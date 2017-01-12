@@ -29,6 +29,7 @@
                 },
                 // error callback
                 function (response) {
+                    exceptionModal(response);
                 }
 
             ).finally(function () {
@@ -54,6 +55,30 @@
             $scope.getDateString = function (time) {
                 var date = new Date(time);
                 return date.toLocaleString();
+            };
+
+            /**
+             * @memberof DocumentsCtrl
+             * @desc Displays a modal panel, showing the exception message
+             *
+             * @param {any} response
+             * @param {event} event
+             */
+            function exceptionModal(response, event) {
+                $mdDialog.show({
+                    controller: function ($scope, $mdDialog) {
+                        $scope.error = response.data;
+
+                        $scope.cancel = function () {
+                            $mdDialog.hide();
+                        };
+                    },
+
+                    templateUrl: 'templates/exception.tmpl.html',
+                    parent: angular.element(document.body),
+                    targetEvent: event,
+                    clickOutsideToClose: false
+                })
             };
         }]
     );
