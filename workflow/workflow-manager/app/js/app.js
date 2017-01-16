@@ -4,9 +4,9 @@
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // system constants
-    var WORKFLOW_SERVICE_ENTRY = 'http://10.0.0.167:8080/grnet-workflow-engine/api';
-    var HOME_URL = 'http://10.0.0.167/workflow-manager/index.html';
-    var WORKFLOW_DOCUMENTS_URL = 'http://10.0.0.167:8080/grnet-workflow-engine/document/';
+    var WORKFLOW_SERVICE_ENTRY = 'http://localhost:8080/engine/api';
+    var HOME_URL = 'http://localhost:80/workflow-manager/index.html';
+    var WORKFLOW_DOCUMENTS_URL = 'http://localhost:8080/grnet-workflow-engine/document/';
     var AVATARS_PATH = 'img/avatars/';
     var DEFAULT_AVATAR = 'like.svg';
     var MAP_CENTER_LAT = 38.037496;
@@ -116,10 +116,6 @@
                         templateUrl: 'views/process-detail.html',
                         controller: 'ProcessDetailCtrl'
                     }).
-                    when('/inprogress', {
-                        templateUrl: 'views/inprogress.html',
-                        controller: 'InProgressCtrl'
-                    }).
                     when('/history', {
                         templateUrl: 'views/history.html',
                         controller: 'HistoryCtrl',
@@ -135,15 +131,18 @@
                     }).
                     when('/pending', {
                         templateUrl: 'views/pending.html',
-                        controller: 'PendingCtrl'
+                        controller: 'PendingCtrl',
+                        reloadOnSearch: false
                     }).
                     when('/inprogress', {
                         templateUrl: 'views/in-progress.html',
-                        controller: 'InProgressCtrl'
+                        controller: 'InProgressCtrl',
+                        reloadOnSearch: false
                     }).
                     when('/activity', {
                         templateUrl: 'views/activity.html',
-                        controller: 'ActivityCtrl'
+                        controller: 'ActivityCtrl',
+                        reloadOnSearch: false
                     }).
                     when('/settings', {
                         templateUrl: 'views/settings.html',

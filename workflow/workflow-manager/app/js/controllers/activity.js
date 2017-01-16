@@ -24,7 +24,7 @@
 			$scope.activeView = "taskList";
 
 			// search filter object
-            $scope.searchFilter = { dateAfter: null, dateBefore: null };
+            $scope.searchFilter = { dateAfter: null, dateBefore: null, user: null };
 
             // initialize search criteria
             initializeCriteria();
@@ -42,6 +42,7 @@
 				// success callback
 				function (response) {
 					$scope.users = response.data;
+					$scope.usersLoaded = true;
 				}
             );
 
@@ -95,18 +96,19 @@
 				else
 					dateBeforeTime = 0;
 
-				if (!$scope.selectedUser)
-					return;
-
-				// enable process filter since we got tasks therefore process definitions
-				// also select the "showAll" option
-				$scope.enableProcessFilter = true;
-				$scope.groupFilter.definitionId = "showAll";
-
-				processService.getUserActivity(dateAfterTime, dateBeforeTime, $scope.selectedUser.id).then(
+				processService.getUserActivity(dateAfterTime, dateBeforeTime, $scope.searchFilter.user.id).then(
 					// success callback
 					function (response) {
 						$scope.userTasks = response.data;
+						if($scope.userTasks.length > 0){
+                            // enable process filter since we got tasks therefore process definitions
+                            // also select the "showAll" option
+                            $scope.enableProcessFilter = true;
+                            $scope.groupFilter.definitionId = "showAll";
+                        } else {
+                            $scope.enableProcessFilter = false;
+						}
+
 						$scope.definitions = {};
 
 						$scope.definitions["showAll"] = $scope.definitions["showAll"] || {
@@ -135,7 +137,8 @@
 							}
 						});
 
-						$scope.filteredTasks = $scope.userTasks;
+
+                        $scope.filteredTasks = $scope.userTasks;
 					},
 					// error callback
 					function (response) {
@@ -195,9 +198,7 @@
 				$scope.searchFilter.dateBefore = null;
 
 				$scope.searchText = null;
-
-				if ($scope.selectedUser)
-					$scope.selectedUser.id = "";
+				$scope.searchFilter.user = null;
 
 				$scope.filteredTasks = [];
 

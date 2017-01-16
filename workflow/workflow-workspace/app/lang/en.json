@@ -139,5 +139,7 @@
 	"emailNotSentContactAdmin": "The e-mail could not be sent. Pleas contact the system administrator directly",
 	"noTaskDetailsEntity": "No task detail entity was found for the task with the given ID",
 	"notAuthorizedToUpdateTaskDetails": "You are not authorized to update the task details",
-	"instanceSupervisorChangeFailed": "The instance supervisor change failed"
+	"instanceSupervisorChangeFailed": "The instance supervisor change failed",
+	"processInstanceName": "process instance name",
+	"process": "process"
 }

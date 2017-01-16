@@ -12,7 +12,6 @@
 		 */
 		function ($scope, $location, $mdDialog, processService, config) {
 
-			// Constance variable in order to get images
 			$scope.imagePath = config.AVATARS_PATH;
 
 			$scope.maxDateBefore = new Date();
@@ -20,7 +19,7 @@
 
             $scope.endedInstances = [];
 			// search filter object
-            $scope.searchFilter = { dateAfter: null, dateBefore: null, instanceTitle: "", definitionId: null };
+            $scope.searchFilter = { dateAfter: null, dateBefore: null, instanceTitle: "", definitionId: "" };
 
             $scope.orderByOption = null;
 
@@ -55,6 +54,7 @@
              *
              */
             function initializeCriteria() {
+                $location.url($location.path());
                 if (!$location.search().dateAfter || $location.search().dateAfter == 0) {
                     $scope.searchFilter.dateAfter = new Date();
                     $scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
@@ -76,7 +76,7 @@
                     $scope.searchFilter.instanceTitle = $location.search().instanceTitle;
 
                 if (!$location.search().definitionId)
-                    $location.search('definitionId', "");
+                    $location.search('definitionId', "all");
                 else
                     $scope.searchFilter.definitionId = $location.search().definitionId;
             };
@@ -114,15 +114,15 @@
                         $location.search('dateAfter', dateAfterTime);
                         $location.search('dateBefore', dateBeforeTime);
 
-                        var tasks = response.data;
-                        var tasksMapped = ArrayUtil.mapByProperty2innerProperty(tasks, "processInstance", "id", "tasks");
+                        var instances = response.data;
+                        var tasksMapped = ArrayUtil.mapByProperty2Property(instances, "id", "instances");
                         var instanceIds = Object.keys(tasksMapped);
 
                         $scope.endedInstances = [];
 
                         instanceIds.forEach(function (item) {
-                            var task = tasksMapped[item]["tasks"][0];
-                            $scope.endedInstances.push(task.processInstance);
+                            var instance = tasksMapped[item]["instances"][0];
+                            $scope.endedInstances.push(instance);
                         });
                     },
                     // error callback

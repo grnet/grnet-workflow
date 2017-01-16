@@ -11,6 +11,7 @@
 	"processTitle": "process title",
 	"processRegistry": "process registry",
 	"processActiveVersion": "process active version",
+	"processInstanceName": "process instance name",
 	"activate": "activate",
 	"deActivate": "deactivate",
 	"active": "active",
@@ -65,6 +66,7 @@
 	"completedOn": "completed on",
 	"executionTitle": "execution title",
 	"showAll": "show all",
+	"createdDate": "date of creation",
 	"dueTo": "due to",
 	"worker": "worker",
 	"startedAfter": "started after",
@@ -196,5 +198,7 @@
 	"emailNotSentContactAdmin": "The e-mail could not be sent. Pleas contact the system administrator directly",
 	"noTaskDetailsEntity": "No task detail entity was found for the task with the given ID",
 	"notAuthorizedToUpdateTaskDetails": "You are not authorized to update the task details",
-	"instanceSupervisorChangeFailed": "The instance supervisor change failed"
+	"instanceSupervisorChangeFailed": "The instance supervisor change failed",
+	"usersLoading": "loading users...",
+	"noTasksForUser": "No tasks were found for the selected user"
 }

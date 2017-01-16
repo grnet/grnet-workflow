@@ -51,10 +51,11 @@
 		
 		<md-list flex style="padding-top: 0;">
 			<md-card ng-repeat="instance in instances">
-				<md-list-item class="md-2-line" ng-click="goTo('/instance/' + instance.id)">
+				<md-list-item class="md-3-line" ng-click="goTo('/instance/' + instance.id)">
 					<img ng-src="{{imagePath + instance.definitionIcon}}" class="md-avatar" alt="{{instance.title}}"/>
 					<div  class="md-list-item-text" layout="column">
 						<h3>{{instance.title}}</h3>
+						<p flex>{{ 'process' | translate}}: {{instance.definitionName}}</p>
 						<p>{{ 'supervisor' | translate }}: {{instance.supervisor}}
 							<span class="cardInline">{{ 'startedAt' | translate }}: {{ instance.startDate | date:'d/M/yyyy'}}</span>
 						</p>

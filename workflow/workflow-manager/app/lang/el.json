@@ -11,6 +11,7 @@
 	"processTitle": "τίτλος διαδικασίας",
 	"processRegistry": "αριθμός πρωτοκόλλου",
 	"processActiveVersion": "ενεργή έκδοση διαδικασίας",
+	"processInstanceName": "όνομα εκτέλεσης",
 	"activate": "ενεργοποίηση",
 	"deActivate": "απενεργοποίηση",
 	"active": "ενεργή",
@@ -65,6 +66,7 @@
 	"completedOn": "ολοκληρώθηκε στις",
 	"executionTitle": "τίτλος εκτέλεσης διαδικασίας",
 	"showAll": "επιλογή όλων",
+	"createdDate": "ημερομηνία δημιουργίας",
 	"dueTo": "προθεσμία",
 	"worker": "εργαζόμενος",
 	"startedAfter": "έναρξη μετά",
@@ -196,5 +198,7 @@
     "emailNotSentContactAdmin": "Το e-mail δεν ήταν δυνατό να σταλεί. Επικοινωνήστε με το διαχειριστή",
     "noTaskDetailsEntity": "Δε βρέθηκαν λεπτομέρειες για την εργασία με το συγκεκριμένο ID",
     "notAuthorizedToUpdateTaskDetails": "Δεν έχετε τα απαραίτητα δικαιώματα για την ανανέωση των λεπτομερειών της εργασίας",
-    "instanceSupervisorChangeFailed": "Η αλλαγή του συντονιστή απέτυχε"
+    "instanceSupervisorChangeFailed": "Η αλλαγή του συντονιστή απέτυχε",
+	"usersLoading": "φόρτωση χρηστών...",
+	"noTasksForUser": "Δεν βρέθηκαν εργασίες για το συγκεκριμένο χρήστη"
 }
