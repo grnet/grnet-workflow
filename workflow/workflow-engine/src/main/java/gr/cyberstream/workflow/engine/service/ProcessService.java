@@ -3257,6 +3257,59 @@ public class ProcessService {
 	}
 
 	/**
+	 * Returns active tasks by given criteria
+	 *
+	 * @param definitionName
+	 * @param taskName
+	 * @param after
+	 * @param before
+	 *
+	 * @return
+	 */
+	@Transactional
+	public List<WfTask> getActiveTasks(String definitionName, String taskName, long after, long before) {
+		List<WfTask> wfTasks = new ArrayList<>();
+
+		// get all active tasks
+		List<Task> tasks = activitiTaskSrv.createTaskQuery().active().list();
+
+		Date dateAfter = new Date(after);
+		Date dateBefore = new Date(before);
+
+		if(definitionName.isEmpty() || definitionName.equals("all"))
+			definitionName = null;
+		else
+			definitionName = processRepository.getDefinitionByKey(definitionName).getName();
+
+		if(taskName.isEmpty() || taskName.equals(" "))
+			taskName = null;
+
+		for (Task task : tasks) {
+			if(dateBefore.getTime() == 0)
+				dateBefore = new Date();
+
+			if((taskName != null && !taskName.toLowerCase().equals(task.getName().toLowerCase()))||
+					!task.getCreateTime().after(dateAfter) ||
+					!task.getCreateTime().before(dateBefore))
+				continue;
+
+			WorkflowInstance instance = processRepository.getInstanceById(task.getProcessInstanceId());
+			if(definitionName == null ||
+					definitionName.toLowerCase().equals(instance.getDefinitionVersion().getWorkflowDefinition().
+							getName().toLowerCase())){
+				WfTask wfTask = new WfTask(task);
+				wfTask.setIcon(instance.getDefinitionVersion().getWorkflowDefinition().getIcon());
+				wfTask.setDefinitionName(instance.getDefinitionVersion().getWorkflowDefinition().getName());
+				wfTask.setProcessInstance(new WfProcessInstance(instance));
+
+				wfTasks.add(wfTask);
+			}
+		}
+
+		return wfTasks;
+	}
+
+	/**
 	 * Returns tasks of ended processes based on certain criteria.
 	 * 
 	 * @param title
@@ -3325,7 +3378,7 @@ public class ProcessService {
 
 		String assignee = "";
 
-		if (userId != null && !assignee.equals(""))
+		if (userId != null && assignee.equals(""))
 			assignee = realmService.getUser(userId).getEmail();
 
 		HistoricTaskInstanceQuery taskQuery = activitiHistorySrv.createHistoricTaskInstanceQuery();
@@ -3605,7 +3658,7 @@ public class ProcessService {
 
 	/**
 	 * Returns all in progress instances
-	 * 
+	 *
 	 * @return a list of in progress instances
 	 */
 	public List<WfProcessInstance> getInProgressInstances() {
@@ -3613,6 +3666,47 @@ public class ProcessService {
 
 		returnList.addAll(WfProcessInstance.fromWorkflowInstances(processRepository.getInProgressInstances()));
 
+		return returnList;
+	}
+
+	/**
+	 * Returns all in progress instances by given criteria
+	 *
+	 * @return a list of in progress instances
+	 */
+	public List<WfProcessInstance> getInProgressInstances(String definitionName, String instanceTitle, long after,
+			  long before) {
+		ArrayList<WfProcessInstance> returnList = new ArrayList<>();
+		Date dateAfter = new Date(after);
+		Date dateBefore = new Date(before);
+
+		if(definitionName.isEmpty() || definitionName.equals("all"))
+			definitionName = null;
+		else
+			definitionName = processRepository.getDefinitionByKey(definitionName).getName();
+
+		if(instanceTitle.isEmpty() || instanceTitle.equals(" "))
+			instanceTitle = null;
+
+
+		for(WfProcessInstance instance : WfProcessInstance.fromWorkflowInstances(processRepository.getInProgressInstances())) {
+			if (instance != null) {
+				String title = instance.getTitle().toLowerCase();
+				String name = instance.getDefinitionName().toLowerCase();
+
+				if (dateBefore.getTime() == 0) {
+					dateBefore = new Date();
+				}
+
+				if ((instanceTitle == null || instanceTitle.toLowerCase().equals(title))
+						&& (definitionName == null || definitionName.toLowerCase().equals(name))
+						&& instance.getStartDate() != null && instance.getStartDate().after(dateAfter)
+						&& instance.getStartDate() != null && instance.getStartDate().before(dateBefore)) {
+
+					returnList.add(instance);
+				}
+			}
+		}
 		return returnList;
 	}
 
@@ -3636,6 +3730,15 @@ public class ProcessService {
 		Date dateAfter = new Date(after);
 		Date dateBefore = new Date(before);
 
+		if(definitionName.isEmpty() || definitionName.equals("all"))
+			definitionName = null;
+		else
+			definitionName = processRepository.getDefinitionByKey(definitionName).getName();
+
+		if(instanceTitle.isEmpty() || instanceTitle.equals(" "))
+			instanceTitle = null;
+
+
 		for(WfProcessInstance instance : WfProcessInstance.fromWorkflowInstances(processRepository.getEndedProgressInstances())) {
 			if (instance != null) {
 				String title = instance.getTitle().toLowerCase();
@@ -3645,10 +3748,10 @@ public class ProcessService {
 					dateBefore = new Date();
 				}
 
-				if ((instance.getStatus().equals(WorkflowInstance.STATUS_ENDED) || instance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
-						&& (instanceTitle == null || instanceTitle.toLowerCase().equals(title))
+				if ((instanceTitle == null || instanceTitle.toLowerCase().equals(title))
 						&& (definitionName == null || definitionName.toLowerCase().equals(name))
-						&& instance.getEndDate().after(dateAfter) && instance.getEndDate().before(dateBefore)) {
+						&& instance.getEndDate() != null && instance.getEndDate().after(dateAfter)
+						&& instance.getEndDate() != null && instance.getEndDate().before(dateBefore)) {
 
 					returnList.add(instance);
 				}

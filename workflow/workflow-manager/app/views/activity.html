@@ -67,20 +67,20 @@
 						<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 10px;color: red;"></md-icon>
 					</md-button>
 				</section>
-				
-				<md-autocomplete md-selected-item="selectedUser" md-search-text="searchText" style="padding-bottom: 10px;"
-					md-items = "user in filteredUsers" 
-					md-selected-item-change = "searchTasks()"
-					md-search-text-change = "getMatches(searchText)"		
-					md-no-cache = "noCache"
-					md-min-length = "2"
-					ng-required = "true"
-					ng-model-options = "{debounce: 500}"
-					placeholder = "{{'searchForUser' | translate}}"
-					md-item-text = "selectedUser.firstName + ' ' + selectedUser.lastName">
-						<span>{{user.lastName}} {{user.firstName}}</span>
-				</md-autocomplete>
-				
+
+				<md-input-container class="md-block" ng-if="!usersLoaded">
+					<label for="loadingUsers">{{ 'searchForUser' | translate }}</label>
+					<md-select ng-model="selectedUser">
+						<md-option id="loadingUsers">{{'usersLoading' | translate}}</md-option>
+					</md-select>
+				</md-input-container>
+				<md-input-container class="md-block" ng-if="usersLoaded" >
+					<label for="users">{{ 'searchForUser' | translate }}</label>
+					<md-select ng-model="searchFilter.user" ng-change="searchTasks()">
+						<md-option ng-repeat="user in users" ng-value="user" id="users">{{user.firstName}} {{user.lastName}}</md-option>
+					</md-select>
+				</md-input-container>
+
 				<md-input-container class="md-block" ng-if="enableProcessFilter">
 					<label for="workflowDefinitions">{{ 'processes' | translate }}</label>
 					<md-select ng-model="groupFilter.definitionId" ng-change="filterTasksByDefinition()">
@@ -99,21 +99,31 @@
 	</div>
 	
 	<md-content flex class="transparent" style="height: 100%">
+		<div layout="row" layout-align="center start" flex class="infoMessage" ng-if="filteredTasks === null || filteredTasks.length == 0">
+			<md-card style="width:100%; line-height: 32px; background-color: #d84315">
+				<md-card-content layout-align="center center">
+					<md-icon md-svg-icon="img/icons/info.svg" style="height: 32px; width: 32px; margin-right: 10px;"></md-icon>
+					<span style="display: inline-block; vertical-align: middle; color:white">{{'noTasksForUser' | translate }}</span>
+				</md-card-content>
+			</md-card>
+		</div>
+
 		<div class="animate-switch-container" ng-switch on="activeView" flex style="height: auto;width: auto;" style="height: 100%">
-		
-		<section layout="column" layout-align="center center" class="wait-icon" style="height: 100%" ng-if="showProgress">
-			<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
-		</section>
+
+			<section layout="column" class="wait-icon" ng-if="showProgress">
+				<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
+			</section>
 		
 			<!-- Task list -->
 			<section layout="row" class="animate-switch" ng-switch-when="taskList" ng-if="!showProgress">
 				<md-list flex style="padding-top:0px">
 					<md-card ng-repeat="task in filteredTasks | orderBy:orderByOption" style="margin-left: 0;">
-						<md-list-item class="md-2-line" ng-click="goToDetails(task)">
+						<md-list-item class="md-3-line" ng-click="goToDetails(task)">
 							<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
 							<div class="md-list-item-text" layout="column">
-								<h3>{{task.processInstance.title}}</h3>
-								<p> {{task.name}}
+								<h3>{{task.name}}</h3>
+								<p flex>{{ 'processInstanceName' | translate }}: {{task.processInstance.title}}</p>
+								<p flex>{{ 'process' | translate}}: {{task.definitionName}}
 									<span class="cardInline" ng-if="task.endDate != null">{{'completedOn' | translate }} : {{task.endDate | date:'d/M/yyyy'}}</span>
 									<span class="cardInLine" ng-if="task.endDate == null">{{'running' | translate }}</span>
 								</p>

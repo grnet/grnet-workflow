@@ -613,7 +613,7 @@ public class ExecutionController {
 
 	/**
 	 * Returns all active tasks
-	 * 
+	 *
 	 * @return List of {@link WfTask}
 	 */
 	@RequestMapping(value = "/task", method = RequestMethod.GET)
@@ -621,6 +621,28 @@ public class ExecutionController {
 	public List<WfTask> getAllActiveTasks() {
 
 		return processService.getAllActiveTasks();
+	}
+
+	/**
+	 * Returns active tasks by given criteria
+	 *
+	 * @param definitionName
+	 *            The definition's name of the active tasks
+	 * @param taskName
+	 *            The task name
+	 * @param dateAfter
+	 *            The date after which the task was created
+	 * @param dateBefore
+	 *            The date before which the task was created
+
+	 * @return List of {@link WfTask}
+	 */
+	@RequestMapping(value = "/tasks/search:{definitionName},{taskName},{dateAfter},{dateBefore}", method = RequestMethod.GET)
+	@ResponseBody
+	public List<WfTask> getAllActiveTasks(@PathVariable String definitionName, @PathVariable String taskName,
+			  @PathVariable long dateAfter, @PathVariable long dateBefore) {
+
+		return processService.getActiveTasks(definitionName, taskName, dateAfter, dateBefore);
 	}
 
 	/**
@@ -724,6 +746,29 @@ public class ExecutionController {
 	public List<WfProcessInstance> getInProgressInstances() {
 
 		return processService.getInProgressInstances();
+	}
+
+	/**
+	 * Returns a list of all in progress instances by criteria
+	 *
+	 * @param definitionName
+	 *            The definition's name to get its ended instances
+	 * @param instanceTitle
+	 *            The process instance title
+	 * @param dateAfter
+	 *            The date after which to get the ended instances
+	 * @param dateBefore
+	 *            The date before which to get the ended instances
+	 *
+	 * @return List of {@link WfProcessInstance}
+	 * @throws InvalidRequestException
+	 */
+	@RequestMapping(value = "/inprogress/instances/search:{definitionName},{instanceTitle},{dateAfter},{dateBefore}", method = RequestMethod.GET)
+	@ResponseBody
+	public List<WfProcessInstance> getInProgressInstances(@PathVariable String definitionName, @PathVariable String instanceTitle,
+															 @PathVariable long dateAfter, @PathVariable long dateBefore) throws InvalidRequestException {
+
+		return processService.getInProgressInstances(definitionName, instanceTitle, dateAfter, dateBefore);
 	}
 
 	/**

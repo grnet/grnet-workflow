@@ -313,7 +313,7 @@
              * @returns {HttpPromise}
              */
             this.getEndedInstances = function (definitionName, instanceTitle, dateAfterTime, dateBeforeTime) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/instances/ended/search:{definitionName},{instanceTitle},{dateAfter},{dateBefore}'
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/instances/ended/search:'
                     + definitionName + ","
                     + instanceTitle + ","
                     + dateAfterTime + ","
@@ -340,12 +340,27 @@
             /**
              * @memberof processService
              * @desc Retrieve all active tasks
-             * API: @name ExecutionController#getAllActiveTasks 
-             * 
+             * API: @name ExecutionController#getAllActiveTasks
+             *
              * @returns {HttpPromise}
              */
             this.getActiveTasks = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task');
+            };
+
+            /**
+             * @memberof processService
+             * @desc Retrieve active tasks by given criteria
+             * API: @name ExecutionController#getActiveTasksByCriteria
+             *
+             * @returns {HttpPromise}
+             */
+            this.getActiveTasksByCriteria = function (definitionName, taskName, after, before) {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/search:'
+                    + definitionName + ","
+                    + taskName + ","
+                    + after + ","
+                    + before);
             };
 
             /**
@@ -427,6 +442,26 @@
              */
             this.getInProgressInstances = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/inprogress/instances');
+            };
+
+            /**
+             * @memberOf processService
+             * @function getInProgressInstancesByCriteria
+             * @desc Searches for in progress instances based on given criteria
+             *
+             * @param {String} definitionName
+             * @param {String} instanceTitle
+             * @param {Number} dateAfterTime
+             * @param {Number} dateBeforeTime
+             * @returns {HttpPromise}
+             */
+            this.getInProgressInstancesByCriteria = function (definitionName, instanceTitle, dateAfterTime, dateBeforeTime) {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/inprogress/instances/search:'
+                    + definitionName + ","
+                    + instanceTitle + ","
+                    + dateAfterTime + ","
+                    + dateBeforeTime
+                );
             };
 
             /**

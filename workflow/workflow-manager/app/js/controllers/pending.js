@@ -2,7 +2,7 @@
 
     'use strict';
 
-    angular.module('wfmanagerControllers').controller('PendingCtrl', ['$scope', '$mdDialog', 'processService', 'CONFIG', 'auth',
+    angular.module('wfmanagerControllers').controller('PendingCtrl', ['$scope', '$location', '$mdDialog', 'processService', 'CONFIG',
         /**
          * @name PendingCtrl
          * @ngDoc controllers
@@ -10,7 +10,7 @@
          * 
          * @desc Controller used in Pending tasks view
          */
-        function ($scope, $mdDialog, processService, config, auth) {
+        function ($scope, $location, $mdDialog, processService, config) {
 
             $scope.imagePath = config.AVATARS_PATH;
             $scope.allTasks = null;
@@ -21,17 +21,23 @@
             $scope.maxDateBefore = new Date();
             $scope.maxDateBefore.setDate($scope.maxDateBefore.getDate() + 1);
 
-            $scope.searchFilter = { dateAfter: null, dateBefore: null, taskName: "", definitionId: null };
+            $scope.searchFilter = { dateAfter: null, dateBefore: null, taskName: "", definitionId: "" };
 
             $scope.orderByOption = null;
 
             $scope.options = [];
 
+            $scope.sortOption = { title: 'taskName', id: 'name' };
+            $scope.options.push($scope.sortOption);
+            $scope.sortOption = { title: 'processTitle', id: 'definitionName' };
+            $scope.options.push($scope.sortOption);
+            $scope.sortOption = { title: 'processInstanceName', id: 'processInstance.title' };
+            $scope.options.push($scope.sortOption);
             $scope.sortOption = { title: 'startDate', id: 'startDate' };
             $scope.options.push($scope.sortOption);
-            $scope.sortOption = { title: 'worker', id: 'supervisor' };
+            $scope.sortOption = { title: 'dueTo', id: 'dueDate' };
             $scope.options.push($scope.sortOption);
-            $scope.sortOption = { title: 'taskName', id: 'title' };
+            $scope.sortOption = { title: 'worker', id: 'assignee' };
             $scope.options.push($scope.sortOption);
 
 
@@ -79,14 +85,14 @@
                     $scope.searchFilter.taskName = $location.search().taskName;
 
                 if (!$location.search().definitionId)
-                    $location.search('definitionId', "");
+                    $location.search('definitionId', "all");
                 else
                     $scope.searchFilter.definitionId = $location.search().definitionId;
             };
 
             /**
              * @memberof PendingCtrl
-             * @desc Searches for instances based on given criteria
+             * @desc Searches for active tasks based on given criteria
              *
              */
             $scope.searchTasks = function () {
@@ -109,10 +115,14 @@
                 if (!$scope.searchFilter.taskName)
                     $scope.searchFilter.taskName = "";
 
-                processService.getActiveTasks().then(
+                processService.getActiveTasksByCriteria($scope.searchFilter.definitionId,$scope.searchFilter.taskName, dateAfterTime, dateBeforeTime).then(
                     // success callback
                     function (response) {
-                        // set default icon
+                        $location.search('definitionId', $scope.searchFilter.definitionId);
+                        $location.search('taskName', $scope.searchFilter.taskName);
+                        $location.search('dateAfter', dateAfterTime);
+                        $location.search('dateBefore', dateBeforeTime);
+
                         $scope.allTasks = response.data;
 
                         $scope.tasksMappedById = ArrayUtil.mapByProperty2Property($scope.allTasks, "definitionName", "tasks");
@@ -121,6 +131,8 @@
                         $scope.definitionNames = null;
 
                         var pairs = {};
+                        var names = [];
+
                         $scope.taskIds.forEach(function (item) {
                             var task = $scope.tasksMappedById[item]["tasks"][0];
                             pairs[task.definitionName] = item;
@@ -129,38 +141,12 @@
 
                         //make unique list from definition names
                         var u = {};
-                        var names = [];
                         for (var i = 0, l = names.length; i < l; ++i) {
                             if (!u.hasOwnProperty(names[i])) {
                                 $scope.definitionNames.push(names[i]);
                                 u[names[i]] = 1;
                             }
                         }
-                    }
-                );
-
-                processService.getEndedInstances($scope.searchFilter.definitionId,$scope.searchFilter.taskName, dateAfterTime, dateBeforeTime, true).then(
-                    // success callback
-                    function (response) {
-                        $location.search('definitionId', $scope.searchFilter.definitionId);
-                        $location.search('taskName', $scope.searchFilter.taskName);
-                        $location.search('dateAfter', dateAfterTime);
-                        $location.search('dateBefore', dateBeforeTime);
-
-                        var tasks = response.data;
-                        var tasksMapped = ArrayUtil.mapByProperty2innerProperty(tasks, "processInstance", "id", "tasks");
-                        var instanceIds = Object.keys(tasksMapped);
-
-                        $scope.endedInstances = [];
-
-                        instanceIds.forEach(function (item) {
-                            var task = tasksMapped[item]["tasks"][0];
-                            $scope.endedInstances.push(task.processInstance);
-                        });
-                    },
-                    // error callback
-                    function (response) {
-                        exceptionModal(response);
                     }
                 );
             };
@@ -191,55 +177,11 @@
             };
 
             /**
-             * Get all process definitions
-             */
-            processService.getActiveTasks().then(
-                // success callback
-                function (response) {
-                    // set default icon
-                    $scope.allTasks = response.data;
-
-                    $scope.tasksMappedById = ArrayUtil.mapByProperty2Property($scope.allTasks, "definitionName", "tasks");
-                    $scope.taskIds = Object.keys($scope.tasksMappedById);
-                    $scope.filteredTasks = response.data;
-                    $scope.definitionNames = null;
-
-                    var pairs = {};
-                    $scope.taskIds.forEach(function (item) {
-                        var task = $scope.tasksMappedById[item]["tasks"][0];
-                        pairs[task.definitionName] = item;
-                        names.push(task.definitionName);
-                    });
-
-                    //make unique list from definition names
-                    var u = {};
-                    var names = [];
-                    for (var i = 0, l = names.length; i < l; ++i) {
-                        if (!u.hasOwnProperty(names[i])) {
-                            $scope.definitionNames.push(names[i]);
-                            u[names[i]] = 1;
-                        }
-                    }
-                }
-            );
-
-            /**
              * @memberof PendingCtrl
              * @desc Selects all available workflow definitions from the checkbox
              */
             $scope.selectAll = function () {
                 $scope.filteredTasks = $scope.allTasks;
-            };
-
-            /**
-             * @memberof PendingCtrl
-             * @desc Filters the tasks by the given workflow definition name
-             * 
-             * @param {String} name
-             */
-            $scope.selectionChanged = function (name) {
-                $scope.filteredTasks = null;
-                $scope.filteredTasks = $scope.tasksMappedById[name]["tasks"];
             };
 
             /**
