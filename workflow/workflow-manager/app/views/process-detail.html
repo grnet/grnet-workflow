@@ -73,30 +73,35 @@
 						</section>
 						
 						<section layout="row" layout-sm="column" layout-align="start center">
-							
-								<md-input-container class="md-block" flex="35">
-									<label for="processVersion">{{ 'processActiveVersion' | translate }}</label>
-									<md-select id="processVersion" ng-model="workflowDefinition.activeDeploymentId" required>	
-										<md-option ng-repeat="deployment in workflowDefinition.processVersions track by deployment.deploymentId" ng-value="deployment.deploymentId">
-											<span>v{{deployment.version}} ({{deployment.deploymentdate | date:'d/M/yyyy'}})</span>
-											<span ng-style="{'color': deployment.status==='active'?'default':'red'}">({{deployment.status | translate}})</span>
-										</md-option>
-									</md-select>
-								</md-input-container>
-							
+							<md-input-container class="md-block" flex="35">
+								<label for="processVersion">{{ 'processActiveVersion' | translate }}</label>
+								<md-select id="processVersion" ng-model="workflowDefinition.activeDeploymentId" required>
+									<md-option ng-repeat="deployment in workflowDefinition.processVersions track by deployment.deploymentId" ng-value="deployment.deploymentId">
+										<span>v{{deployment.version}} ({{deployment.deploymentdate | date:'d/M/yyyy'}})</span>
+										<span ng-style="{'color': deployment.status==='active'?'default':'red'}">({{deployment.status | translate}})</span>
+									</md-option>
+								</md-select>
+							</md-input-container>
+
 							<md-input-container class="md-block" style="padding-left:0px">
 								<md-button class="md-raised" aria-label="Change Status" ng-click="changeStatus($event)" ng-disabled="!processForm.$valid"
-									ng-show="workflowDefinition.activeDeploymentId !== null && findActiveVersion() !== null">
+										   ng-show="workflowDefinition.activeDeploymentId !== null && findActiveVersion() !== null">
 									{{newStatusButtonLabel() | translate}}
 								</md-button>
-								
+
 								<md-button class="md-icon-button" aria-label="Delete" ng-click="askDeleteVersion($event)" ng-disabled="workflowDefinition.activeDeploymentId === null">
 									<md-icon md-svg-icon="img/icons/delete.svg"></md-icon>
 								</md-button>
 							</md-input-container>
-							
 						</section>
-						
+
+						<section layout="row" layout-sm="column" layout-align="start center">
+							<md-input-container class="md-block" flex="100" ng-show="workflowDefinition.activeDeploymentId !== null && findActiveVersion() !== null">
+									<label for="processJustification" class="enabledLabel">{{ 'justification' | translate }}</label>
+									<textarea id="processJustification" readonly>{{getVersionJustification()}}</textarea>
+								</md-input-container>
+						</section>
+
 						<md-checkbox ng-model="workflowDefinition.assignBySupervisor">{{ 'assignmentsByCoordinator' | translate }}</md-checkbox>
 						
 						<md-input-container class="md-block" flex="35">

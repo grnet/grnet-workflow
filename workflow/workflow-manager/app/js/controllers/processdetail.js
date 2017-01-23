@@ -313,6 +313,15 @@
             };
 
             /**
+             *
+             */
+            $scope.getVersionJustification = function () {
+                var version = $scope.findActiveVersion() || {};
+
+                return version.justification;
+            }
+
+            /**
              * @memberOf ProcessDetailCtrl
              * @desc Changes the status of the selected version (new,inactive -> active  or active -> inactive)
              * 

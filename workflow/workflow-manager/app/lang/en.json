@@ -200,5 +200,6 @@
 	"notAuthorizedToUpdateTaskDetails": "You are not authorized to update the task details",
 	"instanceSupervisorChangeFailed": "The instance supervisor change failed",
 	"usersLoading": "loading users...",
-	"noTasksForUser": "No tasks were found for the selected user"
+	"noTasksForUser": "No tasks were found for the selected user",
+	"justification": "version justification"
 }

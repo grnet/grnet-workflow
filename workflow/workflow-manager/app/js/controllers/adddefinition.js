@@ -58,7 +58,7 @@
 
                     // Add Version to a Process Definition    
                 } else {
-                    processService.createProcessVersion(process.id, $scope.bpmnFile).then(
+                    processService.createProcessVersion(process.id, $scope.bpmnFile, $scope.justification).then(
                         // success callback
                         function (response) {
                             $mdDialog.hide(response);

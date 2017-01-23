@@ -77,7 +77,7 @@
 				<md-input-container class="md-block" ng-if="usersLoaded" >
 					<label for="users">{{ 'searchForUser' | translate }}</label>
 					<md-select ng-model="searchFilter.user" ng-change="searchTasks()">
-						<md-option ng-repeat="user in users" ng-value="user" id="users">{{user.firstName}} {{user.lastName}}</md-option>
+						<md-option ng-repeat="user in users | orderBy:'lastName'" ng-value="user" id="users">{{user.lastName}} {{user.firstName}}</md-option>
 					</md-select>
 				</md-input-container>
 
