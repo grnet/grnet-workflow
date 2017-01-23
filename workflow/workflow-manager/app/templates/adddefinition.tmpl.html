@@ -31,7 +31,12 @@
 				<md-button class="md-icon-button" onclick="(document.querySelector('#bpmnFile')).click()" ng-click="exception = false" ng-disabled="inProgress">
 					<md-icon md-svg-src="img/icons/drive-file.svg" aria-label="Close dialog"></md-icon>
 				</md-button>
-				
+			</section>
+			<section layout="row" layout-align="start center" flex>
+				<md-input-container class="md-block" flex>
+					<label for="justification">{{ 'justification' | translate }}</label>
+					<input type="text" id="justification" name="justification" ng-model="justification" required/>
+				</md-input-container>
 			</section>
 		</form>
 		

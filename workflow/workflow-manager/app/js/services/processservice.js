@@ -73,11 +73,12 @@
              * @param {File} file - The BPMN File
              * @returns {HttpPromise}
              */
-            this.createProcessVersion = function (processId, file) {
+            this.createProcessVersion = function (processId, file, justification) {
                 var url = config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId;
 
                 var fd = new FormData();
                 fd.append('file', file);
+                fd.append('justification', justification);
 
                 return $http.post(url, fd, {
                     transformRequest: angular.identity,
