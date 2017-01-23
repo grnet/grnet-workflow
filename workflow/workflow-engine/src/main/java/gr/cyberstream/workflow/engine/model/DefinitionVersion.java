@@ -1,24 +1,13 @@
 package gr.cyberstream.workflow.engine.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import gr.cyberstream.workflow.engine.model.api.WfProcessVersion;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import gr.cyberstream.workflow.engine.model.api.WfProcessVersion;
 
 /**
  * The persistent class for the DefinitionVersion database table.
@@ -46,6 +35,8 @@ public class DefinitionVersion implements Serializable {
 
 	private String status;
 
+	private String justification;
+
 	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "workflow_definition_id")
@@ -72,6 +63,7 @@ public class DefinitionVersion implements Serializable {
 		this.deploymentdate = wfProcessVersion.getDeploymentdate();
 		this.processDefinitionId = wfProcessVersion.getProcessDefinitionId();
 		this.status = wfProcessVersion.getStatus();
+		this.justification = wfProcessVersion.getJustification();
 	}
 
 	public int getId() {
@@ -130,6 +122,10 @@ public class DefinitionVersion implements Serializable {
 		this.workflowDefinition = workflowDefinition;
 	}
 
+	public String getJustification() { return justification; }
+
+	public void setJustification(String justification) { this.justification = justification; }
+
 	public List<UserTaskDetails> getTasks() {
 		return tasks;
 	}
@@ -158,6 +154,7 @@ public class DefinitionVersion implements Serializable {
 		builder.append(processDefinitionId);
 		builder.append(status);
 		builder.append(workflowDefinition);
+		builder.append(justification);
 		builder.append(tasks);
 		return builder.toHashCode();
 	}

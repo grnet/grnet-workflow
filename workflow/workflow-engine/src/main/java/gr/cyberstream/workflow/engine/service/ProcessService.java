@@ -572,8 +572,8 @@ public class ProcessService {
 	 * @throws InvalidRequestException
 	 */
 	@Transactional(rollbackFor = Exception.class)
-	public WfProcessVersion createNewProcessVersion(int definitionId, InputStream inputStream, String filename)
-			throws InvalidRequestException {
+	public WfProcessVersion createNewProcessVersion(int definitionId, InputStream inputStream, String filename,
+			String justification) throws InvalidRequestException {
 		Deployment deployment;
 		ProcessDefinition processDef;
 		String bpmn;
@@ -635,6 +635,7 @@ public class ProcessService {
 			definitionVersion.setDeploymentdate(deployment.getDeploymentTime());
 			definitionVersion.setProcessDefinitionId(ActivitiHelper
 					.getProcessDefinitionByDeploymentId(activitiRepositorySrv, deployment.getId()).getId());
+			definitionVersion.setJustification(justification);
 
 			workflowDefinition.addDefinitionVersion(definitionVersion);
 
