@@ -114,11 +114,11 @@
 					<div class="md-list-item-text" layout="column">
 						<h3>{{task.name}}</h3>
 						<p flex>{{ 'processInstanceName' | translate }}: {{task.processInstance.title}}</p>
-						<p flex>{{ 'process' | translate}}: {{task.definitionName}}
-							<span class="cardInline" ng-if="task.assignee">{{'worker' | translate }} : {{task.assignee}}</span>
+						<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
+						<p flex ng-if="task.assignee">{{'worker' | translate }} : {{task.assignee}}
 							<span class="cardInline" ng-if="task.dueDate">{{'dueTo'|translate}} : {{task.dueDate | date:'d/M/yyyy'}}</span>
 							<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"
-								md-svg-icon="img/icons/delayed-notification.svg">
+									 md-svg-icon="img/icons/delayed-notification.svg">
 							</md-icon>
 						</p>
 					</div>
