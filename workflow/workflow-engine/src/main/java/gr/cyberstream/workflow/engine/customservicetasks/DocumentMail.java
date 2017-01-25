@@ -1,14 +1,12 @@
 package gr.cyberstream.workflow.engine.customservicetasks;
 
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
-
+import gr.cyberstream.workflow.engine.cmis.CMISDocument;
+import gr.cyberstream.workflow.engine.cmis.MultipartFileResource;
+import gr.cyberstream.workflow.engine.customtypes.DocumentType;
+import gr.cyberstream.workflow.engine.model.MailServiceResponse;
+import gr.cyberstream.workflow.engine.model.RESTMail;
+import gr.cyberstream.workflow.engine.model.RESTRecipient;
+import gr.cyberstream.workflow.engine.service.InvalidRequestException;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.Expression;
@@ -27,13 +25,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import gr.cyberstream.workflow.engine.cmis.CMISDocument;
-import gr.cyberstream.workflow.engine.cmis.MultipartFileResource;
-import gr.cyberstream.workflow.engine.customtypes.DocumentType;
-import gr.cyberstream.workflow.engine.model.MailServiceResponse;
-import gr.cyberstream.workflow.engine.model.RESTMail;
-import gr.cyberstream.workflow.engine.model.RESTRecipient;
-import gr.cyberstream.workflow.engine.service.InvalidRequestException;
+import java.net.URI;
+import java.nio.charset.Charset;
+import java.util.*;
 
 @Component
 @SuppressWarnings("unused")
@@ -45,6 +39,7 @@ public class DocumentMail implements JavaDelegate {
 	private Expression from;
 	private Expression to;
 	private Expression subject;
+	private Expression body;
 	private Expression attachment;
 	private Expression bcc;
 	private Expression cc;
@@ -70,6 +65,9 @@ public class DocumentMail implements JavaDelegate {
 
 		String msgSubject = (String) subject.getValue(execution);
 		logger.debug("subject: " + msgSubject);
+
+		String msgBody = (String) body.getValue(execution);
+		logger.debug("body: " + msgBody);
 
 		String documentVar = null;
 		

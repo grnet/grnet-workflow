@@ -15,12 +15,12 @@
 		<span flex></span>
 		
 		<div layout="column">
-		
+
 			<md-menu md-position-mode="target-right target">
 				<md-button aria-label="Sort-By" class="md-icon-button" ng-click="$mdOpenMenu($event)">
 					<md-icon md-menu-origin md-svg-icon="img/icons/sort-by.svg"></md-icon>
 				</md-button>
-				
+
 				<md-menu-content width="4">
 					<md-menu-item ng-repeat="option in options" ng-click="sortBy(option.id)">
 						<md-button aria-label="Menu button">
@@ -31,7 +31,7 @@
 					</md-menu-item>
 				</md-menu-content>
 			</md-menu>
-			
+
 		</div>
 	</div>
 </md-toolbar>
@@ -87,14 +87,12 @@
 						 	<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}"/>
 						 	
 						 	<div class="md-list-item-text" layout="column">
-								<h3>{{task.name}}</h3>
-								<p flex>{{ 'processInstanceName' | translate }}: {{task.processInstance.title}}</p>
-								<p flex>{{ 'process' | translate}}: {{task.definitionName}}
-									<span ng-if="task.dueDate" class="cardInline">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
+								<h3>{{task.processInstance.title}} - {{task.name}}</h3>
+								<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
+								<p flex ng-if="task.dueDate">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
 									<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"
 											 md-svg-icon="img/icons/delayed-notification.svg">
 									</md-icon>
-								</span>
 								</p>
 					 		</div>
 					 		
@@ -123,14 +121,12 @@
 							<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}"/>
 							
 							<div class="md-list-item-text" layout="column">
-								<h3>{{task.name}}</h3>
-								<p flex>{{ 'processInstanceName' | translate }}: {{task.processInstance.title}}</p>
-								<p flex>{{ 'process' | translate}}: {{task.definitionName}}
-									<span ng-if="task.dueDate" class="cardInline">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
+								<h3>{{task.processInstance.title}} - {{task.name}}</h3>
+								<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
+								<p flex ng-if="task.dueDate">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
 									<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"
 											 md-svg-icon="img/icons/delayed-notification.svg">
 									</md-icon>
-								</span>
 								</p>
 							 </div>
 						 </md-list-item>

@@ -452,12 +452,12 @@ public class ProcessController {
 	 */
 	@RequestMapping(value = "/processbpmn", method = RequestMethod.POST)
 	@ResponseBody
-	public WfProcess createProcessDefinition(@RequestPart("file") MultipartFile uploadedFileRef)
-			throws InternalException, InvalidRequestException {
+	public WfProcess createProcessDefinition(@RequestPart("file") MultipartFile uploadedFileRef,
+			 @RequestPart String justification) throws InternalException, InvalidRequestException {
 
 		try {
 			return processService.createNewProcessDefinition(uploadedFileRef.getInputStream(),
-					uploadedFileRef.getOriginalFilename());
+					uploadedFileRef.getOriginalFilename(), justification);
 
 		} catch (IOException e) {
 			logger.error("Unable to read the BPMN input file " + uploadedFileRef.getOriginalFilename());
@@ -483,7 +483,7 @@ public class ProcessController {
 	@ResponseBody
 	@PreAuthorize("hasAnyRole('ProcessAdmin','Admin')")
 	public WfProcessVersion createProcessVersion(@PathVariable int id,
-			@RequestPart("file") MultipartFile uploadedFileRef, @RequestPart("justification") String justification)
+			@RequestPart("file") MultipartFile uploadedFileRef, @RequestPart String justification)
 			throws InternalException, InvalidRequestException {
 
 		try {

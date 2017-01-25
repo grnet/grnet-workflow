@@ -454,7 +454,7 @@ public class ProcessService {
 	 * @throws InvalidRequestException
 	 */
 	@Transactional(rollbackFor = Exception.class)
-	public WfProcess createNewProcessDefinition(InputStream inputStream, String filename)
+	public WfProcess createNewProcessDefinition(InputStream inputStream, String filename, String justification)
 			throws InvalidRequestException {
 		Deployment deployment;
 		String defaultIcon = environment.getProperty("defaultIcon");
@@ -544,6 +544,7 @@ public class ProcessService {
 		definitionVersion.setVersion(processDef.getVersion());
 		definitionVersion.setDeploymentdate(deployment.getDeploymentTime());
 		definitionVersion.setProcessDefinitionId(processDef.getKey());
+		definitionVersion.setJustification(justification);
 
 		workflow.addDefinitionVersion(definitionVersion);
 
@@ -1937,6 +1938,7 @@ public class ProcessService {
 
 						WfTask wfTask = new WfTask(task);
 						wfTask.setProcessInstance(new WfProcessInstance(instance));
+						wfTask.setDefinitionName(instance.getDefinitionVersion().getWorkflowDefinition().getName());
 						wfTask.setIcon(instance.getDefinitionVersion().getWorkflowDefinition().getIcon());
 						returnList.add(wfTask);
 					}
@@ -2006,6 +2008,7 @@ public class ProcessService {
 
 							WfTask wfTask = new WfTask(task);
 							wfTask.setProcessInstance(new WfProcessInstance(instance));
+							wfTask.setDefinitionName(instance.getDefinitionVersion().getWorkflowDefinition().getName());
 							wfTask.setIcon(instance.getDefinitionVersion().getWorkflowDefinition().getIcon());
 							returnList.add(wfTask);
 						}
@@ -2018,6 +2021,7 @@ public class ProcessService {
 
 							WfTask wfTask = new WfTask(task);
 							wfTask.setProcessInstance(new WfProcessInstance(instance));
+							wfTask.setDefinitionName(instance.getDefinitionVersion().getWorkflowDefinition().getName());
 							wfTask.setIcon(instance.getDefinitionVersion().getWorkflowDefinition().getIcon());
 							returnList.add(wfTask);
 						}
@@ -2865,24 +2869,17 @@ public class ProcessService {
 		Task task;
 		WorkflowInstance instance;
 
-		try {
-			task = activitiTaskSrv.createTaskQuery().taskId(taskId).singleResult();
-			instance = processRepository.getInstanceById(task.getProcessInstanceId());
+		task = activitiTaskSrv.createTaskQuery().taskId(taskId).singleResult();
+		instance = processRepository.getInstanceById(task.getProcessInstanceId());
 
-			if (instance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
-				throw new InvalidRequestException("claimTaskInstanceSuspended");
+		if (instance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
+			throw new InvalidRequestException("claimTaskInstanceSuspended");
 
-			if (instance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
-				throw new InvalidRequestException("claimTaskInstanceDeleted");
-
-			if (instance.getStatus().equals(WorkflowInstance.STATUS_ENDED))
-				throw new InvalidRequestException("claimTaskInstanceEnded");
-
-			// assume that the exception equals to a deleted instance
-		} catch (Exception noResult) {
-			logger.error(noResult.getMessage());
+		if (instance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
 			throw new InvalidRequestException("claimTaskInstanceDeleted");
-		}
+
+		if (instance.getStatus().equals(WorkflowInstance.STATUS_ENDED))
+			throw new InvalidRequestException("claimTaskInstanceEnded");
 
 		// check if user is supervisor of the task's instance, or the assignee
 		// itself or user has role admin
@@ -2911,26 +2908,19 @@ public class ProcessService {
 		Task task;
 		WorkflowInstance instance;
 
-		try {
-			task = activitiTaskSrv.createTaskQuery().taskId(taskId).singleResult();
-			instance = processRepository.getInstanceById(task.getProcessInstanceId());
+		task = activitiTaskSrv.createTaskQuery().taskId(taskId).singleResult();
+		instance = processRepository.getInstanceById(task.getProcessInstanceId());
 
-			if (instance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
-				throw new InvalidRequestException("claimTaskInstanceSuspended");
+		if (instance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
+			throw new InvalidRequestException("claimTaskInstanceSuspended");
 
-			if (instance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
-				throw new InvalidRequestException("claimTaskInstanceDeleted");
-
-			if (instance.getStatus().equals(WorkflowInstance.STATUS_ENDED))
-				throw new InvalidRequestException("claimTaskInstanceEnded");
-
-			activitiTaskSrv.claim(taskId, getAccessToken().getEmail());
-
-			// assume that the exception equals to a deleted instance
-		} catch (Exception noResult) {
-			logger.error(noResult.getMessage());
+		if (instance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
 			throw new InvalidRequestException("claimTaskInstanceDeleted");
-		}
+
+		if (instance.getStatus().equals(WorkflowInstance.STATUS_ENDED))
+			throw new InvalidRequestException("claimTaskInstanceEnded");
+
+		activitiTaskSrv.claim(taskId, getAccessToken().getEmail());
 	}
 
 	/**

@@ -17,11 +17,12 @@
 	
 		<md-content layout="row" layout-align="start center" layout-padding style="min-height: 55px; padding-left:0px">
 			<span>{{ error.message | translate }}</span>
-			<section ng-repeat="(key, value) in map">
-				<span>{{key | translate}}: {{value}}</span>
-			</section>
 		</md-content>
-		
+		<md-content layout="row" layout-align="start center" layout-padding style="min-height: 55px; padding-left:0px"
+					ng-repeat="(key, value) in map">
+			<span>{{key | translate}}: {{value}}</span>
+		</md-content>
+
 	</md-dialog-content>
 	
 	<md-dialog-actions layout="row" layout-align="left center" class="dialogActions">

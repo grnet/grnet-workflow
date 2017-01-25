@@ -40,7 +40,7 @@
 
                 // Create new Process Definition
                 if (process === null) {
-                    processService.createProcess($scope.bpmnFile).then(
+                    processService.createProcess($scope.bpmnFile, $scope.justification).then(
                         // success callback
                         function (response) {
                             $mdDialog.hide(response);

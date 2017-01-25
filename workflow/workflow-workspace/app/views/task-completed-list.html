@@ -82,6 +82,12 @@
 						</md-button>
 					<input ng-model="searchFilter.instanceTitle" style="max-width: 290px;" class="enabledLabel">
 				</md-input-container>
+
+				<md-divider style="margin-top: 20px;"></md-divider>
+
+				<md-button class="md-raised" aria-label="Clear" ng-click="clearAllFilters()" style="margin-left: 0; margin-top: 15px;">
+					{{ 'clearFilters' | translate }}
+				</md-button>
 			</md-card-content>
 		</md-card>
 	</div>
@@ -106,15 +112,14 @@
 				<md-list-item class="md-3-line" ng-click="goTo('/completed/' + task.id)">
 					<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
 					<div class="md-list-item-text" layout="column">
-						<h3>{{task.name}}</h3>
-						<p flex>{{ 'processInstanceName' | translate }}: {{task.processInstance.title}}</p>
+						<h3>{{task.processInstance.title}} - {{task.name}}</h3>
+						<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
 						<section layout="row">
 							<p flex>{{ 'completedBy' | translate }}: {{task.assignee}}</p>
 							<div layout="row" flex="15" layout-align="end end">
 								<p>{{task.endDate | date:'d/M/yyyy'}}</p>
 							</div>
 						</section>
-						
 					</div>
 				</md-list-item>
 			</md-card>
