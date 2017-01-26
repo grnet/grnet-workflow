@@ -1,12 +1,11 @@
 package gr.cyberstream.workflow.engine.service;
 
-import java.util.Date;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
-
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-
+import gr.cyberstream.workflow.engine.config.SettingsStatus;
+import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
+import gr.cyberstream.workflow.engine.model.WorkflowInstance;
+import gr.cyberstream.workflow.engine.model.WorkflowSettings;
+import gr.cyberstream.workflow.engine.persistence.Processes;
+import org.activiti.engine.task.Task;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +14,11 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import gr.cyberstream.workflow.engine.config.SettingsStatus;
-import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
-import gr.cyberstream.workflow.engine.model.WorkflowSettings;
-import gr.cyberstream.workflow.engine.persistence.Processes;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import java.util.Date;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
 
 @Service
 public class MailService {
@@ -166,34 +166,37 @@ public class MailService {
 		}
 	}
 
-	public void sendBpmnErrorEmail(String administrator, WorkflowDefinition workflow, String taskName,
-			String supervisor) {
+	public void sendDefinitionErrorMail(String administrator, WorkflowDefinition workflow, Task task,
+										WorkflowInstance instance) {
 
 		String subject = "Σφάλμα ορισμού διαδικασίας";
 
-		String content = "<p>Δεν βρέθηκαν υποψήφιοι για την εκτέλεση της εργασίας με όνομα '" + taskName
-				+ "' δεδομένου ότι υπάρχει σφάλμα στο αρχείο BPMN της διαδικασίας με όνομα '" + workflow.getName()
-				+ "' και κωδικό '" + workflow.getKey() + "'.</p>";
+		String content = "<p><b>Διαδικασία:</b> " + workflow.getName() + "</p>" +
+				"<p><b>Εκτέλεση:</b> " + instance.getTitle() + "</p>" +
+				"<p>Δεν βρέθηκαν υποψήφιοι για την εκτέλεση της εργασίας με όνομα '" + task.getName()
+				+ "' και κωδικό '" + task.getId() + "'.</p>";
 
-		content += "<p>Για περισσότερες επιλογές επισκεφθείτε την σελίδα <a href=\"" + managerURL + "/#/process/"
-				+ workflow.getId() + " \"> διαχείρισης ορισμού διαδικασίας </a> page.</p>";
+		content += "<p>Παρακαλώ επικοινωνήστε με το συντονιστή της εκτέλεσης " + instance.getSupervisor() + ".</p>";
 
 		try {
-
-			sendMail(supervisor, subject, content, administrator);
-
+			sendMail(instance.getSupervisor(), subject, content, administrator);
 		} catch (MessagingException e) {
-
-			logger.warn("Unable to send bpmn error email to " + supervisor);
-
+			logger.warn("Unable to send definition error email to " + instance.getSupervisor());
 		}
 	}
 
-	public void sendNoCandidatesEmail(String administrator, String taskName, String taskId) throws MessagingException {
+	public void sendNoCandidatesErrorEmail(String administrator, Task task, String username) throws MessagingException {
+		WorkflowDefinition workflowDef = processRepository.getProcessByDefinitionId(task.getProcessDefinitionId());
+		WorkflowInstance instance = processRepository.getInstanceById(task.getProcessInstanceId());
+
 		String subject = "Σφάλμα ανάθεσης εργασίας";
 
-		String content = "<p>Δεν βρέθηκαν υποψήφιοι για την ανάθεση της εργασίας με όνομα '" + taskName
-				+ "' και κωδικό '" + taskId + "'.</p>";
+		String content = "<p><b>Διαδικασία:</b> " + workflowDef.getName() + "</p>" +
+				"<p><b>Εκτέλεση:</b> " + instance.getTitle() + "</p>" +
+				"<p>Δεν βρέθηκαν υποψήφιοι για την εκτέλεση της εργασίας με όνομα '" + task.getName()
+				+ "' και κωδικό '" + task.getId() + "'.</p>";
+
+		content += "<p>Παρακαλώ αναθέστε τον κατάλληλο ρόλο στον χρήστη '" + username + "'</p>";
 
 		sendMail(administrator, subject, content, "");
 	}

@@ -62,16 +62,32 @@
 				});
 			};
 
-			/**
-			 * @memberOf ProcessListCtrl
-			 * @desc Check the selected owners and displays the definitions owned by the selected owners
-			 */
-			$scope.updateOwnerSelection = function () {
-				$scope.groups.forEach(function (elm) { elm.selected = $scope.status.allSelected; return; });
-				$scope.showProcessByOwners();
-			};
+            /**
+             * @memberOf ProcessListCtrl
+             * @desc Check the selected owners and displays the definitions owned by the selected owners
+             */
+            $scope.updateOwnerSelection = function () {
+                $scope.groups.forEach(function (elm) {
+                    if($scope.status.allSelected)
+                        elm.selected = $scope.status.allSelected;
+                    return;
+                });
+                $scope.showProcessByOwners();
+            };
 
-			/**
+            /**
+             * @memberof ProcessListCtrl
+             * @desc Clears any selection
+             *
+             */
+            $scope.clearAllSelections = function () {
+                $scope.groups.forEach(function (elm) {
+                	elm.selected = false;
+                });
+                $scope.status.allSelected = false;
+                $scope.showProcessByOwners();
+            };
+            /**
 			 * @memberOf ProcessListCtrl
 			 * @desc Return processes definitions by selected owners
 			 */
@@ -79,13 +95,17 @@
 
 				$scope.showProgressBar = true;
 
-				var selectedOwners = $scope.groups.filter(
-					function (element) {
-						return element.selected === true;
+				if($scope.status.allSelected)
+					var selectedOwners = "";
+				else {
+                    var selectedOwners = $scope.groups.filter(
+                        function (element) {
+                            return element.selected === true;
 
-					}).map(function (element, index, that) {
-						return element.group;
-					});
+                        }).map(function (element, index, that) {
+                        return element.group;
+                    });
+                }
 
 				processService.getProcessesByOwners(selectedOwners).then(
 					// success callback

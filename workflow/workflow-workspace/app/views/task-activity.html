@@ -48,19 +48,15 @@
 		<md-card style="margin-right:0px">
 			<md-card-content style="padding-top: 0;">
 				<section layout="row" class="md-block" flex>
-					<label for="date-after" flex="35" class="wf-label">{{ 'completedAfter' | translate }}</label>
-		
-					<md-datepicker id="date-after" ng-model="searchFilter.dateAfter" ng-change="showTasksByFilters()" 
-						style="margin-right: 0px;">
-					</md-datepicker>
-					
+					<label for="date-after" flex="45" class="wf-label">{{ 'completedAfter' | translate }}</label>
+					<md-datepicker id="date-after" ng-model="searchFilter.dateAfter" ng-change="showTasksByFilters()" style="margin-right: 0px;"></md-datepicker>
 					<md-button class="md-icon-button" aria-label="Clear" ng-click="clearAfterDate()">
 						<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 8px;color: red;"></md-icon>
 					</md-button>
 				</section>
-		
-				<section layout="row" class="md-block">
-					<label for="date-before" flex="35" class="wf-label">{{ 'completedBefore' | translate }}</label>
+
+				<section layout="row" class="md-block" style="padding-bottom: 10px;">
+					<label for="date-before" flex="45" class="wf-label">{{ 'completedBefore' | translate }}</label>
 					
 					<md-datepicker id="date-before" ng-model="searchFilter.dateBefore" ng-change="showTasksByFilters()"
 						style="margin-right: 0px;" md-max-date="currentDate">
@@ -74,26 +70,27 @@
 				<md-input-container class="md-block">
 					<label for="workflowDefinitions">{{ 'processes' | translate }}</label>
 					<md-select ng-model="searchFilter.definitionId" ng-change="showTasksByFilters()">
-						<md-option ng-repeat="definition in definitions" ng-value="definition.processDefinitionId" id="workflowDefinitions">
-						{{definition.name | translate }} 
-						</md-option> 
+						<md-option ng-repeat="definition in definitions" ng-value="definition.processDefinitionId" id="workflowDefinitions">{{definition.name | translate }}</md-option>
 					</md-select> 
-				</md-input-container> 
-				
-				<md-input-container class="md-block wf-with-confirm">
-					<label for="workflowInstances" class="enabledLabel">{{ 'executionName' | translate }}</label>
-					
-						<md-button ng-click="showTasksByFilters()" class="md-icon-button wf-confirm-button" style="display: inline-block; position: absolute; top: 0; right: -5px" aria-label="Search">
-							<md-icon md-svg-icon="img/icons/check.svg" style="color:green"></md-icon>
-						</md-button>
-						
-						<md-button class="md-icon-button wf-confirm-button" aria-label="Clear" ng-click="clearInstanceTitle()" style="display: inline-block; position: absolute; top: 0; right: -35px">
-							<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 8px;color: red;"></md-icon>
-						</md-button>
+				</md-input-container>
 
-				 	<input id="instanceTitle" ng-model="searchFilter.instanceTitle" style="max-width: 360px;">
+				<md-input-container class="md-block wf-with-confirm" style="margin-bottom:0px">
+					<label for="workflowInstances" class="enabledLabel">{{ 'executionName' | translate }}</label>
+					<md-button ng-click="showTasksByFilters()" class="md-icon-button wf-confirm-button" style="display: inline-block; position: absolute; top: 0; right: -10px" aria-label="Search">
+						<md-icon md-svg-icon="img/icons/check.svg" style="color:green"></md-icon>
+					</md-button>
+					<md-button class="md-icon-button wf-confirm-button" aria-label="Clear" ng-click="clearInstanceTitle()" style="display: inline-block; position: absolute; top: 0; right: -40px">
+						<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 8px;color: red;"></md-icon>
+					</md-button>
+				 	<input id="instanceTitle" ng-model="searchFilter.instanceTitle" style="max-width: 290px;" class="enabledLabel">
 				 </md-input-container>
-				 
+
+				<md-divider style="margin-top: 20px;"></md-divider>
+
+				<md-button class="md-raised" aria-label="Clear" ng-click="activeClearAllFilters()" style="margin-left: 0; margin-top: 15px;">
+					{{ 'clearFilters' | translate }}
+				</md-button>
+
 			</md-card-content>
 		</md-card>
 	</div>		
@@ -119,10 +116,8 @@
 					<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
 					<div class="md-list-item-text" layout="column">
 						<h3>{{task.name}}</h3>
-						<p> {{task.processInstance.title}}</p>
-						<p flex>{{ 'process' | translate}}: {{task.definitionName}}
-							<span class="cardInline" ng-if="task.endDate">{{ 'completedOn' | translate }}: {{task.endDate | date:'d/M/yyyy'}}</span>
-						</p>
+						<p flex>{{task.processInstance.title}} - {{task.definitionName}}</p>
+						<p flex>{{ 'completedOn' | translate }}: {{task.endDate | date:'d/M/yyyy'}}</p>
 					</div>
 					<div layout="row" layout-align="end end">
 						<md-icon ng-if="task.endDate" ng-class="task.dueDate && (task.dueDate < task.endDate) ? 'md-warn' : 'md-primary'" 

@@ -140,9 +140,9 @@ public class ExecutionController {
 	 * @param taskId
 	 *            Task's id
 	 */
-	@RequestMapping(value = "/task/{taskId}/candidates/nocandidates", method = RequestMethod.PUT)
-	public void notifyAdminForTask(@PathVariable String taskId) throws InvalidRequestException {
-		processService.notifyAdminForTask(taskId);
+	@RequestMapping(value = "/task/{taskId}/candidates/nocandidates/{username}", method = RequestMethod.PUT)
+	public void notifyAdminForTask(@PathVariable String taskId, @PathVariable String username) throws InvalidRequestException {
+		processService.notifyAdminForTask(taskId, username);
 	}
 
 	/**

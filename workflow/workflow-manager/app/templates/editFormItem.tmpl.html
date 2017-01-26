@@ -14,19 +14,16 @@
 	
 	<md-dialog-content layout-padding>
 		<section layout="row" flex>
-			<ng-form name="formItemForm">
-				<md-input-container style="min-width: 400px;" class="md-block">
-					<label for="titleTemplate">{{ 'description' | translate }}</label>
-					<textarea id="titleTemplate" md-maxlength="150" ng-model="formItem.description"></textarea>
-				</md-input-container>
-			</ng-form>
-			
+			<md-input-container flex class="md-block">
+				<trix-editor angular-trix id="titleTemplate" ng-model="formItem.description"></trix-editor>
+			</md-input-container>
+
 		</section>
 		<md-divider></md-divider>
 	</md-dialog-content>
-	
+
 	<md-dialog-actions layout="row" layout-align="start center" style="padding-left: 0;">
-		<md-button class="md-raised md-primary" ng-click="save()" ng-disabled="!formItemForm.$valid">{{ 'confirm' | translate }}</md-button>
+		<md-button class="md-raised md-primary" ng-click="save()">{{ 'confirm' | translate }}</md-button>
 		<md-button class="md-raised md-warn" ng-click="clear()" ng-disabled="!formItem.description">{{ 'clear' | translate }}</md-button>
 	</md-dialog-actions>
         

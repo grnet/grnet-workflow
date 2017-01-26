@@ -32,10 +32,17 @@
             $scope.options = [];
             $scope.orderByOption = null;
 
-            $scope.sortOptions = { title: 'taskName', id: 'name' };
-			$scope.options.push($scope.sortOptions);
-			$scope.sortOptions = { title: 'endDate', id: 'endDate' };
-			$scope.options.push($scope.sortOptions);
+            $scope.sortOption = { title: 'taskName', id: 'name' };
+			$scope.options.push($scope.sortOption);
+            $scope.sortOption = { title: 'processDetail', id: 'definitionName' };
+            $scope.options.push($scope.sortOption);
+            $scope.sortOption = { title: 'processInstanceName', id: 'processInstance.title' };
+            $scope.options.push($scope.sortOption);
+            $scope.sortOption = { title: 'startDate', id: 'startDate' };
+            $scope.options.push($scope.sortOption);
+            $scope.sortOption = { title: 'endDate', id: 'endDate' };
+            $scope.options.push($scope.sortOption);
+
 
             // get users in order to fill autocomplete
             processService.getUsers().then(
@@ -71,9 +78,9 @@
 			 */
 			var userFiltering = function (user) {
 				return (
-					user.email.toLowerCase().search($scope.text) > -1 ||
-					user.lastName.toLowerCase().search($scope.text) > -1 ||
-					user.username.toLowerCase().search($scope.text) > -1
+					user.email.toLowerCase().search($scope.text.toLowerCase()) > -1 ||
+					user.lastName.toLowerCase().search($scope.text.toLowerCase()) > -1 ||
+					user.username.toLowerCase().search($scope.text.toLowerCase()) > -1
 				);
 			};
 
@@ -261,7 +268,7 @@
 			 * @param {String} optionId - Sorted by that option
 			 */
 			$scope.sortBy = function (optionId) {
-				$scope.orderByOption = "-" + optionId;
+				$scope.orderByOption = optionId;
 			};
 
 			/**

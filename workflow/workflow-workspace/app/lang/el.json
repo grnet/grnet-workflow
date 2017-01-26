@@ -141,5 +141,9 @@
 	"notAuthorizedToUpdateTaskDetails": "Δεν έχετε τα απαραίτητα δικαιώματα για την ανανέωση των λεπτομερειών της εργασίας",
 	"instanceSupervisorChangeFailed": "Η αλλαγή του συντονιστή απέτυχε",
 	"processInstanceName": "όνομα εκτέλεσης",
-	"process": "διαδικασία"
+	"process": "διαδικασία",
+	"clearFilters": "καθαρισμός φίλτρων",
+	"startedAfter": "έναρξη μετά",
+	"startedBefore": "έναρξη πρίν",
+	"inputCandidate": "εισαγωγή υποψηφίου"
 }

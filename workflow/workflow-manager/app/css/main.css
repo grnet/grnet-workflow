@@ -280,3 +280,12 @@ md-input-container label {
 .navItemSelected {
     background-color: rgba(158,158,158,0.2);
 }
+
+.ta-editor {
+	min-height: 300px;
+	height: auto;
+	overflow: auto;
+	font-family: inherit;
+	font-size: 100%;
+	margin: 20px 0;
+}

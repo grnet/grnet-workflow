@@ -29,7 +29,7 @@
 
             $scope.sortOption = { title: 'taskName', id: 'name' };
             $scope.options.push($scope.sortOption);
-            $scope.sortOption = { title: 'processTitle', id: 'definitionName' };
+            $scope.sortOption = { title: 'processDetail', id: 'definitionName' };
             $scope.options.push($scope.sortOption);
             $scope.sortOption = { title: 'processInstanceName', id: 'processInstance.title' };
             $scope.options.push($scope.sortOption);

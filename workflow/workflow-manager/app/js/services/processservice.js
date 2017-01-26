@@ -18,11 +18,11 @@
              * @returns {HttpPromise}
              */
             this.createProcess = function (file, justification) {
-                var url = config.WORKFLOW_SERVICE_ENTRY + '/processbpmn';
+                var url = config.WORKFLOW_SERVICE_ENTRY + '/processbpmn:'
+                    + justification;
 
                 var fd = new FormData();
                 fd.append('file', file);
-                fd.append('justification', justification);
 
                 return $http.post(url, fd, {
                     transformRequest: angular.identity,
@@ -75,11 +75,12 @@
              * @returns {HttpPromise}
              */
             this.createProcessVersion = function (processId, file, justification) {
-                var url = config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId;
+                var url = config.WORKFLOW_SERVICE_ENTRY + '/process/'
+                    + processId + ","
+                    + justification;
 
                 var fd = new FormData();
                 fd.append('file', file);
-                fd.append('justification', justification);
 
                 return $http.post(url, fd, {
                     transformRequest: angular.identity,

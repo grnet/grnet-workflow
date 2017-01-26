@@ -80,8 +80,8 @@
              *
              * @returns {HttpPromise}
              */
-            this.notifyNoCandidates = function (taskId) {
-                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/task/'+ taskId + '/candidates/nocandidates');
+            this.notifyNoCandidates = function (taskId, user) {
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/task/'+ taskId + '/candidates/nocandidates/'+ user);
             };
 
             /**
@@ -588,12 +588,17 @@
             /**
              * @memberOf processService
              * @function getInProgressInstances
-             * @desc Returns all in progress instances
+             * @desc Returns in progress instances by given criteria
              * 
              * @returns {HttpPromise}
              */
-            this.getInProgressInstances = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/inprogress/instances');
+            this.getInProgressInstances = function (definitionName, instanceTitle, after, before) {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/inprogress/instances/search:'
+                    + definitionName + ","
+                    + instanceTitle + ","
+                    + after + ","
+                    + before
+                );
             };
 
             /**

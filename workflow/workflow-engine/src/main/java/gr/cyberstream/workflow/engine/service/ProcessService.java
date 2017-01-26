@@ -2662,12 +2662,12 @@ public class ProcessService {
 	 * @param taskId
 	 *            The ID of the task that has no candidates
 	 */
-	public void notifyAdminForTask(String taskId) throws InvalidRequestException {
+	public void notifyAdminForTask(String taskId, String username) throws InvalidRequestException {
         String adminEmail = environment.getProperty("mail.admin");
         Task workflowTask = activitiTaskSrv.createTaskQuery().taskId(taskId).singleResult();
 
         try {
-            mailService.sendNoCandidatesEmail(adminEmail, workflowTask.getName(), workflowTask.getId());
+            mailService.sendNoCandidatesErrorEmail(adminEmail, workflowTask, username);
         } catch (MessagingException e) {
             throw new InvalidRequestException("emailNotSentContactAdmin");
         }
@@ -3436,7 +3436,7 @@ public class ProcessService {
 
 			WorkflowDefinition workflowDef = processRepository.getProcessByDefinitionId(task.getProcessDefinitionId());
 			WorkflowInstance instance = processRepository.getInstanceById(task.getProcessInstanceId());
-			mailService.sendBpmnErrorEmail(adminEmail, workflowDef, task.getName(), instance.getSupervisor());
+			mailService.sendDefinitionErrorMail(adminEmail, workflowDef, task, instance);
 			return;
 		}
 
