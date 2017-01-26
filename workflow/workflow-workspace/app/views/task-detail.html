@@ -81,15 +81,13 @@
 						</md-input-container>
 
 					</section>
-					
-					<section layout="row" layout-align="start center">			
-							
-						<md-input-container flex class="md-block" ng-if="task.description">
-							<label for="taskDescription">{{ 'description' | translate }}</label>
-							<input id="taskDescription" ng-model="task.description" readonly disabled>
-						</md-input-container>
-						
+
+					<section layout-align="start center" ng-if="task.description">
+						<label for="taskDescription" >{{ 'description' | translate }}</label>
+						<div id="taskDescription" ng-bind-html="task.description" class="disabledLabel" disabled>{{task.description}}</div>
 					</section>
+
+					<md-input-container class="md-block"></md-input-container>
 					
 				</md-card-content>
 			</md-card>
@@ -196,14 +194,14 @@
 							</md-input-container>
 							
 						</section>
-						
-						<section layout="row" layout-align="start center">
-							<md-input-container flex class="md-block" ng-if="historicTask.description" style="margin-top:0px">
-								<label for="processDescription">{{ 'description' | translate }}</label>
-								<input id="processDescription" ng-model="historicTask.description" readonly disabled>
-							</md-input-container>
+
+						<section layout-align="start center" ng-if="historicTask.description">
+							<label for="processDescription">{{ 'description' | translate }}</label>
+							<div id="processDescription" ng-bind-html="historicTask.description" class="disabledLabel" disabled>{{historicTask.description}}</div>
 						</section>
-						
+
+						<md-input-container class="md-block"></md-input-container>
+
 						<section layout="row" layout-align="start center">
 							<md-input-container class="md-block" flex="30" ng-if="task.endDate">
 								<label for="taskAssignee">{{ 'completedBy' | translate }}</label>

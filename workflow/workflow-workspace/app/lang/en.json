@@ -141,5 +141,9 @@
 	"notAuthorizedToUpdateTaskDetails": "You are not authorized to update the task details",
 	"instanceSupervisorChangeFailed": "The instance supervisor change failed",
 	"processInstanceName": "process instance name",
-	"process": "process"
+	"process": "process",
+	"clearFilters": "clear filters",
+	"startedAfter": "started after",
+	"startedBefore": "started before",
+	"inputCandidate": "input candidate"
 }

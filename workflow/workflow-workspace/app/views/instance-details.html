@@ -73,7 +73,7 @@
 							<p class="md-subhead">{{task.name}}</p>
 						</div>
 					</div>
-					
+
 					<section layout="row" layout-sm="column" layout-align="start center">
 					
 						<md-input-container class="md-block" flex="15" style="margin-right:15px">
@@ -98,16 +98,16 @@
 						</md-input-container>
 
 					</section>
-					
-					<section layout="row" layout-sm="column" layout-align="start center">
-									
-						<md-input-container flex class="md-block" ng-if="task.description">
-							<label for="processDescription" class="disabledLabel">{{'description' | translate }}</label>
-							<input id="processDescription" ng-model="task.description" readonly class="disabledLabel" disabled>
-						</md-input-container>
-						
+
+					<section layout="row" layout-sm="column" layout-align="start center" ng-if="task.description">
+						<section style="margin-right:15px">
+							<label for="processDescription">{{ 'description' | translate }}</label>
+							<div id="processDescription" ng-bind-html="task.description" class="disabledLabel" disabled>{{task.description}}</div>
+						</section>
 					</section>
-					
+
+					<md-input-container class="md-block" flex="15"></md-input-container>
+
 					<section layout="row" layout-sm="column" layout-align="start center" ng-if="!task.endDate">
 					
 						<md-input-container class="md-block" flex="30" style="margin-top: 0;">

@@ -27,9 +27,11 @@
 
             var sortOption = { title: 'status', id: 'status' };
             $scope.activeSortOptions.push(sortOption);
-            sortOption = { title: 'worker', id: 'supervisor' };
+            sortOption = { title: 'supervisor', id: 'supervisor' };
             $scope.activeSortOptions.push(sortOption);
             sortOption = { title: 'executionName', id: 'title' };
+            $scope.activeSortOptions.push(sortOption);
+            sortOption = { title: 'processDetail', id: 'definitionName' };
             $scope.activeSortOptions.push(sortOption);
 
             processService.getActiveProcesses().then(

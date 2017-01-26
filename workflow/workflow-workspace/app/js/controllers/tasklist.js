@@ -2,7 +2,7 @@
 
     'use strict';
 
-    angular.module('wfworkspaceControllers').controller('TaskListCtrl', ['$scope', '$mdDialog', 'processService', 'CONFIG',
+    angular.module('wfworkspaceControllers').controller('TaskListCtrl', ['$scope', '$location', '$mdDialog', '$filter', 'processService', 'CONFIG',
         /**
          * @name TaskListCtrl
          * @ngDoc controllers
@@ -10,13 +10,26 @@
          * 
          * @desc Controller for the Task list view
          */
-        function ($scope, $mdDialog, processService, config) {
+        function ($scope, $location, $mdDialog, $filter, processService, config) {
 
             $scope.claimTasks = [];
             $scope.tasks = [];
             $scope.assignedTasks = [];
             $scope.unAssignedTasks = {};
             $scope.taskMapByProcess = [];
+
+            $scope.sortOptions = [];
+            $scope.orderByOption = null;
+
+            $scope.sortOption = { title: 'dueTo', id: 'dueDate' };
+            $scope.sortOptions.push($scope.sortOption);
+            $scope.sortOption = { title: 'taskName', id: 'name' };
+            $scope.sortOptions.push($scope.sortOption);
+            $scope.sortOption = { title: 'process', id: 'definitionName' };
+            $scope.sortOptions.push($scope.sortOption);
+            $scope.sortOption = { title: 'processInstanceName', id: 'processInstance.title' };
+            $scope.sortOptions.push($scope.sortOption);
+
 
             $scope.imagePath = config.AVATARS_PATH;
 
@@ -86,6 +99,16 @@
             $scope.selectAllTasks = function () {
                 $scope.assignedTasks = $scope.tasks;
                 $scope.unAssignedTasks = $scope.claimTasks;
+            };
+
+            /**
+             * @memberOf TaskListCtrl
+             * @desc Sorts tasks by given option
+             *
+             * @param {String} optionId
+             */
+            $scope.sortBy = function (optionId) {
+                $scope.orderByOption = optionId;
             };
         }]);
 })(angular);

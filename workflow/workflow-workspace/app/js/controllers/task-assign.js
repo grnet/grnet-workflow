@@ -14,6 +14,7 @@
 
             $scope.imagePath = config.AVATARS_PATH;
             $scope.documentPath = config.WORKFLOW_DOCUMENTS_URL;
+            $scope.selectedUser = null;
 
             var taskId = $routeParams['taskId'];
             $scope.task = null;
@@ -107,6 +108,10 @@
                             $mdDialog.hide();
                         };
 
+                        $scope.hideDialog = function () {
+                            $mdDialog.hide();
+                        };
+
                         function setAssignee() {
                             processService.setAssigneeToTask($scope.task, $scope.task.assignee).then(
                                 function (response) {
@@ -128,22 +133,41 @@
                                 });
                         };
 
-                            $scope.notifyAdmin = function () {
-                            $scope.showProgressBar = false;
+                        $scope.notifyAdmin = function () {
+                            $scope.selectedUser = null;
+                            $mdDialog.show({
+                                controller: function ($scope, $mdDialog, processService, task) {
+                                    $scope.inputCancel = function () {
+                                        $scope.selectedUser = null;
+                                        $mdDialog.hide();
+                                    };
+                                    $scope.inputConfirm = function () {
+                                        $scope.showProgressBar = false;
 
-                            processService.notifyNoCandidates($scope.task.id).then(
-                                //success callback
-                                function () {
-                                    $scope.showProgressBar = false;
-                                    $mdDialog.hide();
+                                        processService.notifyNoCandidates(task.id, $scope.selectedUser).then(
+                                            //success callback
+                                            function () {
+                                                $scope.showProgressBar = false;
+                                            },
+                                            // error callback
+                                            function (response) {
+                                                $scope.showProgressBar = false;
+                                                exceptionModal(response);
+                                            }
+                                        );
+                                        $mdDialog.hide();
+                                    };
                                 },
-                                // error callback
-                                function (response) {
-                                    $scope.showProgressBar = false;
-                                    exceptionModal(response);
+                                templateUrl: 'templates/inputCandidate.tmpl.html',
+                                parent: document.body,
+                                clickOutsideToClose: false,
+                                locals: {
+                                    'processService': processService,
+                                    'task': $scope.task
                                 }
-                            );
-                        }
+                            });
+
+                        };
 
                         $scope.getCandidatesForTask = function () {
                             $scope.showProgressBar = true;

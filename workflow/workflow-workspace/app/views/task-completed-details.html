@@ -69,22 +69,18 @@
 				
 			</section>
 			
-			<section layout="row" layout-sm="column" layout-align="start center">
-			
-				<md-input-container ng-if="task.description" class="md-block" flex>
-					<label for="processDescription" class="disabledLabel">{{ 'description' | translate }}</label>
-					<input id="processDescription" ng-model="task.description" readonly class="disabledLabel" disabled>
-				</md-input-container>
-				
+			<section layout-align="start center" ng-if="task.description">
+				<label for="processDescription">{{ 'description' | translate }}</label>
+				<div id="processDescription" ng-bind-html="task.description" class="disabledLabel" disabled>{{task.description}}</div>
 			</section>
+
+			<md-input-container class="md-block"></md-input-container>
 			
 			<section layout="row" layout-align="start center">
-			
 				<md-input-container class="md-block" flex="30" style="margin-top:0">
 					<label for="taskAssignee" class="disabledLabel">{{ 'processingBy' | translate }}</label>
 					<input type="email" id="taskAssignee" ng-model="task.assignee" readonly style="width:99%;text-overflow: ellipsis;" class="disabledLabel" disabled></input>
 				</md-input-container>
-			
 			</section>
 		</md-card-content>
 	</md-card>

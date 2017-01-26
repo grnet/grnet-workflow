@@ -157,6 +157,11 @@
 					$scope.sortOptions = { title: 'taskName', id: 'name' };
 					$scope.options.push($scope.sortOptions);
 
+                    $scope.sortOptions = { title: 'process', id: 'definitionName' };
+                    $scope.options.push($scope.sortOptions);
+
+                    $scope.sortOptions = { title: 'processInstanceName', id: 'processInstance.title' };
+                    $scope.options.push($scope.sortOptions);
 				} else if (tab == 'assigned') {
 					$scope.sortOptions = { title: 'dueTo', id: 'dueDate' };
 					$scope.options.push($scope.sortOptions);
@@ -166,6 +171,12 @@
 
 					$scope.sortOptions = { title: 'worker', id: 'assignee' };
 					$scope.options.push($scope.sortOptions);
+
+                    $scope.sortOptions = { title: 'process', id: 'definitionName' };
+                    $scope.options.push($scope.sortOptions);
+
+                    $scope.sortOptions = { title: 'processInstanceName', id: 'processInstance.title' };
+                    $scope.options.push($scope.sortOptions);
 				}
 			};
 

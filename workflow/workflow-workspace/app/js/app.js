@@ -6,9 +6,9 @@
     'use strict';
     
     // system constants
-    var WORKFLOW_SERVICE_ENTRY = 'http://10.0.0.167:8080/grnet-workflow-engine/api';
-    var HOME_URL = 'http://10.0.0.167/workflow-workspace/index.html';
-    var WORKFLOW_DOCUMENTS_URL = 'http://10.0.0.167:8080/grnet-workflow-engine/document/';
+    var WORKFLOW_SERVICE_ENTRY = 'http://localhost:8080/engine/api';
+    var HOME_URL = 'http://localhost:81/workflow-workspace/index.html';
+    var WORKFLOW_DOCUMENTS_URL = 'http://localhost:8080/engine/document/';
     var AVATARS_PATH = 'img/avatars/';
     var DEFAULT_AVATAR = 'like.svg';
     var MAP_CENTER_LAT = 38.037496;
@@ -16,7 +16,7 @@
     var POSTCODE = 15235;
     
     /* create controllers module */
-    angular.module('wfworkspaceControllers', []);
+    angular.module('wfworkspaceControllers', ['ngSanitize']);
 
     /* create directives module */
     angular.module('wfDirectives', []);
@@ -171,7 +171,8 @@
 		                }).
 		                when('/inprogress', {
 		                    templateUrl: 'views/in-progress.html',
-		                    controller: 'InProgressCtrl'
+		                    controller: 'InProgressCtrl',
+	                        reloadOnSearch: false
 		                }).
 		                when('/instance/:instanceId', {
 		                    templateUrl: 'views/instance-details.html',

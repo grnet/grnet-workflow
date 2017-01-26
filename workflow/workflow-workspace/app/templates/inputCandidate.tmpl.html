@@ -1,0 +1,35 @@
+<md-dialog aria-label="{{ 'inputCandidate' | translate }}" style="min-height:200px; width:200px">
+	
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>{{ 'inputCandidate' | translate }}</h2>
+			
+            <span flex></span>
+            
+            <md-button class="md-icon-button" ng-click="cancel()">
+                <md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    
+    <md-dialog-content layout-padding>
+    
+    	<div layout="row" layout-sm="column" layout-align="space-around" ng-if="showProgressBar">
+    		<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
+   		</div>
+   		
+   		<md-content layout-align="start start" flex>
+			<md-input-container>
+				<label class="enabledLabel">{{ 'inputCandidate' | translate }}</label>
+				<input id="inputCandidate" ng-model="selectedUser" class="enabledLabel">
+			</md-input-container>
+		</md-content>
+	</md-dialog-content>
+	
+     <md-dialog-actions layout="row" layout-align="left center" style="padding-left: 0px;position: absolute;bottom: 0px;width: 100%;background-color: white;" 
+     	ng-if="!showProgressBar">
+     	<md-button class="md-raised md-primary" ng-click="inputConfirm()">{{ 'confirm' | translate}}</md-button>
+     	<md-button class="md-raised" ng-click="inputCancel()">{{ 'cancel' | translate }}</md-button>
+  	</md-dialog-actions>
+  		
+</md-dialog>

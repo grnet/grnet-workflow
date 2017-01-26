@@ -20,7 +20,7 @@
    		
    		<md-content layout-align="start start" flex style="max-height: 270px">
    			<md-radio-group ng-model="task.assignee">
-    			<md-radio-button ng-repeat="candidate in candidates" ng-value="candidate.email">{{candidate.lastName}} {{candidate.firstName}} 
+    			<md-radio-button ng-repeat="candidate in candidates" ng-value="candidate.email">{{candidate.lastName}} {{candidate.firstName}}
 	       			{{ 'pending' | translate }} : {{candidate.pendingTasks}}
        			</md-radio-button>
    			</md-radio-group>
@@ -35,8 +35,7 @@
      <md-dialog-actions layout="row" layout-align="left center" style="padding-left: 0px;position: absolute;bottom: 0px;width: 100%;background-color: white;" 
      	ng-if="!showProgressBar">
      	<md-button ng-if="candidates.length > 0" class="md-raised md-primary" ng-click="confirm()">{{ 'confirm' | translate}}</md-button>
-		<md-button ng-if="candidates.length == 0" class="md-raised md-primary" ng-click="notifyAdmin()">{{'notifyAdmin' | translate}}</md-button>
-     	<md-button ng-if="candidates.length == 0" class="md-raised md-primary" ng-click="getAllCandidates()">{{ 'showAll' | translate }}</md-button>
+		<md-button class="md-raised md-primary" ng-click="notifyAdmin()">{{'notifyAdmin' | translate}}</md-button>
      	<md-button class="md-raised" ng-click="cancel()">{{ 'cancel' | translate }}</md-button>
   	</md-dialog-actions>
   		

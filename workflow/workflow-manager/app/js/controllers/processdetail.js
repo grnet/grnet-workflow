@@ -2,7 +2,8 @@
 
     'use strict';
 
-    angular.module('wfmanagerControllers').controller('ProcessDetailCtrl', ['$scope', '$http', '$routeParams', '$location', '$mdDialog', '$filter', 'processService', 'auth', 'CONFIG',
+    angular.module('wfmanagerControllers').controller('ProcessDetailCtrl', ['$scope', '$http', '$routeParams', '$location',
+        '$mdDialog', '$filter', 'processService', 'auth', 'CONFIG',
         /**
          * @name ProcessDetailCtrl
          * @ngDoc controllers

@@ -450,10 +450,10 @@ public class ProcessController {
 	 * @throws InternalException
 	 * @throws InvalidRequestException
 	 */
-	@RequestMapping(value = "/processbpmn", method = RequestMethod.POST)
+	@RequestMapping(value = "/processbpmn:{justification}", method = RequestMethod.POST)
 	@ResponseBody
 	public WfProcess createProcessDefinition(@RequestPart("file") MultipartFile uploadedFileRef,
-			 @RequestPart String justification) throws InternalException, InvalidRequestException {
+			 @PathVariable String justification) throws InternalException, InvalidRequestException {
 
 		try {
 			return processService.createNewProcessDefinition(uploadedFileRef.getInputStream(),
@@ -479,11 +479,11 @@ public class ProcessController {
 	 * @throws InternalException
 	 * @throws InvalidRequestException
 	 */
-	@RequestMapping(value = "/process/{id}", method = RequestMethod.POST)
+	@RequestMapping(value = "/process/{id},{justification}", method = RequestMethod.POST)
 	@ResponseBody
 	@PreAuthorize("hasAnyRole('ProcessAdmin','Admin')")
 	public WfProcessVersion createProcessVersion(@PathVariable int id,
-			@RequestPart("file") MultipartFile uploadedFileRef, @RequestPart String justification)
+			@RequestPart("file") MultipartFile uploadedFileRef, @PathVariable String justification)
 			throws InternalException, InvalidRequestException {
 
 		try {

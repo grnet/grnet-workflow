@@ -93,12 +93,12 @@
 	
 	<md-card>
 		<md-card-content>
-		
-			<md-input-container class="md-block" ng-if="task.description">
-				<label for="processDescription" class="disabledLabel">{{ 'description' | translate }}</label>
-				<textarea id="processDescription" ng-model="task.description" readonly disabled></textarea>
-			</md-input-container>
-			
+
+			<section ng-if="task.description">
+				<label for="processDescription">{{ 'description' | translate }}</label>
+				<div id="processDescription" ng-bind-html="task.description" class="disabledLabel" disabled>{{task.description}}</div>
+			</section>
+
 			<nlk-process-form-item ng-repeat="item in task.taskForm" ng-model="item" wf-document-path="{{documentPath}}" wf-preview="true"></nlk-process-form-item>
 		</md-card-content>
 	</md-card>
