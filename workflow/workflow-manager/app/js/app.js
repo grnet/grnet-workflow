@@ -13,7 +13,7 @@
     var MAP_CENTER_LNG = 23.836321;
 
     // create controllers module
-    angular.module('wfmanagerControllers', ['angularTrix']);
+    angular.module('wfmanagerControllers', ['angularTrix', 'ngSanitize']);
 
     // create directives module
     angular.module('wfDirectives', []);

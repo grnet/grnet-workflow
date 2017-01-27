@@ -104,12 +104,12 @@
 					</section>
 					
 					<section layout="row" layout-align="start center" style="width: 100%">
-					
-						<md-input-container class="md-block" ng-if="task.description" flex>
-							<label for="processDescription" class="disabledLabel">{{'description' | translate }}</label>
-							<textarea id="processDescription" ng-model="task.description" readonly disabled></textarea>
-						</md-input-container>
-						
+						<section ng-if="task.description">
+							<label for="processDescription">{{ 'description' | translate }}</label>
+							<div id="processDescription" ng-bind-html="task.description" class="disabledLabel" disabled>{{task.description}}</div>
+						</section>
+
+						<md-input-container class="md-block" ng-if="task.description" flex></md-input-container>
 					</section>
 					
 				</md-card-content>
