@@ -72,14 +72,17 @@
 			</md-input-container>
 			
 			<md-input-container class="md-block" ng-if="task.assignee && task.endDate" flex="30" style="margin-top: 0;">
-				<label for="taskAssignee" class="disabledLabel">{{ 'completedBy' | translate }}</label>
-				<input id="taskAssignee" ng-model="task.assignee" readonly disabled>
+				<label for="taskAssigneeCompleted" class="disabledLabel">{{ 'completedBy' | translate }}</label>
+				<input id="taskAssigneeCompleted" ng-model="task.assignee" readonly disabled>
 			</md-input-container>
-			
-			<md-input-container class="md-block" ng-if="task.description">
-				<label for="processDescription" class="disabledLabel">{{ 'description' | translate }}</label>
-				<textarea id="processDescription" ng-model="task.description" readonly disabled></textarea>
-			</md-input-container>
+
+			<section ng-if="task.description">
+				<label for="processDescription">{{ 'description' | translate }}</label>
+				<div id="processDescription" ng-bind-html="task.description" class="disabledLabel" disabled>{{task.description}}</div>
+			</section>
+
+			<md-input-container class="md-block" ng-if="task.description" flex></md-input-container>
+
 			
 			</md-card-content>
 		</md-card>
