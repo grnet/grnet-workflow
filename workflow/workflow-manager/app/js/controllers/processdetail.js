@@ -13,6 +13,14 @@
          */
         function ($scope, $http, $routeParams, $location, $mdDialog, $filter, processService, authProvider, config) {
 
+            document.addEventListener("trix-focus", function(event) {
+                event.target.toolbarElement.style.display = "block";
+            });
+
+            document.addEventListener("trix-blur", function(event) {
+                event.target.toolbarElement.style.display = "none";
+            });
+
             $scope.processId = $routeParams.processId;
             $scope.selectedTab = "process";
             $scope.taskMetadataActiveView = "taskMetadata";

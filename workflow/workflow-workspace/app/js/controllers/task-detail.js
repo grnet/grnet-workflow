@@ -372,6 +372,7 @@
                         $scope.map["supervisor"] = task.processInstance.supervisor;
                         $scope.map["taskName"] = task.name;
                         $scope.map["processInstanceName"] = task.processInstance.title;
+                        $scope.map["process"] = task.definitionName;
 
                         $scope.cancel = function () {
                             $mdDialog.hide();
