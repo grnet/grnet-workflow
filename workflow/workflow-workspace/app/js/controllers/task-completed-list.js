@@ -37,6 +37,8 @@
             $scope.options.push($scope.sortOptions);
             $scope.sortOptions = { title: 'startDate', id: 'startDate' };
             $scope.options.push($scope.sortOptions);
+            $scope.sortOptions = { title: 'complete', id: 'endDate' };
+            $scope.options.push($scope.sortOptions);
 
 			processService.getActiveProcessDefinitions().then(
 				// success callback

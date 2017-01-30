@@ -3,28 +3,28 @@
  */
 (function () {
 
-	'use strict';
+    'use strict';
 
-	angular.module('wfmanagerControllers').controller('ActivityCtrl', ['$scope', '$filter', '$location', '$mdDialog', 'processService', 'CONFIG',
+    angular.module('wfmanagerControllers').controller('ActivityCtrl', ['$scope', '$filter', '$location', '$mdDialog', 'processService', 'CONFIG',
 
-		/**
-		 * @name ActivityCtrl
-		 * @ngDoc controllers
-		 * @memberof wfmanagerControllers
-		 * @desc Controller used by Activity view
-		 * @author nlyk
-		 */
-		function ($scope, $filter, $location, $mdDialog, processService, config) {
+        /**
+         * @name ActivityCtrl
+         * @ngDoc controllers
+         * @memberof wfmanagerControllers
+         * @desc Controller used by Activity view
+         * @author nlyk
+         */
+            function ($scope, $filter, $location, $mdDialog, processService, config) {
 
-			// constance variables in order to get images and documents url
-			$scope.documentPath = config.WORKFLOW_DOCUMENTS_URL;
-			$scope.imagePath = config.AVATARS_PATH;
+            // constance variables in order to get images and documents url
+            $scope.documentPath = config.WORKFLOW_DOCUMENTS_URL;
+            $scope.imagePath = config.AVATARS_PATH;
 
-			// initialize view to task list
-			$scope.activeView = "taskList";
+            // initialize view to task list
+            $scope.activeView = "taskList";
 
-			// search filter object
-            $scope.searchFilter = { dateAfter: null, dateBefore: null, user: null };
+            // search filter object
+            $scope.searchFilter = { dateAfter: null, dateBefore: null };
 
             // initialize search criteria
             initializeCriteria();
@@ -32,262 +32,265 @@
             $scope.options = [];
             $scope.orderByOption = null;
 
-            $scope.sortOption = { title: 'taskName', id: 'name' };
-			$scope.options.push($scope.sortOption);
-            $scope.sortOption = { title: 'processDetail', id: 'definitionName' };
-            $scope.options.push($scope.sortOption);
-            $scope.sortOption = { title: 'processInstanceName', id: 'processInstance.title' };
-            $scope.options.push($scope.sortOption);
-            $scope.sortOption = { title: 'startDate', id: 'startDate' };
-            $scope.options.push($scope.sortOption);
-            $scope.sortOption = { title: 'endDate', id: 'endDate' };
-            $scope.options.push($scope.sortOption);
-
+            $scope.sortOptions = { title: 'taskName', id: 'name' };
+            $scope.options.push($scope.sortOptions);
+            $scope.sortOptions = { title: 'endDate', id: 'endDate' };
+            $scope.options.push($scope.sortOptions);
 
             // get users in order to fill autocomplete
             processService.getUsers().then(
-				// success callback
-				function (response) {
-					$scope.users = response.data;
-					$scope.usersLoaded = true;
-				}
+                // success callback
+                function (response) {
+                    $scope.users = response.data;
+                }
             );
 
             /**
              * @memberof ActivityCtrl
-			 * 
-			 * @desc Used by autocomplete in order to return users that matches user's input
-             * 
+             *
+             * @desc Used by autocomplete in order to return users that matches user's input
+             *
              * @param {String} searchText
              */
             $scope.getMatches = function (searchText) {
-				$scope.text = searchText;
-				$scope.filteredUsers = $scope.users.filter(userFiltering);
+                $scope.text = searchText;
+                $scope.filteredUsers = $scope.users.filter(userFiltering);
 
-				$scope.enableProcessFilter = false;
-				$scope.definitions = {};
-			};
+                $scope.enableProcessFilter = false;
+                $scope.definitions = {};
+            };
 
-			/**
-			 * @memberof ActivityCtrl
-			 * 
-			 * @desc Returns any users that matched the user's input
-			 * 
-			 * @param {User} user
-			 * @returns Any matched users on given criteria
-			 */
-			var userFiltering = function (user) {
-				return (
-					user.email.toLowerCase().search($scope.text.toLowerCase()) > -1 ||
-					user.lastName.toLowerCase().search($scope.text.toLowerCase()) > -1 ||
-					user.username.toLowerCase().search($scope.text.toLowerCase()) > -1
-				);
-			};
+            /**
+             * @memberof ActivityCtrl
+             *
+             * @desc Returns any users that matched the user's input
+             *
+             * @param {User} user
+             * @returns Any matched users on given criteria
+             */
+            var userFiltering = function (user) {
+            	var curEmail = "";
+            	var curLastName = "";
+            	var curUsername = "";
 
-        	/**
-        	 * @memberof ActivityCtrl
-        	 * 
-        	 * @returns {Task[]} [tasks]
-        	 */
-			$scope.searchTasks = function () {
-				var dateAfterTime;
-				var dateBeforeTime;
+            	if(user.email)
+            		curEmail = user.email.toLowerCase();
+            	if(user.lastName)
+            		curLastName = user.lastName.toLowerCase();
+            	if(user.username)
+            		curUsername = user.username.toLowerCase();
 
-				if ($scope.searchFilter.dateAfter)
-					dateAfterTime = $scope.searchFilter.dateAfter.getTime();
-				else
-					dateAfterTime = 0;
+                return (
+                    curEmail.toLowerCase().search($scope.text) > -1 ||
+                    curLastName.toLowerCase().search($scope.text) > -1 ||
+                    curUsername.toLowerCase().search($scope.text) > -1
+                );
+            };
 
-				if ($scope.searchFilter.dateBefore)
-					dateBeforeTime = $scope.searchFilter.dateBefore.getTime();
-				else
-					dateBeforeTime = 0;
+            /**
+             * @memberof ActivityCtrl
+             *
+             * @returns {Task[]} [tasks]
+             */
+            $scope.searchTasks = function () {
+                var dateAfterTime;
+                var dateBeforeTime;
 
-				processService.getUserActivity(dateAfterTime, dateBeforeTime, $scope.searchFilter.user.id).then(
-					// success callback
-					function (response) {
-						$scope.userTasks = response.data;
-						if($scope.userTasks.length > 0){
-                            // enable process filter since we got tasks therefore process definitions
-                            // also select the "showAll" option
-                            $scope.enableProcessFilter = true;
-                            $scope.groupFilter.definitionId = "showAll";
-                        } else {
-                            $scope.enableProcessFilter = false;
-						}
+                if ($scope.searchFilter.dateAfter)
+                    dateAfterTime = $scope.searchFilter.dateAfter.getTime();
+                else
+                    dateAfterTime = 0;
 
-						$scope.definitions = {};
+                if ($scope.searchFilter.dateBefore)
+                    dateBeforeTime = $scope.searchFilter.dateBefore.getTime();
+                else
+                    dateBeforeTime = 0;
 
-						$scope.definitions["showAll"] = $scope.definitions["showAll"] || {
-							id: "showAll",
-							title: "showAll"
-						};
+                if (!$scope.selectedUser)
+                    return;
 
-						$scope.userTasks.forEach(function (element) {
+                // enable process filter since we got tasks therefore process definitions
+                // also select the "showAll" option
+                $scope.enableProcessFilter = true;
+                $scope.groupFilter.definitionId = "showAll";
 
-							if (element.dueDate != null)
-								$scope.dueDate = $filter('date')(element.dueDate, "d/M/yyyy");
+                processService.getUserActivity(dateAfterTime, dateBeforeTime, $scope.selectedUser.id).then(
+                    // success callback
+                    function (response) {
+                        $scope.userTasks = response.data;
+                        $scope.definitions = {};
 
-							if (element.endDate != null)
-								$scope.endDate = $filter('date')(element.endDate, "d/M/yyyy");
+                        $scope.definitions["showAll"] = $scope.definitions["showAll"] || {
+                                id: "showAll",
+                                title: "showAll"
+                            };
 
-							$scope.startDate = $filter('date')(element.startDate, "d/M/yyyy");
+                        $scope.userTasks.forEach(function (element) {
 
-							// get the definitions from tasks
-							var group = (element.processId || "_empty_").toString();
+                            if (element.dueDate != null)
+                                $scope.dueDate = $filter('date')(element.dueDate, "d/M/yyyy");
 
-							if (!$scope.definitions.hasOwnProperty(group)) {
-								$scope.definitions[group] = $scope.definitions[group] || {
-									id: element.processId,
-									title: element.definitionName
-								}
-							}
-						});
+                            if (element.endDate != null)
+                                $scope.endDate = $filter('date')(element.endDate, "d/M/yyyy");
 
+                            $scope.startDate = $filter('date')(element.startDate, "d/M/yyyy");
+
+                            // get the definitions from tasks
+                            var group = (element.processId || "_empty_").toString();
+
+                            if (!$scope.definitions.hasOwnProperty(group)) {
+                                $scope.definitions[group] = $scope.definitions[group] || {
+                                        id: element.processId,
+                                        title: element.definitionName
+                                    }
+                            }
+                        });
 
                         $scope.filteredTasks = $scope.userTasks;
-					},
-					// error callback
-					function (response) {
+                    },
+                    // error callback
+                    function (response) {
 
-					}
-				);
-			};
+                    }
+                );
+            };
 
-			/**
-			 * @memberof ActivityCtrl
-			 * 
-			 * @desc Applies definition filter once tasks sent from the api
-			 * 
-			 */
-			$scope.filterTasksByDefinition = function () {
-				var selectedDefinition = "" + $scope.groupFilter.definitionId;
+            /**
+             * @memberof ActivityCtrl
+             *
+             * @desc Applies definition filter once tasks sent from the api
+             *
+             */
+            $scope.filterTasksByDefinition = function () {
+                var selectedDefinition = "" + $scope.groupFilter.definitionId;
 
-				if (selectedDefinition.indexOf("showAll") >= 0) {
-					$scope.filteredTasks = $scope.userTasks;
+                if (selectedDefinition.indexOf("showAll") >= 0) {
+                    $scope.filteredTasks = $scope.userTasks;
 
-				} else {
-					$scope.filteredTasks = $scope.userTasks.filter(function (e) {
-						return selectedDefinition.indexOf(e.processId + "") >= 0;
-					});
-				}
-			};
+                } else {
+                    $scope.filteredTasks = $scope.userTasks.filter(function (e) {
+                        return selectedDefinition.indexOf(e.processId + "") >= 0;
+                    });
+                }
+            };
 
-			/**
-			 * @memberof ActivityCtrl
-			 * 
-			 * @desc Clears the date picker for the after date
-			 */
-			$scope.clearDateAfter = function () {
-				$scope.searchFilter.dateAfter = null;
+            /**
+             * @memberof ActivityCtrl
+             *
+             * @desc Clears the date picker for the after date
+             */
+            $scope.clearDateAfter = function () {
+                $scope.searchFilter.dateAfter = null;
 
-				$scope.searchTasks();
-			};
+                $scope.searchTasks();
+            };
 
-			/**
-			 * @memberof ActivityCtrl
-			 * 
-			 * @desc Clears the date picker for the before date
-			 */
-			$scope.clearDateBefore = function () {
-				$scope.searchFilter.dateBefore = null;
+            /**
+             * @memberof ActivityCtrl
+             *
+             * @desc Clears the date picker for the before date
+             */
+            $scope.clearDateBefore = function () {
+                $scope.searchFilter.dateBefore = null;
 
-				$scope.searchTasks();
-			};
+                $scope.searchTasks();
+            };
 
-			/**
-			 * @memberof ActivityCtrl
-			 * 
-			 * @desc Clears any filter
-			 */
-			$scope.clearAllFilters = function () {
-				$scope.searchFilter.dateAfter = null;
-				$scope.searchFilter.dateBefore = null;
+            /**
+             * @memberof ActivityCtrl
+             *
+             * @desc Clears any filter
+             */
+            $scope.clearAllFilters = function () {
+                $scope.searchFilter.dateAfter = null;
+                $scope.searchFilter.dateBefore = null;
 
-				$scope.searchText = null;
-				$scope.searchFilter.user = null;
+                $scope.searchText = null;
 
-				$scope.filteredTasks = [];
+                if ($scope.selectedUser)
+                    $scope.selectedUser.id = "";
 
-				$scope.enableProcessFilter = false;
-				$scope.definitions = {};
-			};
+                $scope.filteredTasks = [];
 
-			/**
-			 * @memberof ActivityCtrl
-			 * 
-			 * @desc Changes view to task's details
-			 * 
-			 * @param {Task} task 
-			 */
-			$scope.goToDetails = function (task) {
-				$scope.activeView = "taskDetails";
-				$scope.task = task;
-			};
+                $scope.enableProcessFilter = false;
+                $scope.definitions = {};
+            };
 
-			/**
-			 * @memberof ActivityCtrl
-			 * 
-			 * @desc Go back to previous page
-			 */
-			$scope.goBack = function () {
-				$scope.activeView = "taskList";
-			};
+            /**
+             * @memberof ActivityCtrl
+             *
+             * @desc Changes view to task's details
+             *
+             * @param {Task} task
+             */
+            $scope.goToDetails = function (task) {
+                $scope.activeView = "taskDetails";
+                $scope.task = task;
+            };
 
-			/**
-			 * @memberof ActivityCtrl
-			 * 
-			 * @desc Calculates difference in days between completed task date and due date
-			 * 
-			 * @param task {Task}
-			 * 
-			 * @returns {Number} The difference between the dates
-			 */
-			$scope.taskDelay = function (task) {
-				var diff;
+            /**
+             * @memberof ActivityCtrl
+             *
+             * @desc Go back to previous page
+             */
+            $scope.goBack = function () {
+                $scope.activeView = "taskList";
+            };
 
-				if (task.dueDate === null)
-					return Infinity;
+            /**
+             * @memberof ActivityCtrl
+             *
+             * @desc Calculates difference in days between completed task date and due date
+             *
+             * @param task {Task}
+             *
+             * @returns {Number} The difference between the dates
+             */
+            $scope.taskDelay = function (task) {
+                var diff;
 
-				if (task.endDate) {
-					diff = task.dueDate - task.endDate;
+                if (task.dueDate === null)
+                    return Infinity;
 
-				} else {
-					var completeDate = new Date();
-					diff = task.dueDate - completeDate.getDate();
-				}
+                if (task.endDate) {
+                    diff = task.dueDate - task.endDate;
 
-				var diffInDays = diff / (1000 * 3600 * 24);
-				return diffInDays;
-			};
+                } else {
+                    var completeDate = new Date();
+                    diff = task.dueDate - completeDate.getDate();
+                }
 
-			/**
-			 * @memberof ActivityCtrl
-			 * @desc Sorts the user tasks's based on the selection
-			 *  
-			 * @param {String} optionId - Sorted by that option
-			 */
-			$scope.sortBy = function (optionId) {
-				$scope.orderByOption = optionId;
-			};
+                var diffInDays = diff / (1000 * 3600 * 24);
+                return diffInDays;
+            };
 
-			/**
-			 * @memberof ActivityCtrl
-			 * @desc Initializes all search criteria
-			 * 
-			 */
-			function initializeCriteria() {
-				$scope.searchFilter.dateAfter = new Date();
-				$scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
+            /**
+             * @memberof ActivityCtrl
+             * @desc Sorts the user tasks's based on the selection
+             *
+             * @param {String} optionId - Sorted by that option
+             */
+            $scope.sortBy = function (optionId) {
+                $scope.orderByOption = "-" + optionId;
+            };
 
-				$scope.searchFilter.dateBefore = new Date();
-				$scope.searchFilter.dateBefore.setDate($scope.searchFilter.dateBefore.getDate() + 1);
+            /**
+             * @memberof ActivityCtrl
+             * @desc Initializes all search criteria
+             *
+             */
+            function initializeCriteria() {
+                $scope.searchFilter.dateAfter = new Date();
+                $scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
 
-				$scope.maxDateBefore = new Date();
-				$scope.maxDateBefore.setDate($scope.maxDateBefore.getDate() + 1);
+                $scope.searchFilter.dateBefore = new Date();
+                $scope.searchFilter.dateBefore.setDate($scope.searchFilter.dateBefore.getDate() + 1);
 
-				$scope.groupFilter = { definitionId: null };
-				$scope.enableProcessFilter = false;
-			};
-		}]);
+                $scope.maxDateBefore = new Date();
+                $scope.maxDateBefore.setDate($scope.maxDateBefore.getDate() + 1);
+
+                $scope.groupFilter = { definitionId: null };
+                $scope.enableProcessFilter = false;
+            };
+        }]);
 })(angular);

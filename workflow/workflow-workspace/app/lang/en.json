@@ -146,5 +146,9 @@
 	"clearFilters": "clear filters",
 	"startedAfter": "started after",
 	"startedBefore": "started before",
-	"inputCandidate": "input candidate"
+	"inputCandidate": "input candidate",
+	"status": "status",
+	"running": "running",
+	"ended": "ended",
+	"deleted": "deleted"
 }
