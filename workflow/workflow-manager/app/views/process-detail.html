@@ -53,10 +53,12 @@
 							<input id="processName" ng-model="workflowDefinition.name" required>
 						</md-input-container>
 
-						<md-input-container flex class="md-block">
+						<section layout-align="start start">
 							<label for="processDescription" class="enabledLabel">{{ 'description' | translate }}</label>
 							<trix-editor angular-trix id="processDescription" ng-model="workflowDefinition.description"></trix-editor>
-						</md-input-container>
+						</section>
+
+						<md-input-container flex class="md-block"></md-input-container>
 
 						<section layout="row" layout-align="start start">
 
@@ -164,11 +166,11 @@
 				
 					<md-card>
 						<md-card-content>
-						
-							<md-input-container class="md-block">
+
+							<section layout-align="start start">
 								<label class="enabledLabel">{{'taskDescription' | translate }}</label>
 								<trix-editor angular-trix ng-model="editTaskDetails.description" rows="3" md-select-on-focus class="enabledLabel"></trix-editor>
-							</md-input-container>
+							</section>
 		
 							<md-checkbox id="coordinatorAssigned" ng-model="editTaskDetails.assign">{{'assignmentsByCoordinator' | translate }}</md-checkbox>
 							
