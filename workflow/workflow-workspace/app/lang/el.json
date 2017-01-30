@@ -146,5 +146,9 @@
 	"clearFilters": "καθαρισμός φίλτρων",
 	"startedAfter": "έναρξη μετά",
 	"startedBefore": "έναρξη πρίν",
-	"inputCandidate": "εισαγωγή υποψηφίου"
+	"inputCandidate": "εισαγωγή υποψηφίου",
+	"status": "κατάσταση",
+	"running": "σε εξέλιξη",
+	"ended": "ολοκληρώθηκε",
+	"deleted": "διαγράφηκε"
 }

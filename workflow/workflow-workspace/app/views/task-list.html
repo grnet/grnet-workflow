@@ -66,7 +66,7 @@
 					<md-list-item class="md-3-line" ng-click="goTo('/task/' + task.id)">
 						<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}"/>
 						<div class="md-list-item-text" layout="column">
-							<h3>{{task.processInstance.title}} - {{task.name}}</h3>
+							<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
 							<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
 							<p flex ng-if="task.dueDate">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
 								<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"
@@ -97,7 +97,7 @@
 					<md-list-item class="md-3-line" ng-click="goTo('/task/' + task.id)">
 						<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}"/>
 						<div class="md-list-item-text" layout="column">
-							<h3>{{task.processInstance.title}} - {{task.name}}</h3>
+							<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
 							<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
 							<p flex ng-if="task.dueDate">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
 								<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"

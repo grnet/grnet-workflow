@@ -52,8 +52,8 @@
 					<div class="card-header">
 						<md-icon md-svg-src="img/avatars/{{task.icon}}" class="md-avatar" style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
 						<div class="after-icon">
-							<h2 class="md-title">{{task.processInstance.title}}</h2>
-							<p class="md-subhead" style="display:block">{{task.name}}</p>
+							<h2 class="md-title">[{{task.processInstance.title}}] {{task.name}}</h2>
+							<p class="md-subhead">{{ 'process' | translate}}: {{task.definitionName}}</p>
 						</div>
 					</div>
 					
@@ -141,7 +141,7 @@
 					<md-card ng-repeat="task in historyTasks">
 						<md-list-item class="md-2-line" ng-click="goToCompletedTask(task.id)">
 							<div class="md-list-item-text" layout="column">
-								<h3>{{task.processInstance.title}}</h3>
+								<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
 								<p>{{task.name}}
 									<span ng-if="task.dueDate" class="cardInline" >{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
 										<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"
@@ -164,8 +164,8 @@
 						<div class="card-header">
 							<md-icon md-svg-src="img/avatars/{{historicTask.icon}}" class="md-avatar" style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
 							<div class="after-icon">
-								<h2 class="md-title">{{historicTask.processInstance.title}}</h2>
-								<p class="md-subhead" style="display:block">{{historicTask.name}}</p>
+								<h2 class="md-title">[{{task.processInstance.title}}] {{task.name}}</h2>
+								<p class="md-subhead">{{ 'process' | translate}}: {{task.definitionName}}</p>
 							</div>
 						</div>
 						

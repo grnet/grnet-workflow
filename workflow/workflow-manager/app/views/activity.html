@@ -68,25 +68,18 @@
 					</md-button>
 				</section>
 
-				<md-input-container class="md-block" >
-					<label for="users">{{ 'searchForUser' | translate }}</label>
-					<md-select ng-model="searchFilter.user" ng-change="searchTasks()">
-						<md-option ng-repeat="user in users | orderBy:'lastName'" ng-value="user" id="users">{{user.lastName}} {{user.firstName}}</md-option>
-					</md-select>
-				</md-input-container>
-
-				<!--<md-autocomplete md-selected-item="selectedUser" md-search-text="searchText" style="padding-bottom: 10px;"-->
-					<!--md-items = "user in getMatches(searchText)"-->
-					<!--md-selected-item-change = "searchTasks()"-->
-					<!--md-search-text-change = "getMatches(searchText)"-->
-					<!--md-no-cache = "noCache"-->
-					<!--md-min-length = "2"-->
-					<!--ng-required = "true"-->
-					<!--ng-model-options = "{debounce: 500}"-->
-					<!--placeholder = "{{'searchForUser' | translate}}"-->
-					<!--md-item-text = "selectedUser.firstName + ' ' + selectedUser.lastName">-->
-					<!--<span>{{user.lastName}} {{user.firstName}}</span>-->
-				<!--</md-autocomplete>-->
+				<md-autocomplete md-selected-item="selectedUser" md-search-text="searchText" style="padding-bottom: 10px;"
+								 md-items = "user in filteredUsers"
+								 md-selected-item-change = "searchTasks()"
+								 md-search-text-change = "getMatches(searchText)"
+								 md-no-cache = "noCache"
+								 md-min-length = "2"
+								 ng-required = "true"
+								 ng-model-options = "{debounce: 500}"
+								 placeholder = "{{'searchForUser' | translate}}"
+								 md-item-text = "selectedUser.firstName + ' ' + selectedUser.lastName">
+					<span>{{user.lastName}} {{user.firstName}}</span>
+				</md-autocomplete>
 
 				<md-input-container class="md-block" ng-if="enableProcessFilter">
 					<label for="workflowDefinitions">{{ 'processes' | translate }}</label>
@@ -128,12 +121,10 @@
 						<md-list-item class="md-3-line" ng-click="goToDetails(task)">
 							<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
 							<div class="md-list-item-text" layout="column">
-								<h3>{{task.name}}</h3>
-								<p flex>{{ 'processInstanceName' | translate }}: {{task.processInstance.title}}</p>
-								<p flex>{{ 'process' | translate}}: {{task.definitionName}}
-									<span class="cardInline" ng-if="task.endDate != null">{{'completedOn' | translate }} : {{task.endDate | date:'d/M/yyyy'}}</span>
-									<span class="cardInLine" ng-if="task.endDate == null">{{'running' | translate }}</span>
-								</p>
+								<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
+								<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
+								<p flex ng-if="task.endDate != null">{{'completedOn' | translate }} : {{task.endDate | date:'d/M/yyyy'}}</p>
+								<p flex ng-if="task.endDate == null">{{'running' | translate }}</p>
 							</div>
 							<md-icon md-svg-icon="img/icons/stop-sign.svg" ng-if="task.processInstance.status == 'deleted'" title="deleted"
 								style="margin-bottom: 0;height: 18px; width: 18px;">
@@ -157,8 +148,8 @@
 							<md-icon md-svg-src="img/avatars/{{task.icon}}" class="md-avatar" style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
 							
 							<div class="after-icon">
-								<h2 class="md-title">{{task.processInstance.title}}</h2>
-								<p class="md-subhead" style="display:block">{{task.name}}</p>
+								<h2 class="md-title">[{{task.processInstance.title}}] {{task.name}}</h2>
+								<p class="md-subhead">{{ 'process' | translate}}: {{task.definitionName}}</p>
 							</div>
 							
 						</div>

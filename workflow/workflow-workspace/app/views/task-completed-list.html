@@ -112,7 +112,7 @@
 				<md-list-item class="md-3-line" ng-click="goTo('/completed/' + task.id)">
 					<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
 					<div class="md-list-item-text" layout="column">
-						<h3>{{task.processInstance.title}} - {{task.name}}</h3>
+						<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
 						<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
 						<section layout="row">
 							<p flex>{{ 'completedBy' | translate }}: {{task.assignee}}</p>
