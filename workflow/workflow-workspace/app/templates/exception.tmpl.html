@@ -17,7 +17,7 @@
 	
 		<md-content layout="row" layout-align="start center" layout-padding style="min-height: 55px; padding-left:0px">
 			<span ng-if="error.message">{{ error.message | translate }}</span>
-			<span ng-if="!error.message">{{ 'claimTaskNotActive' | translate }}</span>
+			<span ng-if="!error.message">{{ 'serverError' | translate }}</span>
 		</md-content>
 		<md-content layout="row" layout-align="start center" layout-padding style="min-height: 55px; padding-left:0px"
 					ng-repeat="(key, value) in map">
