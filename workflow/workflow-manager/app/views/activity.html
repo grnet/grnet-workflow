@@ -123,8 +123,8 @@
 							<div class="md-list-item-text" layout="column">
 								<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
 								<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
-								<p flex ng-if="task.endDate != null">{{'completedOn' | translate }} : {{task.endDate | date:'d/M/yyyy'}}</p>
-								<p flex ng-if="task.endDate == null">{{'running' | translate }}</p>
+								<p flex ng-if="task.endDate != null">{{'completedOn' | translate }}: {{task.endDate | date:'d/M/yyyy'}}</p>
+								<p flex ng-if="task.endDate == null">{{ 'status' | translate }}: {{'running' | translate }}</p>
 							</div>
 							<md-icon md-svg-icon="img/icons/stop-sign.svg" ng-if="task.processInstance.status == 'deleted'" title="deleted"
 								style="margin-bottom: 0;height: 18px; width: 18px;">

@@ -1,4 +1,4 @@
-<md-dialog aria-label="{{ 'inputCandidate' | translate }}" style="min-height:200px; width:200px">
+<md-dialog aria-label="{{ 'inputCandidate' | translate }}" style="min-height:300px; width:300px">
 	
 	<md-toolbar>
 		<div class="md-toolbar-tools">
@@ -6,7 +6,7 @@
 			
             <span flex></span>
             
-            <md-button class="md-icon-button" ng-click="cancel()">
+            <md-button class="md-icon-button" ng-click="inputCancel()">
                 <md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
             </md-button>
         </div>
@@ -18,7 +18,7 @@
     		<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
    		</div>
    		
-   		<md-content layout-align="start start" flex>
+   		<md-content layout-align="start start" flex style="max-height: 170px">
 			<md-input-container>
 				<label class="enabledLabel">{{ 'inputCandidate' | translate }}</label>
 				<input id="inputCandidate" ng-model="selectedUser" class="enabledLabel">
