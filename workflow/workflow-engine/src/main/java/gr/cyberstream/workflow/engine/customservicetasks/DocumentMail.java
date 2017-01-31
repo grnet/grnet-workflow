@@ -39,7 +39,6 @@ public class DocumentMail implements JavaDelegate {
 	private Expression from;
 	private Expression to;
 	private Expression subject;
-	private Expression body;
 	private Expression attachment;
 	private Expression bcc;
 	private Expression cc;
@@ -65,9 +64,6 @@ public class DocumentMail implements JavaDelegate {
 
 		String msgSubject = (String) subject.getValue(execution);
 		logger.debug("subject: " + msgSubject);
-
-		String msgBody = (String) body.getValue(execution);
-		logger.debug("body: " + msgBody);
 
 		String documentVar = null;
 		
