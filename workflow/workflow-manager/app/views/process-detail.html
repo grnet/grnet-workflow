@@ -49,12 +49,12 @@
 					<form name="processForm">
 					
 						<md-input-container class="md-block">
-							<label for="processName" class="enabledLabel">{{ 'processTitle' | translate }}</label>
+							<label for="processName">{{ 'processTitle' | translate }}</label>
 							<input id="processName" ng-model="workflowDefinition.name" required>
 						</md-input-container>
 
 						<section layout-align="start start">
-							<label for="processDescription" class="enabledLabel">{{ 'description' | translate }}</label>
+							<label for="processDescription">{{ 'description' | translate }}</label>
 							<trix-editor angular-trix id="processDescription" ng-model="workflowDefinition.description"></trix-editor>
 						</section>
 
@@ -63,7 +63,7 @@
 						<section layout="row" layout-align="start start">
 
 							<md-input-container class="md-block" flex="20">
-								<label for="processIcon" class="enabledLabel">{{ 'icon' | translate }}</label>
+								<label for="processIcon">{{ 'icon' | translate }}</label>
 								<input id="processIcon" readonly ng-model="iconName">
 							</md-input-container>
 							
@@ -99,7 +99,7 @@
 
 						<section layout="row" layout-sm="column" layout-align="start center">
 							<md-input-container class="md-block" flex="100" ng-show="workflowDefinition.activeDeploymentId !== null && findActiveVersion() !== null">
-									<label for="processJustification" class="enabledLabel">{{ 'justification' | translate }}</label>
+									<label for="processJustification">{{ 'justification' | translate }}</label>
 									<textarea id="processJustification" readonly>{{getVersionJustification()}}</textarea>
 								</md-input-container>
 						</section>
@@ -107,7 +107,7 @@
 						<md-checkbox ng-model="workflowDefinition.assignBySupervisor">{{ 'assignmentsByCoordinator' | translate }}</md-checkbox>
 						
 						<md-input-container class="md-block" flex="35">
-							<label class="enabledLabel">{{ 'owner' | translate }}</label>
+							<label>{{ 'owner' | translate }}</label>
 							<md-select ng-model="workflowDefinition.owner" required>
 								<md-option ng-repeat="group in groups" value="{{group}}">{{group}}</md-option>
 							</md-select>
@@ -168,7 +168,7 @@
 						<md-card-content>
 
 							<section layout-align="start start">
-								<label class="enabledLabel">{{'taskDescription' | translate }}</label>
+								<label>{{'taskDescription' | translate }}</label>
 								<trix-editor angular-trix ng-model="editTaskDetails.description" rows="3" md-select-on-focus class="enabledLabel"></trix-editor>
 							</section>
 		

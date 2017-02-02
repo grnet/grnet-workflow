@@ -30,7 +30,7 @@
 <section layout="row" layout-align="start center" ng-if="!ngReadonly" class="{{ngRequired ? 'wf-required' : ''}}">
 
 	<md-input-container flex class="docInputDoc md-block">
-		<label for="title" style="white-space: nowrap;" class="enabledLabel">{{wfDocumentLabel}}</label>
+		<label for="title" style="white-space: nowrap;">{{wfDocumentLabel}}</label>
         <input type="text" id="title" name="title" readonly="true" ng-model="ngModel.title" ng-required="ngRequired"/>
     </md-input-container>
     
@@ -45,7 +45,7 @@
     </a>
     
 	<md-input-container flex class="docInputRef md-block">
-        <label for="refNo" class="enabledLabel">{{ 'referenceNumber' | translate }}</label>
+        <label for="refNo">{{ 'referenceNumber' | translate }}</label>
         <input type="text" id="refNo" name="refNo" readonly="true" ng-model="ngModel.refNo"/>
     </md-input-container>
     

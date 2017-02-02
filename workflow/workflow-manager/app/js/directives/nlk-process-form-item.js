@@ -82,7 +82,7 @@
                     case 'conversation':
 						inputTmpl =
 							'<wf-conversation id="{{ngModel.id}}" ' +
-							'wf-conversation-label="{{ngModel.name}}" ng-model="ngModel.value" ng-class=" !ngModel.writable || wfPreview() ? \'disabledLabel\' : \'enabledLabel\' "' +
+							'wf-conversation-label="{{ngModel.name}}" ng-model="ngModel.value"' +
 							'ng-required="ngModel.required" ng-readonly="!ngModel.writable || wfPreview()">' +
 							'</wf-conversation>';
 						break;
@@ -100,7 +100,7 @@
 						inputTmpl =
 							'<section layout="row" class="md-block">' +
 							'<md-input-container class="md-block {{ngModel.required ? \'wf-required\' : \'\'}}" style="width:500px;">' +
-							'<label for="{{ngModel.id}}" ng-class=" !ngModel.writable || wfPreview() ? \'disabledLabel\' : \'enabledLabel\' ">{{ngModel.name}}</label>' +
+							'<label for="{{ngModel.id}}">{{ngModel.name}}</label>' +
 							'<input id="{{ngModel.id}}" type="email" ' +
 							'ng-model="ngModel.value" ' +
 							'ng-required="ngModel.required" ' +
@@ -133,7 +133,7 @@
 						inputTmpl =
 							'<section layout="row" class="md-block">' +
 							'<md-input-container class="md-block {{ngModel.required ? \'wf-required\' : \'\'}}">' +
-							'<label for="{{ngModel.id}}" style="white-space: nowrap;" ng-class=" !ngModel.writable || wfPreview() ? \'disabledLabel\' : \'enabledLabel\' ">{{ngModel.name}}</label>' +
+							'<label for="{{ngModel.id}}" style="white-space: nowrap;">{{ngModel.name}}</label>' +
 							'<md-select id="{{ngModel.id}}" ' +
 							'ng-model="ngModel.value" ' +
 							'style="font-size:15px" ' +
@@ -170,7 +170,7 @@
                         inputTmpl =
 							'<section layout="row" class="md-block">' +
 							'<md-input-container class="md-block {{ngModel.required ? \'wf-required\' : \'\'}}" style="width:100%;">' +
-							'<label for="{{ngModel.id}}" ng-class=" !ngModel.writable || wfPreview() ? \'disabledLabel\' : \'enabledLabel\' ">{{ngModel.name}}</label>' +
+							'<label for="{{ngModel.id}}">{{ngModel.name}}</label>' +
 							'<input id="{{ngModel.id}}" type="text" ' +
 							'ng-model="ngModel.value" ' +
 							'ng-required="ngModel.required" ' +

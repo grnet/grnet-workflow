@@ -2740,7 +2740,7 @@ public class ProcessService {
 				}
 
 				activitiTaskSrv.claim(wfTask.getId(), assigneeId);
-				mailService.sendTaskAssignedMail(assigneeId, wfTask.getId(), wfTask.getName(), wfTask.getDueDate());
+				mailService.sendTaskAssignedMail(assigneeId, wfTask);
 
 			} catch (ActivitiException e) {
 				logger.error("Failed to assign task " + e.getMessage());
@@ -2844,7 +2844,7 @@ public class ProcessService {
 				}
 
 				activitiTaskSrv.claim(wfTask.getId(), assigneeId);
-				mailService.sendTaskAssignedMail(assigneeId, wfTask.getId(), wfTask.getName(), wfTask.getDueDate());
+				mailService.sendTaskAssignedMail(assigneeId, wfTask);
 
 			} catch (ActivitiException e) {
 				logger.error(e.getMessage());
@@ -2866,20 +2866,27 @@ public class ProcessService {
 	 */
 	public void unClaimTask(String taskId) throws InvalidRequestException {
 		String user = getAccessToken().getEmail();
-		Task task;
-		WorkflowInstance instance;
+		Task task = null;
+		WorkflowInstance instance = null;
 
-		task = activitiTaskSrv.createTaskQuery().taskId(taskId).singleResult();
-		instance = processRepository.getInstanceById(task.getProcessInstanceId());
+		try{
+			task = activitiTaskSrv.createTaskQuery().taskId(taskId).singleResult();
+			instance = processRepository.getInstanceById(task.getProcessInstanceId());
 
-		if (instance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
-			throw new InvalidRequestException("claimTaskInstanceSuspended");
+			if (instance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
+				throw new InvalidRequestException("claimTaskInstanceSuspended");
 
-		if (instance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
-			throw new InvalidRequestException("claimTaskInstanceDeleted");
+			if (instance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
+				throw new InvalidRequestException("claimTaskInstanceDeleted");
 
-		if (instance.getStatus().equals(WorkflowInstance.STATUS_ENDED))
-			throw new InvalidRequestException("claimTaskInstanceEnded");
+			if (instance.getStatus().equals(WorkflowInstance.STATUS_ENDED))
+				throw new InvalidRequestException("claimTaskInstanceEnded");
+		}
+		catch(Exception exception){
+			if(!(exception instanceof InvalidRequestException)){
+				throw new InvalidRequestException("claimTaskInstanceNotActive");
+			}
+		}
 
 		// check if user is supervisor of the task's instance, or the assignee
 		// itself or user has role admin
@@ -2908,17 +2915,24 @@ public class ProcessService {
 		Task task;
 		WorkflowInstance instance;
 
-		task = activitiTaskSrv.createTaskQuery().taskId(taskId).singleResult();
-		instance = processRepository.getInstanceById(task.getProcessInstanceId());
+		try {
+			task = activitiTaskSrv.createTaskQuery().taskId(taskId).singleResult();
+			instance = processRepository.getInstanceById(task.getProcessInstanceId());
 
-		if (instance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
-			throw new InvalidRequestException("claimTaskInstanceSuspended");
+			if (instance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
+				throw new InvalidRequestException("claimTaskInstanceSuspended");
 
-		if (instance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
-			throw new InvalidRequestException("claimTaskInstanceDeleted");
+			if (instance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
+				throw new InvalidRequestException("claimTaskInstanceDeleted");
 
-		if (instance.getStatus().equals(WorkflowInstance.STATUS_ENDED))
-			throw new InvalidRequestException("claimTaskInstanceEnded");
+			if (instance.getStatus().equals(WorkflowInstance.STATUS_ENDED))
+				throw new InvalidRequestException("claimTaskInstanceEnded");
+		}
+		catch(Exception exception){
+			if(!(exception instanceof InvalidRequestException)){
+				throw new InvalidRequestException("claimTaskInstanceNotActive");
+			}
+		}
 
 		activitiTaskSrv.claim(taskId, getAccessToken().getEmail());
 	}
@@ -3097,7 +3111,7 @@ public class ProcessService {
 				unAssigned = true;
 			}
 
-			mailService.sendDueTaskMail(recipient, task.getId(), task.getName(), task.getDueDate(), unAssigned);
+			mailService.sendDueTaskMail(recipient, task, unAssigned);
 		}
 
 		List<Task> expiredTasks = activitiTaskSrv.createTaskQuery().active().taskDueBefore(today).list();
@@ -3114,7 +3128,7 @@ public class ProcessService {
 				unAssigned = true;
 			}
 
-			mailService.sendTaskExpiredMail(recipient, task.getId(), task.getName(), task.getDueDate(), unAssigned);
+			mailService.sendTaskExpiredMail(recipient, task, unAssigned);
 		}
 	}
 
@@ -3448,7 +3462,7 @@ public class ProcessService {
 		activitiTaskSrv.claim(task.getId(), userEmail);
 
 		if (settings.isAssignmentNotification())
-			mailService.sendTaskAssignedMail(userEmail, task.getId(), task.getName(), task.getDueDate());
+			mailService.sendTaskAssignedMail(userEmail, new WfTask(task));
 	}
 
 	/**
