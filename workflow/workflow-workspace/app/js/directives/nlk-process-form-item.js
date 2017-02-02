@@ -25,7 +25,7 @@
                         inputTmpl =
 							'<section layout="row" class="md-block">' +
 							'<md-input-container ng-if="ngModel.readable" class="md-block">' +
-							'<label for="{{ngModel.id}}" ng-class=" !ngModel.writable || wfPreview() ? \'disabledLabel\' : \'enabledLabel\' ">{{ngModel.name}}</label>' +
+							'<label for="{{ngModel.id}}">{{ngModel.name}}</label>' +
 							'<input id="{{ngModel.id}}" type="number" ' +
 							'ng-model="ngModel.value" ' +
 							'ng-required="ngModel.required"' +
@@ -100,7 +100,7 @@
 						inputTmpl =
 							'<section layout="row" class="md-block">' +
 							'<md-input-container class="md-block {{ngModel.required ? \'wf-required\' : \'\'}}" style="width:500px;">' +
-							'<label for="{{ngModel.id}}" ng-class=" !ngModel.writable || wfPreview() ? \'disabledLabel\' : \'enabledLabel\' ">{{ngModel.name}}</label>' +
+							'<label for="{{ngModel.id}}">{{ngModel.name}}</label>' +
 							'<input id="{{ngModel.id}}" type="email" ' +
 							'ng-model="ngModel.value" ' +
 							'ng-required="ngModel.required" ' +
@@ -116,7 +116,7 @@
 						inputTmpl =
 							'<section layout="row" class="md-block">' +
 							'<md-input-container class="md-block {{ngModel.required ? \'wf-required\' : \'\'}}" style="width:500px;" >' +
-							'<label for="{{ngModel.id}}" ng-class=" !ngModel.writable || wfPreview() ? \'disabledLabel\' : \'enabledLabel\' ">{{ngModel.name}}</label>' +
+							'<label for="{{ngModel.id}}">{{ngModel.name}}</label>' +
 							'<textarea id="{{ngModel.id}}" ' +
 							'ng-model="ngModel.value" ' +
 							'ng-required="ngModel.required" ' +
@@ -132,7 +132,7 @@
 						inputTmpl =
 							'<section layout="row" class="md-block">' +
 							'<md-input-container class="md-block {{ngModel.required ? \'wf-required\' : \'\'}}">' +
-							'<label for="{{ngModel.id}}" style="white-space: nowrap;" ng-class=" !ngModel.writable || wfPreview() ? \'disabledLabel\' : \'enabledLabel\' ">{{ngModel.name}}</label>' +
+							'<label for="{{ngModel.id}}" style="white-space: nowrap;">{{ngModel.name}}</label>' +
 							'<md-select id="{{ngModel.id}}" ' +
 							'ng-model="ngModel.value" ' +
 							'style="font-size:15px" ' +
@@ -151,7 +151,7 @@
 						inputTmpl =
 							'<section layout="row" class="md-block">' +
 							'<md-input-container style="padding-left:0px;">' +
-							'<label class="wf-label" ng-class=" !ngModel.writable || wfPreview() ? \'disabledLabel\' : \'enabledLabel\' ">{{ ngModel.name }}</label> ' +
+							'<label class="wf-label">{{ ngModel.name }}</label> ' +
 							'<input mdc-datetime-picker date="true" time="ngModel.time" type="text" id="{{ngModel.id}}" short-time="true" min-date="minDate" ' +
 							'ng-disabled="!ngModel.writable || wfPreview()" ng-required="ngModel.required" ' +
 							'placeholder="{{ngModel.name}}" format="{{ngModel.datePattern}}" ng-model="ngModel.value"></input> ' +
@@ -170,7 +170,7 @@
                         inputTmpl =
 							'<section layout="row" class="md-block">' +
 							'<md-input-container class="md-block {{ngModel.required ? \'wf-required\' : \'\'}}" style="width:500px;">' +
-							'<label for="{{ngModel.id}}" ng-class=" !ngModel.writable || wfPreview() ? \'disabledLabel\' : \'enabledLabel\' ">{{ngModel.name}}</label>' +
+							'<label for="{{ngModel.id}}">{{ngModel.name}}</label>' +
 							'<input id="{{ngModel.id}}" type="text" ' +
 							'ng-model="ngModel.value" ' +
 							'ng-required="ngModel.required" ' +

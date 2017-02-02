@@ -47,12 +47,12 @@
 					<md-input-container class="md-block"></md-input-container>
 
 					<md-input-container class="md-block">
-						<label for="title" class="enabledLabel">{{ 'executionTitle' | translate }}</label>
+						<label for="title" >{{ 'executionTitle' | translate }}</label>
 						<textarea id="title" ng-model="instance.title" ng-required="true" class="enabledLabel"></textarea>
 					</md-input-container>
 					
 					<md-input-container class="md-block">
-						<label for="supervisor" class="enabledLabel">{{ 'coordinator' | translate }}</label>
+						<label for="supervisor" >{{ 'coordinator' | translate }}</label>
 						<md-select id="supervisor" ng-model="instance.supervisor" ng-required="true">
 							<md-option ng-repeat="supervisor in supervisors" ng-value="supervisor.email">{{supervisor.lastName}} {{supervisor.firstName}}</md-option>
 						</md-select>

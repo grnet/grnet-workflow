@@ -27,6 +27,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Component
@@ -92,6 +94,21 @@ public class DocumentMail implements JavaDelegate {
 		// Setup parameters
 		Map<String, Object> parameters = new HashMap<String, Object>();
 		parameters = execution.getVariables();
+
+		DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+
+		Date boDDate = (Date)parameters.get("BoDdate");
+		if(boDDate!=null){
+			String bodDateString = df.format(boDDate);
+			parameters.remove("BoDdate");
+			parameters.put("BoDdate", bodDateString);
+		}
+		Date deadline = (Date)parameters.get("deadline");
+		if(deadline!=null) {
+			String deadlineString = df.format(deadline);
+			parameters.remove("deadline");
+			parameters.put("deadline", deadlineString);
+		}
 
 		// Instantiate and compose the RESTEmail object
 		RESTMail mail = new RESTMail();

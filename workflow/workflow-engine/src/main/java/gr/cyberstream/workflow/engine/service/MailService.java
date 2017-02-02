@@ -4,6 +4,7 @@ import gr.cyberstream.workflow.engine.config.SettingsStatus;
 import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
 import gr.cyberstream.workflow.engine.model.WorkflowInstance;
 import gr.cyberstream.workflow.engine.model.WorkflowSettings;
+import gr.cyberstream.workflow.engine.model.api.WfTask;
 import gr.cyberstream.workflow.engine.persistence.Processes;
 import org.activiti.engine.task.Task;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -34,7 +35,7 @@ public class MailService {
 	@Autowired
 	private SettingsStatus settingsStatus;
 
-	private final String datePattern = "d/M/yyyy";
+	private final String datePattern = "dd/MM/yyyy HH:mm:ss";
 	private String from;
 	private String workspaceURL;
 	private String managerURL;
@@ -54,114 +55,124 @@ public class MailService {
 		sendTaskExpired = properties.getString("mail.sendTaskExpired").equals("true");
 	}
 
-	public void sendTaskAssignedMail(String recipient, String taskId, String taskName, Date dueDate) {
+	public void sendTaskAssignedMail(String recipient, WfTask task) {
 
 		WorkflowSettings settings = getSettings();
+		String taskName = task.getName();
+		Date dueDate = task.getDueDate();
+		String taskId = task.getId();
 
 		if (!settings.isAssignmentNotification())
 			return;
 
 		String taskAssignedSubject = "Νέα εργασία";
-		String taskAssignedContent = "Σας έχει ανατεθεί ";
+		String taskAssignedContent = "Διαδικασία: '" + task.getDefinitionName() + "'\n";
+		taskAssignedContent += "Εκτέλεση: '" + task.getProcessInstance().getTitle() + "'\n";
 
 		if (taskName != null && !taskName.isEmpty()) {
 			taskAssignedSubject += " '" + taskName + "'";
-			taskAssignedContent += " '" + taskName + "'";
+			taskAssignedContent += "Σας έχει ανατεθεί η εργασία '" + taskName + "'.";
+		} else {
+			taskAssignedContent += "Σας έχει ανατεθεί μία εργασία.";
 		}
-
-		taskAssignedContent += " εργασία";
 
 		if (dueDate != null) {
-
-			taskAssignedContent += ", η χρονική περιόδος για την εκτέλεση της εργασίας είναι μέχρι τις "
+			taskAssignedContent += "\nΗ χρονική περιόδος για την εκτέλεση της εργασίας είναι μέχρι τις "
 					+ DateFormatUtils.format(dueDate, datePattern);
-
+			taskAssignedContent += ".";
 		}
 
-		taskAssignedContent += ".";
-
-		taskAssignedContent += " <a href=\"" + workspaceURL + "/#/task/" + taskId
+		taskAssignedContent += "\n<a href=\"" + workspaceURL + "/#/task/" + taskId
 				+ "\">Επιλέξτε για να δείτε την εργασία</a>";
 
 		try {
-
 			sendMail(recipient, taskAssignedSubject, taskAssignedContent, "");
-
 		} catch (MessagingException e) {
-
 			logger.warn("Unable to send task assignment email to " + recipient);
 		}
 	}
 
-	public void sendDueTaskMail(String recipient, String taskId, String taskName, Date dueDate, boolean unAssigned) {
+	public void sendDueTaskMail(String recipient, Task task, boolean unAssigned) {
+		String taskName = task.getName();
+		Date dueDate = task.getDueDate();
+		String taskId = task.getId();
 
 		if (!sendDueTask)
 			return;
 
 		logger.info("Sending Due Task Email to " + recipient);
 		String dueTaskSubject = "Ημερομηνία εκτέλεσης εργασίας";
-		String dueTaskContent = (unAssigned ? "Μη ανατεθειμένη " : "") + "εργασία";
+		String dueTaskContent = "";
+		try {
+			dueTaskContent = "Διαδικασία: " + processRepository.getProcessByDefinitionId(task.getProcessDefinitionId()).getName() + "\n";
+			dueTaskContent += "Εκτέλεση: " + processRepository.getInstanceById(task.getProcessInstanceId()).getTitle() + "\n";
+		} catch (Exception exception) {
+			logger.warn("Unable to get definition or execution of task.");
+		}
 
 		if (taskName != null && !taskName.isEmpty()) {
 			dueTaskSubject += " '" + taskName + "'";
-			dueTaskContent += " '" + taskName + "'";
+			dueTaskContent += "Η" + (unAssigned ? " μη ανατεθειμένη εργασία" : " εργασία") + " '" + taskName + "'";
+		} else {
+			dueTaskContent += "Μία" + (unAssigned ? " μη ανατεθειμένη εργασία" : " εργασία");
 		}
 
 		if (dueDate != null) {
-
-			dueTaskContent += ", έχει ημερομηνία εκτέλεσης μέχρι τις " + DateFormatUtils.format(dueDate, datePattern);
-
+			dueTaskContent += " έχει ημερομηνία εκτέλεσης μέχρι τις " + DateFormatUtils.format(dueDate, datePattern);
+		} else {
+			dueTaskContent += " πρόκειται να λήξει";
 		}
 
-		dueTaskContent += ".";
+		dueTaskContent += ".\n";
 
 		dueTaskContent += " <a href=\"" + workspaceURL + "/#/" + (unAssigned ? "assign" : "task") + "/" + taskId + "\">"
-				+ (unAssigned ? "Ανατεθειμένη" : "Επιλέξτε για να δείτε") + " Task</a>";
+				+ "Επιλέξτε για να δείτε την εργασία</a>";
 
 		try {
-
 			sendMail(recipient, dueTaskSubject, dueTaskContent, "");
-
 		} catch (MessagingException e) {
 
 			logger.warn("Unable to send due task email to " + recipient);
 		}
 	}
 
-	public void sendTaskExpiredMail(String recipient, String taskId, String taskName, Date dueDate,
-			boolean unAssigned) {
+	public void sendTaskExpiredMail(String recipient, Task task, boolean unAssigned) {
+		String taskName = task.getName();
+		Date dueDate = task.getDueDate();
+		String taskId = task.getId();
 
 		if (!sendTaskExpired)
 			return;
 
 		logger.info("Sending Expired Task Email to " + recipient);
-		String taskExpiredSubject = "Χρονική περίοδος εκτέλεσης εργασίας έληξε";
-		String taskExpiredContent = (unAssigned ? "Μη ανατεθειμένη " : "") + "εργασία";
+		String taskExpiredSubject = "Η χρονική περίοδος εκτέλεσης";
+
+		String taskExpiredContent = "";
+		try {
+			taskExpiredContent = "Διαδικασία: " + processRepository.getProcessByDefinitionId(task.getProcessDefinitionId()).getName() + "\n";
+			taskExpiredContent += "Εκτέλεση: " + processRepository.getInstanceById(task.getProcessInstanceId()).getTitle() + "\n";
+		} catch (Exception exception) {
+			logger.warn("Unable to get definition or execution of task.");
+		}
 
 		if (taskName != null && !taskName.isEmpty()) {
-			taskExpiredSubject += " '" + taskName + "'";
-			taskExpiredContent += " '" + taskName + "',";
+			taskExpiredSubject += " της εργασίας '" + taskName + "' έχει λήξει";
+			taskExpiredContent += "Η" + (unAssigned ? " μη ανατεθειμένη εργασία" : " εργασία") + " '" + taskName + "' έχει λήξει.\n";
+		} else {
+			taskExpiredSubject += " μιας εργασίας έχει λήξει";
+			taskExpiredContent += "Μία" + (unAssigned ? " μη ανατεθειμένη εργασία" : " εργασία έχει λήξει.\n");
 		}
-
-		taskExpiredContent += " 'έχει λήξει";
 
 		if (dueDate != null) {
-
-			taskExpiredContent += " από τις " + DateFormatUtils.format(dueDate, datePattern);
-
+			taskExpiredContent += "Ημερομηνία λήξης: " + DateFormatUtils.format(dueDate, datePattern) + "\n";
 		}
 
-		taskExpiredContent += ".";
-
-		taskExpiredContent += " <a href=\"" + workspaceURL + "/#/" + (unAssigned ? "assign" : "task") + "/" + taskId
-				+ "\">" + (unAssigned ? "Ανατεθειμένη" : "Επιλέξτε για να δείτε") + " την εργασία</a>";
+		taskExpiredContent += "<a href=\"" + workspaceURL + "/#/" + (unAssigned ? "assign" : "task") + "/" + taskId
+				+ "\">" + "Επιλέξτε για να δείτε την εργασία</a>";
 
 		try {
-
 			sendMail(recipient, taskExpiredSubject, taskExpiredContent, "");
-
 		} catch (MessagingException e) {
-
 			logger.warn("Unable to send task expired email to " + recipient);
 		}
 	}
@@ -227,7 +238,6 @@ public class MailService {
 			settings = processRepository.getSettings();
 			settingsStatus.setWorkflowSettings(settings);
 		}
-
 		return settings;
 	}
 }
