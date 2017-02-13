@@ -1,7 +1,8 @@
 package gr.cyberstream.workflow.engine.service.test;
 
-import java.util.Date;
-
+import gr.cyberstream.workflow.engine.config.test.ApplicationConfiguration;
+import gr.cyberstream.workflow.engine.model.api.WfTask;
+import gr.cyberstream.workflow.engine.service.MailService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -11,8 +12,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
-import gr.cyberstream.workflow.engine.config.test.ApplicationConfiguration;
-import gr.cyberstream.workflow.engine.service.MailService;
+import java.util.Date;
 
 @ContextConfiguration(classes = ApplicationConfiguration.class)
 @WebAppConfiguration
@@ -26,6 +26,12 @@ public class MailServiceTest {
 
 	@Test
 	public void shouldSendMail() {
-		mailService.sendTaskAssignedMail("kostas.koutros@cyberstream.gr", "10023", "Form Review", new Date());
+		WfTask wfTask = new WfTask();
+		wfTask.setName("kostas.koutros@cyberstream.gr");
+		Date date = new Date();
+		wfTask.setDueDate(date);
+		wfTask.setId("10023");
+		wfTask.setDefinitionName("Form Review");
+		mailService.sendTaskAssignedMail("kostas.koutros@cyberstream.gr", wfTask);
 	}
 }
