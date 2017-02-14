@@ -66,24 +66,23 @@ public class MailService {
 			return;
 
 		String taskAssignedSubject = "Νέα εργασία";
-		String taskAssignedContent = "Διαδικασία: '" + task.getDefinitionName() + "'\n";
-		taskAssignedContent += "Εκτέλεση: '" + task.getProcessInstance().getTitle() + "'\n";
+		String taskAssignedContent = "<p><b>Διαδικασία:</b> '" + task.getDefinitionName() + "'</p>";
+		taskAssignedContent += "<p><b>Εκτέλεση:</b> '" + task.getProcessInstance().getTitle() + "'</p>";
 
 		if (taskName != null && !taskName.isEmpty()) {
 			taskAssignedSubject += " '" + taskName + "'";
-			taskAssignedContent += "Σας έχει ανατεθεί η εργασία '" + taskName + "'.";
+			taskAssignedContent += "<p>Σας έχει ανατεθεί η εργασία '" + taskName + "'.</p>";
 		} else {
-			taskAssignedContent += "Σας έχει ανατεθεί μία εργασία.";
+			taskAssignedContent += "<p>Σας έχει ανατεθεί μία εργασία.</p>";
 		}
 
 		if (dueDate != null) {
-			taskAssignedContent += "\nΗ χρονική περιόδος για την εκτέλεση της εργασίας είναι μέχρι τις "
-					+ DateFormatUtils.format(dueDate, datePattern);
-			taskAssignedContent += ".";
+			taskAssignedContent += "<p>Η χρονική περιόδος για την εκτέλεση της εργασίας είναι μέχρι τις "
+					+ DateFormatUtils.format(dueDate, datePattern) + ".</p>";
 		}
 
-		taskAssignedContent += "\n<a href=\"" + workspaceURL + "/#/task/" + taskId
-				+ "\">Επιλέξτε για να δείτε την εργασία</a>";
+		taskAssignedContent += "<p><a href=\"" + workspaceURL + "/#/task/" + taskId
+				+ "\">Επιλέξτε για να δείτε την εργασία</a></p>";
 
 		try {
 			sendMail(recipient, taskAssignedSubject, taskAssignedContent, "");
@@ -104,17 +103,17 @@ public class MailService {
 		String dueTaskSubject = "Ημερομηνία εκτέλεσης εργασίας";
 		String dueTaskContent = "";
 		try {
-			dueTaskContent = "Διαδικασία: " + processRepository.getProcessByDefinitionId(task.getProcessDefinitionId()).getName() + "\n";
-			dueTaskContent += "Εκτέλεση: " + processRepository.getInstanceById(task.getProcessInstanceId()).getTitle() + "\n";
+			dueTaskContent = "<p><b>Διαδικασία:</b> '" + processRepository.getProcessByDefinitionId(task.getProcessDefinitionId()).getName() + "'</p>";
+			dueTaskContent += "<p><b>Εκτέλεση:</b> '" + processRepository.getInstanceById(task.getProcessInstanceId()).getTitle() + "'</p>";
 		} catch (Exception exception) {
 			logger.warn("Unable to get definition or execution of task.");
 		}
 
 		if (taskName != null && !taskName.isEmpty()) {
 			dueTaskSubject += " '" + taskName + "'";
-			dueTaskContent += "Η" + (unAssigned ? " μη ανατεθειμένη εργασία" : " εργασία") + " '" + taskName + "'";
+			dueTaskContent += "<p>Η" + (unAssigned ? " μη ανατεθειμένη εργασία" : " εργασία") + " '" + taskName + "'";
 		} else {
-			dueTaskContent += "Μία" + (unAssigned ? " μη ανατεθειμένη εργασία" : " εργασία");
+			dueTaskContent += "<p>Μία" + (unAssigned ? " μη ανατεθειμένη εργασία" : " εργασία");
 		}
 
 		if (dueDate != null) {
@@ -123,10 +122,10 @@ public class MailService {
 			dueTaskContent += " πρόκειται να λήξει";
 		}
 
-		dueTaskContent += ".\n";
+		dueTaskContent += ".</p>";
 
-		dueTaskContent += " <a href=\"" + workspaceURL + "/#/" + (unAssigned ? "assign" : "task") + "/" + taskId + "\">"
-				+ "Επιλέξτε για να δείτε την εργασία</a>";
+		dueTaskContent += "<p><a href=\"" + workspaceURL + "/#/" + (unAssigned ? "assign" : "task") + "/" + taskId + "\">"
+				+ "Επιλέξτε για να δείτε την εργασία</a></p>";
 
 		try {
 			sendMail(recipient, dueTaskSubject, dueTaskContent, "");
@@ -149,26 +148,26 @@ public class MailService {
 
 		String taskExpiredContent = "";
 		try {
-			taskExpiredContent = "Διαδικασία: " + processRepository.getProcessByDefinitionId(task.getProcessDefinitionId()).getName() + "\n";
-			taskExpiredContent += "Εκτέλεση: " + processRepository.getInstanceById(task.getProcessInstanceId()).getTitle() + "\n";
+			taskExpiredContent = "<p><b>Διαδικασία:</b> '" + processRepository.getProcessByDefinitionId(task.getProcessDefinitionId()).getName() + "'</p>";
+			taskExpiredContent += "<p><b>Εκτέλεση:</b> " + processRepository.getInstanceById(task.getProcessInstanceId()).getTitle() + "'</p>";
 		} catch (Exception exception) {
 			logger.warn("Unable to get definition or execution of task.");
 		}
 
 		if (taskName != null && !taskName.isEmpty()) {
 			taskExpiredSubject += " της εργασίας '" + taskName + "' έχει λήξει";
-			taskExpiredContent += "Η" + (unAssigned ? " μη ανατεθειμένη εργασία" : " εργασία") + " '" + taskName + "' έχει λήξει.\n";
+			taskExpiredContent += "<p>Η" + (unAssigned ? " μη ανατεθειμένη εργασία" : " εργασία") + " '" + taskName + "' έχει λήξει.</p>";
 		} else {
 			taskExpiredSubject += " μιας εργασίας έχει λήξει";
-			taskExpiredContent += "Μία" + (unAssigned ? " μη ανατεθειμένη εργασία" : " εργασία έχει λήξει.\n");
+			taskExpiredContent += "<p>Μία" + (unAssigned ? " μη ανατεθειμένη εργασία" : " εργασία έχει λήξει.</p>");
 		}
 
 		if (dueDate != null) {
-			taskExpiredContent += "Ημερομηνία λήξης: " + DateFormatUtils.format(dueDate, datePattern) + "\n";
+			taskExpiredContent += "<p><b>Ημερομηνία λήξης:</b> " + DateFormatUtils.format(dueDate, datePattern) + "</p>";
 		}
 
-		taskExpiredContent += "<a href=\"" + workspaceURL + "/#/" + (unAssigned ? "assign" : "task") + "/" + taskId
-				+ "\">" + "Επιλέξτε για να δείτε την εργασία</a>";
+		taskExpiredContent += "<p><a href=\"" + workspaceURL + "/#/" + (unAssigned ? "assign" : "task") + "/" + taskId
+				+ "\">" + "Επιλέξτε για να δείτε την εργασία</a></p>";
 
 		try {
 			sendMail(recipient, taskExpiredSubject, taskExpiredContent, "");
@@ -182,8 +181,8 @@ public class MailService {
 
 		String subject = "Σφάλμα ορισμού διαδικασίας";
 
-		String content = "<p><b>Διαδικασία:</b> " + workflow.getName() + "</p>" +
-				"<p><b>Εκτέλεση:</b> " + instance.getTitle() + "</p>" +
+		String content = "<p><b>Διαδικασία:</b> '" + workflow.getName() + "'</p>" +
+				"<p><b>Εκτέλεση:</b> '" + instance.getTitle() + "'</p>" +
 				"<p>Δεν βρέθηκαν υποψήφιοι για την εκτέλεση της εργασίας με όνομα '" + task.getName()
 				+ "' και κωδικό '" + task.getId() + "'.</p>";
 
@@ -202,8 +201,8 @@ public class MailService {
 
 		String subject = "Σφάλμα ανάθεσης εργασίας";
 
-		String content = "<p><b>Διαδικασία:</b> " + workflowDef.getName() + "</p>" +
-				"<p><b>Εκτέλεση:</b> " + instance.getTitle() + "</p>" +
+		String content = "<p><b>Διαδικασία:</b> '" + workflowDef.getName() + "'</p>" +
+				"<p><b>Εκτέλεση:</b> '" + instance.getTitle() + "'</p>" +
 				"<p>Δεν βρέθηκαν υποψήφιοι για την εκτέλεση της εργασίας με όνομα '" + task.getName()
 				+ "' και κωδικό '" + task.getId() + "'.</p>";
 
