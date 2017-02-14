@@ -2927,14 +2927,14 @@ public class ProcessService {
 
 			if (instance.getStatus().equals(WorkflowInstance.STATUS_ENDED))
 				throw new InvalidRequestException("claimTaskInstanceEnded");
+
+			activitiTaskSrv.claim(taskId, getAccessToken().getEmail());
 		}
 		catch(Exception exception){
 			if(!(exception instanceof InvalidRequestException)){
 				throw new InvalidRequestException("claimTaskInstanceNotActive");
 			}
 		}
-
-		activitiTaskSrv.claim(taskId, getAccessToken().getEmail());
 	}
 
 	/**
