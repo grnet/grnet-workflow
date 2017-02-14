@@ -2933,7 +2933,8 @@ public class ProcessService {
 		catch(Exception exception){
 			if(!(exception instanceof InvalidRequestException)){
 				throw new InvalidRequestException("claimTaskInstanceNotActive");
-			}
+			} else
+				throw exception;
 		}
 	}
 
