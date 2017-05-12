@@ -1,10 +1,10 @@
 package gr.cyberstream.workflow.engine.cmis;
 
-import org.apache.chemistry.opencmis.client.api.Document;
-import org.apache.chemistry.opencmis.commons.impl.MimeTypes;
-import org.springframework.core.io.InputStreamResource;
-
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
+import org.apache.chemistry.opencmis.client.api.Document;
+import org.springframework.core.io.InputStreamResource;
 
 public class MultipartFileResource extends InputStreamResource {
 
@@ -13,17 +13,22 @@ public class MultipartFileResource extends InputStreamResource {
 
 	public MultipartFileResource(Document document) {
 		super(document.getContentStream().getStream());
-		String extension = MimeTypes.getExtension(document.getContentStreamMimeType());
-		try {
-			this.filename = new String(document.getContentStream().getFileName().getBytes(), "UTF-8") + extension;
-		} catch (UnsupportedEncodingException e) {
-			this.filename = document.getContentStream().getFileName() + extension;
-		}
+		// String extension = MimeTypes.getExtension(document.getContentStreamMimeType());
+		//this.filename = document.getContentStream().getFileName() + extension;
+		this.filename = document.getContentStream().getFileName();
 		this.length = document.getContentStream().getLength();
 	}
 
 	@Override
 	public String getFilename() {
+
+		try {
+			return URLEncoder.encode(this.filename, "UTF-8");
+
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+
 		return this.filename;
 	}
 

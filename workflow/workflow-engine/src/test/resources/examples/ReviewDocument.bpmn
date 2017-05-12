@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://workstream.cyberstream.gr/workflow/examples">
+  <process id="review-document-process" name="Review Document" isExecutable="true">
+    <startEvent id="start-event" name="Start"></startEvent>
+    <userTask id="submit-task" name="Submit Document" activiti:extensionId="gr.cyberstream.workflow.designer.usertasks.SubmitDocument">
+      <extensionElements>
+        <activiti:documentTitle>Review Document</activiti:documentTitle>
+        <activiti:documentVar>reviewDocument</activiti:documentVar>
+      </extensionElements>
+    </userTask>
+    <userTask id="review-task" name="Review Document" activiti:extensionId="gr.cyberstream.workflow.designer.usertasks.ApproveDocument">
+      <extensionElements>
+        <activiti:documentVar>reviewDocument</activiti:documentVar>
+        <activiti:approvalVar>review</activiti:approvalVar>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway id="approval-gateway" name="Approval Gateway"></exclusiveGateway>
+    <serviceTask id="sendMail-task" name="Send Mail" activiti:delegateExpression="${documentMail}" activiti:extensionId="gr.cyberstream.workflow.designer.servicetasks.DocumentMail">
+      <extensionElements>
+        <activiti:field name="app">
+          <activiti:string>approveDocument</activiti:string>
+        </activiti:field>
+        <activiti:field name="from">
+          <activiti:string>app@cyberstream.gr</activiti:string>
+        </activiti:field>
+        <activiti:field name="to">
+          <activiti:string>support@cyberstream.gr</activiti:string>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:expression>${reviewDocument.title} ${reviewDocument.version} Approved</activiti:expression>
+        </activiti:field>
+        <activiti:field name="attachment">
+          <activiti:string>reviewDocument</activiti:string>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <sequenceFlow id="submit-flow" sourceRef="start-event" targetRef="submit-task"></sequenceFlow>
+    <sequenceFlow id="review-flow" sourceRef="submit-task" targetRef="review-task"></sequenceFlow>
+    <sequenceFlow id="approval-flow" sourceRef="review-task" targetRef="approval-gateway"></sequenceFlow>
+    <sequenceFlow id="sendMail-flow" sourceRef="approval-gateway" targetRef="sendMail-task">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${review.isApprove()}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="reject-flow" sourceRef="approval-gateway" targetRef="submit-task">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${!review.isApprove()}]]></conditionExpression>
+    </sequenceFlow>
+    <endEvent id="end-event" name="End"></endEvent>
+    <sequenceFlow id="flow1" sourceRef="sendMail-task" targetRef="end-event"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_review-document-process">
+    <bpmndi:BPMNPlane bpmnElement="review-document-process" id="BPMNPlane_review-document-process">
+      <bpmndi:BPMNShape bpmnElement="start-event" id="BPMNShape_start-event">
+        <omgdc:Bounds height="35.0" width="35.0" x="140.0" y="190.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="submit-task" id="BPMNShape_submit-task">
+        <omgdc:Bounds height="55.0" width="105.0" x="230.0" y="180.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="review-task" id="BPMNShape_review-task">
+        <omgdc:Bounds height="55.0" width="105.0" x="420.0" y="180.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="approval-gateway" id="BPMNShape_approval-gateway">
+        <omgdc:Bounds height="40.0" width="40.0" x="600.0" y="187.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sendMail-task" id="BPMNShape_sendMail-task">
+        <omgdc:Bounds height="55.0" width="105.0" x="720.0" y="180.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="end-event" id="BPMNShape_end-event">
+        <omgdc:Bounds height="35.0" width="35.0" x="880.0" y="190.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="submit-flow" id="BPMNEdge_submit-flow">
+        <omgdi:waypoint x="175.0" y="207.0"></omgdi:waypoint>
+        <omgdi:waypoint x="230.0" y="207.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="review-flow" id="BPMNEdge_review-flow">
+        <omgdi:waypoint x="335.0" y="207.0"></omgdi:waypoint>
+        <omgdi:waypoint x="420.0" y="207.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="approval-flow" id="BPMNEdge_approval-flow">
+        <omgdi:waypoint x="525.0" y="207.0"></omgdi:waypoint>
+        <omgdi:waypoint x="600.0" y="207.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sendMail-flow" id="BPMNEdge_sendMail-flow">
+        <omgdi:waypoint x="640.0" y="207.0"></omgdi:waypoint>
+        <omgdi:waypoint x="720.0" y="207.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="reject-flow" id="BPMNEdge_reject-flow">
+        <omgdi:waypoint x="620.0" y="187.0"></omgdi:waypoint>
+        <omgdi:waypoint x="619.0" y="120.0"></omgdi:waypoint>
+        <omgdi:waypoint x="468.0" y="120.0"></omgdi:waypoint>
+        <omgdi:waypoint x="282.0" y="120.0"></omgdi:waypoint>
+        <omgdi:waypoint x="282.0" y="180.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow1" id="BPMNEdge_flow1">
+        <omgdi:waypoint x="825.0" y="207.0"></omgdi:waypoint>
+        <omgdi:waypoint x="880.0" y="207.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

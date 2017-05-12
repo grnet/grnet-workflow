@@ -11,12 +11,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ApproveType implements Serializable {
 
 	private static final long serialVersionUID = -2185927338061726103L;
-
+	
 	private boolean approve;
 
 	public ApproveType() {
 	}
-
+	
 	public ApproveType(boolean approve) {
 		this.approve = approve;
 	}
@@ -28,16 +28,16 @@ public class ApproveType implements Serializable {
 	public void setApprove(boolean approve) {
 		this.approve = approve;
 	}
-
+	
 	public String toString() {
-
+		
 		ObjectMapper mapper = new ObjectMapper();
 
 		String jsonSerialization = "";
 
 		try {
 			jsonSerialization = mapper.writeValueAsString(this);
-
+			
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
@@ -48,13 +48,13 @@ public class ApproveType implements Serializable {
 	 * Return a new ApproveType Object de-serializing a JSon representation
 	 * 
 	 * @param jsonSerialization
-	 *            The serialized string
 	 * @return
 	 * @throws JsonParseException
 	 * @throws JsonMappingException
 	 * @throws IOException
 	 */
-	public static ApproveType fromString(String jsonSerialization) throws JsonParseException, JsonMappingException, IOException {
+	public static ApproveType fromString(String jsonSerialization)
+			throws JsonParseException, JsonMappingException, IOException {
 
 		// de-serialize JSon representation
 		ObjectMapper mapper = new ObjectMapper();

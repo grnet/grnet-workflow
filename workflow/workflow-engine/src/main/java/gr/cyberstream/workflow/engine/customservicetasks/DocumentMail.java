@@ -1,12 +1,14 @@
 package gr.cyberstream.workflow.engine.customservicetasks;
 
-import gr.cyberstream.workflow.engine.cmis.CMISDocument;
-import gr.cyberstream.workflow.engine.cmis.MultipartFileResource;
-import gr.cyberstream.workflow.engine.customtypes.DocumentType;
-import gr.cyberstream.workflow.engine.model.MailServiceResponse;
-import gr.cyberstream.workflow.engine.model.RESTMail;
-import gr.cyberstream.workflow.engine.model.RESTRecipient;
-import gr.cyberstream.workflow.engine.service.InvalidRequestException;
+import java.net.URI;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
+
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.Expression;
@@ -25,14 +27,15 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import gr.cyberstream.workflow.engine.cmis.CMISDocument;
+import gr.cyberstream.workflow.engine.cmis.MultipartFileResource;
+import gr.cyberstream.workflow.engine.customtypes.DocumentType;
+import gr.cyberstream.workflow.engine.model.MailServiceResponse;
+import gr.cyberstream.workflow.engine.model.RESTMail;
+import gr.cyberstream.workflow.engine.model.RESTRecipient;
+import gr.cyberstream.workflow.engine.service.InvalidRequestException;
 
 @Component
-@SuppressWarnings("unused")
 public class DocumentMail implements JavaDelegate {
 
 	private static final Logger logger = LoggerFactory.getLogger(DocumentMail.class);
@@ -46,37 +49,98 @@ public class DocumentMail implements JavaDelegate {
 	private Expression cc;
 
 	@Autowired
-	CMISDocument cmisDocument;
+	private CMISDocument cmisDocument;
 
 	@Autowired
-	RuntimeService activitiRuntimeSrv;
+	private RuntimeService activitiRuntimeSrv;
 
 	@Override
 	public void execute(DelegateExecution execution) throws Exception {
 
 		// Set the custom service task property values
 		String appName = (String) app.getValue(execution);
-		logger.debug("app: " + appName);
+		logger.debug("app " + appName);
 
 		String fromRecipient = (String) from.getValue(execution);
-		logger.debug("from: " + fromRecipient);
+		logger.debug("from " + fromRecipient);
 
 		String toRecipient = getStringFromField(to, execution);
-		logger.debug("to: " + toRecipient);
+		logger.debug("to " + toRecipient);
 
 		String msgSubject = (String) subject.getValue(execution);
-		logger.debug("subject: " + msgSubject);
+		logger.debug("subject " + msgSubject);
+
+		String blindCarbonCopyRecipient = getStringFromField(bcc, execution);
+		logger.debug("Blind Copy to: " + blindCarbonCopyRecipient);
+
+		String carbonCopyRecipient = getStringFromField(cc, execution);
+		logger.debug("Carbon Copy to: " + carbonCopyRecipient);
 
 		String documentVar = null;
-		
+
 		if (attachment != null)
 			documentVar = (String) attachment.getValue(execution);
 
-		// Add recipient to list
+		/** To Recipients split by comma **/
 		List<RESTRecipient> recipients = new ArrayList<RESTRecipient>();
 
-		RESTRecipient restRecipient = new RESTRecipient(toRecipient);
-		recipients.add(restRecipient);
+		if (toRecipient != null) {
+
+			RESTRecipient resetRecipient = new RESTRecipient();
+			String[] separatedRecipients = toRecipient.split(",");
+
+			if (separatedRecipients.length > 1) {
+
+				for (int i = 0; i < separatedRecipients.length; i++) {
+					resetRecipient = new RESTRecipient(separatedRecipients[i].trim());
+					recipients.add(resetRecipient);
+				}
+			} else if (separatedRecipients.length == 1) {
+				resetRecipient = new RESTRecipient(toRecipient.trim());
+				recipients.add(resetRecipient);
+			}
+		}
+
+		// Add blind carbon copy recipients
+		List<RESTRecipient> blindCopyRecipients = new ArrayList<RESTRecipient>();
+
+		if (blindCarbonCopyRecipient != null) {
+			RESTRecipient restblindCopyRecipient = new RESTRecipient();
+
+			String[] bccRecipients = blindCarbonCopyRecipient.split(",");
+
+			if (bccRecipients.length > 1) {
+
+				for (int i = 0; i < bccRecipients.length; i++) {
+					restblindCopyRecipient = new RESTRecipient(bccRecipients[i].trim());
+					blindCopyRecipients.add(restblindCopyRecipient);
+				}
+			} else if (bccRecipients.length == 1) {
+				restblindCopyRecipient = new RESTRecipient(blindCarbonCopyRecipient.trim());
+				blindCopyRecipients.add(restblindCopyRecipient);
+			}
+		}
+
+		// Add carbon copy recipients
+		List<RESTRecipient> carbonCopyRecipients = new ArrayList<RESTRecipient>();
+
+		if (carbonCopyRecipient != null) {
+			RESTRecipient restCarbonCopyRecipient = new RESTRecipient();
+
+			String[] ccRecipients = carbonCopyRecipient.split(",");
+
+			if (ccRecipients.length > 1) {
+
+				for (int i = 0; i < ccRecipients.length; i++) {
+					restCarbonCopyRecipient = new RESTRecipient(ccRecipients[i].trim());
+					carbonCopyRecipients.add(restCarbonCopyRecipient);
+				}
+
+			} else if (ccRecipients.length == 1) {
+				restCarbonCopyRecipient = new RESTRecipient(carbonCopyRecipient.trim());
+				carbonCopyRecipients.add(restCarbonCopyRecipient);
+			}
+		}
 
 		Document document = null;
 		MultipartFileResource multipartFileResource = null;
@@ -85,30 +149,16 @@ public class DocumentMail implements JavaDelegate {
 		// the file to be sent as attachment
 		if (documentVar != null && !documentVar.isEmpty()) {
 			DocumentType documentValue = (DocumentType) activitiRuntimeSrv.getVariable(execution.getId(), documentVar);
-			if(documentValue != null){
+			if (documentValue != null) {
 				document = cmisDocument.getDocumentById(documentValue.getDocumentId());
 				multipartFileResource = new MultipartFileResource(document);
+
 			}
 		}
 
 		// Setup parameters
 		Map<String, Object> parameters = new HashMap<String, Object>();
 		parameters = execution.getVariables();
-
-		DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-
-		Date boDDate = (Date)parameters.get("BoDdate");
-		if(boDDate!=null){
-			String bodDateString = df.format(boDDate);
-			parameters.remove("BoDdate");
-			parameters.put("BoDdate", bodDateString);
-		}
-		Date deadline = (Date)parameters.get("deadline");
-		if(deadline!=null) {
-			String deadlineString = df.format(deadline);
-			parameters.remove("deadline");
-			parameters.put("deadline", deadlineString);
-		}
 
 		// Instantiate and compose the RESTEmail object
 		RESTMail mail = new RESTMail();
@@ -118,6 +168,10 @@ public class DocumentMail implements JavaDelegate {
 		mail.setSubject(msgSubject);
 
 		mail.setTo(recipients);
+
+		mail.setBcc(blindCopyRecipients);
+
+		mail.setCc(carbonCopyRecipients);
 
 		mail.setParameters(parameters);
 
@@ -133,22 +187,22 @@ public class DocumentMail implements JavaDelegate {
 
 		// decide whether we need to make a multipart request or not
 		MailServiceResponse mailResponse = null;
+
 		if (multipartFileResource == null)
 			mailResponse = rest.postForObject(uri, mail, MailServiceResponse.class);
-		
+
 		else {
 
 			FormHttpMessageConverter formHttpMessageConverter = new FormHttpMessageConverter();
 			formHttpMessageConverter.setMultipartCharset(Charset.forName("UTF-8"));
+			formHttpMessageConverter.setCharset(Charset.forName("UTF-8"));
 			rest.getMessageConverters().add(formHttpMessageConverter);
 			rest.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
 
 			HttpHeaders fileHeaders = new HttpHeaders();
-
 			fileHeaders.set("Content-Type", document.getContentStreamMimeType());
+			HttpEntity<MultipartFileResource> fileEntity = new HttpEntity<MultipartFileResource>(multipartFileResource, fileHeaders);
 
-			HttpEntity<MultipartFileResource> fileEntity = new HttpEntity<MultipartFileResource>(multipartFileResource,
-					fileHeaders);
 			HttpHeaders jsonHeader = new HttpHeaders();
 			jsonHeader.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity<RESTMail> jsonEntity = new HttpEntity<RESTMail>(mail, jsonHeader);
@@ -157,11 +211,6 @@ public class DocumentMail implements JavaDelegate {
 
 			parts.add("json", jsonEntity);
 			parts.add("file", fileEntity);
-
-			HttpHeaders requestHeaders = new HttpHeaders();
-			requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
-
-			// HttpEntity<HttpHeaders> httpEntity = new HttpEntity(requestHeaders, parts);
 
 			mailResponse = rest.postForObject(uri, parts, MailServiceResponse.class);
 		}
@@ -174,14 +223,24 @@ public class DocumentMail implements JavaDelegate {
 
 	}
 
+	/**
+	 * Evaluates an expression or returns the value as value as string without
+	 * evaluate it
+	 * 
+	 * @param expression
+	 *            The value to evaluate
+	 * 
+	 * @param execution
+	 * @return {@link String} The evaluated or no value
+	 */
 	protected String getStringFromField(Expression expression, DelegateExecution execution) {
+
 		if (expression != null) {
 			Object value = expression.getValue(execution);
-			if (value != null) {
+
+			if (value != null)
 				return value.toString();
-			}
 		}
 		return null;
 	}
-
 }

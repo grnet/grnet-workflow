@@ -1,6 +1,7 @@
 package gr.cyberstream.workflow.engine.persistence.test;
 
 import java.util.Map;
+import java.util.Properties;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -46,7 +47,13 @@ public class PersistenceConfiguration {
 		dataSource.setUrl(env.getProperty("database.url"));
 		dataSource.setUsername(env.getProperty("database.user"));
 		dataSource.setPassword(env.getProperty("database.password"));
-
+		
+		Properties properties = new Properties();
+		properties.setProperty("useUnicode", "true");
+		properties.setProperty("characterEncoding", "utf-8");
+		
+		dataSource.setConnectionProperties(properties);
+		
 		return dataSource;
 	}
 
@@ -63,8 +70,10 @@ public class PersistenceConfiguration {
 		// add special JPA properties
 		Map<String, Object> jpaProperties;
 		jpaProperties = emfb.getJpaPropertyMap();
-		jpaProperties.put("hibernate.format_sql", "true");
-		//jpaProperties.put("hibernate.use_sql_comments", "true");
+		jpaProperties.put("hibernate.show_sql", true);
+		jpaProperties.put("hibernate.format_sql", true);
+		jpaProperties.put("hibernate.use_sql_comments", true);
+		jpaProperties.put("hibernate.format_sql", true);
 		emfb.setJpaPropertyMap(jpaProperties);
 
 		return emfb;

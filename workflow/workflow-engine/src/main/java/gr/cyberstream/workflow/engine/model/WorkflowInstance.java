@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
@@ -20,6 +21,7 @@ import gr.cyberstream.workflow.engine.model.api.WfProcessInstance;
  * @author gtyl
  */
 @Entity
+@Table(name = "WorkflowInstance")
 public class WorkflowInstance implements Serializable {
 
 	private static final long serialVersionUID = 7477832256955969149L;
@@ -45,6 +47,10 @@ public class WorkflowInstance implements Serializable {
 
 	@Column(name = "end_date")
 	private Date endDate;
+
+	private String reference;
+
+	private String client;
 
 	@Transient
 	public static String STATUS_RUNNING = "running";
@@ -129,6 +135,22 @@ public class WorkflowInstance implements Serializable {
 		this.endDate = endDate;
 	}
 
+	public String getReference() {
+		return reference;
+	}
+
+	public void setReference(String reference) {
+		this.reference = reference;
+	}
+
+	public String getClient() {
+		return client;
+	}
+
+	public void setClient(String client) {
+		this.client = client;
+	}
+
 	public void updateFrom(WfProcessInstance wfProcessInstance) {
 		this.title = wfProcessInstance.getTitle();
 		this.supervisor = wfProcessInstance.getSupervisor();
@@ -155,6 +177,8 @@ public class WorkflowInstance implements Serializable {
 		builder.append(supervisor);
 		builder.append(startDate);
 		builder.append(endDate);
+		builder.append(reference);
+		builder.append(client);
 		return builder.toHashCode();
 	}
 }

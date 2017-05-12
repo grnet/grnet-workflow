@@ -8,24 +8,22 @@ import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.filter.AbstractMatcherFilter;
 import ch.qos.logback.core.spi.FilterReply;
 
-@SuppressWarnings("rawtypes")
-public class ErrOutFilter extends AbstractMatcherFilter {
+public class ErrOutFilter extends AbstractMatcherFilter<Object> {
 
 	@Override
 	public FilterReply decide(Object event) {
-		
-		if (!isStarted()) {
+
+		if (!isStarted())
 			return FilterReply.NEUTRAL;
-		}
 
 		LoggingEvent loggingEvent = (LoggingEvent) event;
 
 		List<Level> eventsToKeep = Arrays.asList(Level.WARN, Level.ERROR);
-		if (eventsToKeep.contains(loggingEvent.getLevel())) {
+
+		if (eventsToKeep.contains(loggingEvent.getLevel()))
 			return FilterReply.NEUTRAL;
-		} else {
+		else
 			return FilterReply.DENY;
-		}
 	}
 
 }

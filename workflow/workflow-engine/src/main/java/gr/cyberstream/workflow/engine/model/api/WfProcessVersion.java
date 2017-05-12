@@ -3,11 +3,11 @@
  */
 package gr.cyberstream.workflow.engine.model.api;
 
-import gr.cyberstream.workflow.engine.model.DefinitionVersion;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import gr.cyberstream.workflow.engine.model.DefinitionVersion;
 
 /**
  * Used to communicate Process Versions through the API functions.
@@ -23,7 +23,6 @@ public class WfProcessVersion {
 	private String deploymentId;
 	private String processDefinitionId;
 	private int workflowDefinitionId;
-	private String justification;
 
 	public WfProcessVersion() {
 	}
@@ -36,7 +35,6 @@ public class WfProcessVersion {
 		this.setDeploymentId(version.getDeploymentId());
 		this.setProcessDefinitionId(version.getProcessDefinitionId());
 		this.setWorkflowDefinitionId(version.getWorkflowDefinition().getId());
-		this.setJustification(version.getJustification());
 	}
 
 	public static List<WfProcessVersion> fromDefinitionVersions(List<DefinitionVersion> versions) {
@@ -102,9 +100,5 @@ public class WfProcessVersion {
 	public void setWorkflowDefinitionId(int workflowDefinitionId) {
 		this.workflowDefinitionId = workflowDefinitionId;
 	}
-
-	public String getJustification() { return justification; }
-
-	public void setJustification(String justification) { this.justification = justification; }
 
 }

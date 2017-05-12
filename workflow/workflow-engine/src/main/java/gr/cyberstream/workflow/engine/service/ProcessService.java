@@ -1,26 +1,60 @@
 package gr.cyberstream.workflow.engine.service;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gr.cyberstream.workflow.engine.cmis.CMISDocument;
-import gr.cyberstream.workflow.engine.cmis.CMISFolder;
-import gr.cyberstream.workflow.engine.config.SettingsStatus;
-import gr.cyberstream.workflow.engine.customtypes.ConversationType;
-import gr.cyberstream.workflow.engine.customtypes.DocumentType;
-import gr.cyberstream.workflow.engine.customtypes.MessageType;
-import gr.cyberstream.workflow.engine.listeners.CustomTaskFormFields;
-import gr.cyberstream.workflow.engine.model.*;
-import gr.cyberstream.workflow.engine.model.api.*;
-import gr.cyberstream.workflow.engine.persistence.Processes;
-import gr.cyberstream.workflow.engine.util.string.StringUtil;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimeZone;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
+import javax.imageio.ImageIO;
+import javax.json.Json;
+import javax.json.stream.JsonParser;
+import javax.json.stream.JsonParser.Event;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
+import javax.ws.rs.core.UriBuilder;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
 import org.activiti.bpmn.BpmnAutoLayout;
 import org.activiti.bpmn.exceptions.XMLException;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.FormValue;
 import org.activiti.bpmn.model.StartEvent;
 import org.activiti.bpmn.model.UserTask;
-import org.activiti.engine.*;
+import org.activiti.engine.ActivitiException;
+import org.activiti.engine.ActivitiIllegalArgumentException;
+import org.activiti.engine.FormService;
+import org.activiti.engine.HistoryService;
+import org.activiti.engine.ManagementService;
+import org.activiti.engine.RepositoryService;
+import org.activiti.engine.RuntimeService;
+import org.activiti.engine.TaskService;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.StartFormData;
 import org.activiti.engine.form.TaskFormData;
@@ -28,7 +62,11 @@ import org.activiti.engine.history.HistoricDetail;
 import org.activiti.engine.history.HistoricFormProperty;
 import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.history.HistoricTaskInstanceQuery;
+import org.activiti.engine.impl.cmd.SetProcessDefinitionVersionCmd;
+import org.activiti.engine.impl.persistence.entity.HistoricDetailVariableInstanceUpdateEntity;
 import org.activiti.engine.impl.persistence.entity.HistoricFormPropertyEntity;
+import org.activiti.engine.impl.util.json.JSONArray;
+import org.activiti.engine.impl.util.json.JSONObject;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.task.IdentityLink;
@@ -39,6 +77,7 @@ import org.activiti.image.impl.DefaultProcessDiagramGenerator;
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisStorageException;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -50,33 +89,84 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.social.facebook.api.Facebook;
+import org.springframework.social.facebook.api.impl.FacebookTemplate;
+import org.springframework.social.oauth1.AuthorizedRequestToken;
+import org.springframework.social.oauth1.OAuth1Operations;
+import org.springframework.social.oauth1.OAuth1Parameters;
+import org.springframework.social.oauth1.OAuthToken;
+import org.springframework.social.twitter.api.Twitter;
+import org.springframework.social.twitter.api.TwitterProfile;
+import org.springframework.social.twitter.api.impl.TwitterTemplate;
+import org.springframework.social.twitter.connect.TwitterConnectionFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 
-import javax.mail.MessagingException;
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gr.cyberstream.workflow.engine.cmis.CMISDocument;
+import gr.cyberstream.workflow.engine.cmis.CMISFolder;
+import gr.cyberstream.workflow.engine.config.SettingsStatus;
+import gr.cyberstream.workflow.engine.customtypes.ApproveFormType;
+import gr.cyberstream.workflow.engine.customtypes.ConversationType;
+import gr.cyberstream.workflow.engine.customtypes.DocumentType;
+import gr.cyberstream.workflow.engine.customtypes.MessageType;
+import gr.cyberstream.workflow.engine.listeners.CustomTaskFormFields;
+import gr.cyberstream.workflow.engine.model.DefinitionVersion;
+import gr.cyberstream.workflow.engine.model.ExternalForm;
+import gr.cyberstream.workflow.engine.model.ExternalGroup;
+import gr.cyberstream.workflow.engine.model.ExternalUser;
+import gr.cyberstream.workflow.engine.model.ExternalWrapper;
+import gr.cyberstream.workflow.engine.model.FBLoginResponse;
+import gr.cyberstream.workflow.engine.model.Registry;
+import gr.cyberstream.workflow.engine.model.TaskPath;
+import gr.cyberstream.workflow.engine.model.TwitterAuthorization;
+import gr.cyberstream.workflow.engine.model.UserTaskDetails;
+import gr.cyberstream.workflow.engine.model.UserTaskFormElement;
+import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
+import gr.cyberstream.workflow.engine.model.WorkflowDefinitionStatus;
+import gr.cyberstream.workflow.engine.model.WorkflowInstance;
+import gr.cyberstream.workflow.engine.model.WorkflowSettings;
+import gr.cyberstream.workflow.engine.model.api.ApiFacebookPage;
+import gr.cyberstream.workflow.engine.model.api.ApiTwitterAccount;
+import gr.cyberstream.workflow.engine.model.api.WfDocument;
+import gr.cyberstream.workflow.engine.model.api.WfExternalUser;
+import gr.cyberstream.workflow.engine.model.api.WfFormProperty;
+import gr.cyberstream.workflow.engine.model.api.WfProcess;
+import gr.cyberstream.workflow.engine.model.api.WfProcessInstance;
+import gr.cyberstream.workflow.engine.model.api.WfProcessMetadata;
+import gr.cyberstream.workflow.engine.model.api.WfProcessStatus;
+import gr.cyberstream.workflow.engine.model.api.WfProcessVersion;
+import gr.cyberstream.workflow.engine.model.api.WfPublicForm;
+import gr.cyberstream.workflow.engine.model.api.WfPublicGroup;
+import gr.cyberstream.workflow.engine.model.api.WfPublicService;
+import gr.cyberstream.workflow.engine.model.api.WfSettings;
+import gr.cyberstream.workflow.engine.model.api.WfTask;
+import gr.cyberstream.workflow.engine.model.api.WfTaskDetails;
+import gr.cyberstream.workflow.engine.model.api.WfUser;
+import gr.cyberstream.workflow.engine.persistence.Processes;
+import gr.cyberstream.workflow.engine.util.string.StringUtil;
+import nl.captcha.Captcha;
+import nl.captcha.text.producer.DefaultTextProducer;
 
 /**
  * Implements all the business rules related to process definitions and process
  * instances
  * 
- * @author nlyk
+ * @author nlyke
  *
  */
 @Service
@@ -86,7 +176,7 @@ public class ProcessService {
 
 	@Autowired
 	private Environment environment;
-
+	
 	@Autowired
 	private Processes processRepository;
 
@@ -110,6 +200,9 @@ public class ProcessService {
 
 	@Autowired
 	private RuntimeService activitiRuntimeSrv;
+	
+	@Autowired
+	private ManagementService activitiManagementService;
 
 	@Autowired
 	private RealmService realmService;
@@ -119,62 +212,69 @@ public class ProcessService {
 
 	@Autowired
 	private SettingsStatus settingsStatus;
+	
+	@Autowired
+	private TwitterConnectionFactory twitterConnectionFactory;
+
+	private static byte[] keyBytes = { 48, -127, -97, 48, 13, 6, 9, 42, -122, 72, -122, -9, 13, 1, 1, 1 };
+
+	private static Key key = null;
 
 	// user roles
 	private static final String ROLE_ADMIN = "ROLE_Admin";
 	private static final String ROLE_PROCESS_ADMIN = "ROLE_ProcessAdmin";
 	private static final String ROLE_SUPERVISOR = "ROLE_Supervisor";
+	
+	private OAuthToken requestToken;
 
-	/**
-	 * Get a process by its id
-	 * 
-	 * @param definitionId
-	 *            The process id
-	 * 
-	 * @return {@link WfProcess}
-	 */
-	public WfProcess getProcessById(int definitionId) {
-		WorkflowDefinition workflow = processRepository.getById(definitionId);
-
-		return new WfProcess(workflow);
+	public ProcessService() {
+		key = new SecretKeySpec(keyBytes, "AES");
 	}
 
 	/**
-	 * Returns a list of all WfProcess depending on user.<br>
-	 * If user has role admin all available processes will be returned,<br>
-	 * else will be returned processes which user's group equals to process.
+	 * Returns a a process by its id
+	 * 
+	 * @param id
+	 *            Process id
+	 * 
+	 * @return {@link WfProcess}
+	 */
+	@Deprecated
+	public WfProcess getProcessById(int processId) {
+		WorkflowDefinition workflowDefinition = processRepository.getById(processId);
+		
+		return new WfProcess(workflowDefinition);
+	}
+
+	/**
+	 * Returns a list of all WfProcess depending on user
 	 * 
 	 * @return List of {@link WfProcess}
 	 */
+	@Deprecated
 	public List<WfProcess> getAll() {
-
 		List<WfProcess> returnList = new ArrayList<WfProcess>();
-		List<WorkflowDefinition> workflows = processRepository.getAll();
+		List<WorkflowDefinition> workflowDefinitions = processRepository.getAll();
 
 		if (hasRole(ROLE_ADMIN)) {
-			returnList = WfProcess.fromWorkflowDefinitions(workflows);
-
+			returnList = WfProcess.fromWorkflowDefinitions(workflowDefinitions);
 		} else {
-			for (WorkflowDefinition workflowDefinition : workflows) {
-
+			for (WorkflowDefinition workflowDefinition : workflowDefinitions) {
 				if (hasGroup(workflowDefinition.getOwner())) {
 					WfProcess wfProcess = new WfProcess(workflowDefinition);
 					returnList.add(wfProcess);
 				}
 			}
 		}
-
 		return returnList;
 	}
 
 	/**
-	 * Returns a list of active WfProcess depending on user.<br>
-	 * If user has role admin all active processes will be returned,<br>
-	 * else will be returned active processes which user's group equals to
-	 * process.
+	 * Returns a list of active WfProcess depending on user
 	 * 
-	 * @return List of {@link WfProcess}
+	 * @return List of WfProcess
 	 */
+	@Deprecated
 	public List<WfProcess> getActiveProcessDefinitions() {
 		List<WfProcess> returnList = new ArrayList<WfProcess>();
 		List<WorkflowDefinition> workflows = processRepository.getActiveProcessDefintions();
@@ -193,60 +293,89 @@ public class ProcessService {
 	}
 
 	/**
-	 * Returns Tasks details by version id
 	 * 
-	 * @param versionId
-	 *            Version id to get tasks details from.(Version corresponds to
-	 *            definition's version id)
-	 * 
-	 * @return A list of {@link WfTaskDetails}
+	 * @param id
+	 * @return
 	 */
-	public List<WfTaskDetails> getVersionTaskDetails(int versionId) {
-		List<UserTaskDetails> taskDetails = processRepository.getVersionTaskDetails(versionId);
-
+	@Deprecated
+	public List<WfTaskDetails> getVersionTaskDetails(int id) {
+		List<UserTaskDetails> taskDetails = processRepository.getVersionTaskDetails(id);
+		
 		return WfTaskDetails.fromUserTaskDetails(taskDetails);
 	}
 
 	/**
-	 * Returns all running instances by process definition id
-	 *
-	 * @param processDefinitionId
-	 *            The definition's id to get running instances from
-	 *
-	 * @return A list of {@link WfProcessInstance}
+	 * Return all running instances for a process with the specified id.
+	 * 
+	 * @param id
+	 * @return
 	 */
-	public List<WfProcessInstance> getActiveProcessInstances(int processDefinitionId) {
+	public List<WfProcessInstance> getActiveProcessInstances(int id) {
+		List<WorkflowInstance> workflowInstances = processRepository.getActiveProcessInstances(id);
+		List<WfProcessInstance> wfProcessInstances = new ArrayList<WfProcessInstance>();
 
-		List<WorkflowInstance> workflowInstances = processRepository.getActiveProcessInstances(processDefinitionId);
-		List<WfProcessInstance> returnList = new ArrayList<WfProcessInstance>();
+		if (workflowInstances == null || workflowInstances.isEmpty())
+			return null;
 
-		if (workflowInstances.size() > 0) {
-			for (WorkflowInstance instance : workflowInstances) {
-				returnList.add(new WfProcessInstance(instance));
-			}
+		for (WorkflowInstance instance : workflowInstances) {
+			wfProcessInstances.add(new WfProcessInstance(instance));
 		}
 
-		return returnList;
+		return wfProcessInstances;
+	}
+	
+	@Transactional(rollbackFor = Exception.class)
+	public WfProcessInstance setInstanceVersion(String instanceId, int version) throws InvalidRequestException {
+		
+		logger.warn("Setting instance " + instanceId + " to version " + version);
+		
+		WorkflowInstance instance;
+		
+		try {
+			
+			instance = processRepository.getInstanceById(instanceId);
+			
+		} catch (EmptyResultDataAccessException e) {
+			
+			throw new InvalidRequestException("Process instance with id " + instanceId + " not found");
+		}
+		
+		try {
+			
+			activitiManagementService.executeCommand(new SetProcessDefinitionVersionCmd(instanceId, version));
+						
+			DefinitionVersion definitionVersion = 
+					processRepository.getDefinitionVersion(instance.getDefinitionVersion().getWorkflowDefinition(), version);
+		
+			instance.setDefinitionVersion(definitionVersion);
+			processRepository.save(instance);
+			
+		} catch (ActivitiException e) {
+			
+			logger.error("Unable to set instance " + instanceId + " to version " + version + ". " + e.getMessage());
+		}
+		
+		return new WfProcessInstance(instance);
 	}
 
 	/**
-	 * Deletes an instance from activiti and changes the status of the instance
-	 * in our table to "DELETED"
+	 * Delete process instance
 	 * 
-	 * @param instanceId
-	 *            Instance's id to be canceled
+	 * @param id
+	 *            Instance's id to be deleted
 	 * 
 	 * @throws InvalidRequestException
 	 */
 	@Transactional(rollbackFor = Exception.class)
 	public void cancelProcessInstance(String instanceId) throws InvalidRequestException {
+
 		WorkflowInstance instance;
 
 		try {
 			instance = processRepository.getInstanceById(instanceId);
 
 		} catch (NoResultException | EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("processIntanceNotFound");
+			throw new InvalidRequestException("Process instance with id " + instanceId + " not found");
 		}
 
 		if (hasRole(ROLE_ADMIN) || hasGroup(instance.getDefinitionVersion().getWorkflowDefinition().getOwner())) {
@@ -261,9 +390,9 @@ public class ProcessService {
 			processRepository.save(instance);
 
 		} else
-			throw new InvalidRequestException("notAuthorizedToCancel");
+			throw new InvalidRequestException("You are not authorized to cancel that instance");
 	}
-
+	
 	/**
 	 * Delete an instance from activiti also removes it from our table too
 	 * 
@@ -281,7 +410,7 @@ public class ProcessService {
 			instance = processRepository.getInstanceById(instanceId);
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("processIntanceNotFound");
+			throw new InvalidRequestException("Process instance with id " + instanceId + " not found");
 		}
 
 		if (hasRole(ROLE_ADMIN) || hasGroup(instance.getDefinitionVersion().getWorkflowDefinition().getOwner())) {
@@ -294,97 +423,157 @@ public class ProcessService {
 			processRepository.cancelProcessInstance(instance);
 
 		} else
-			throw new InvalidRequestException("notAuthorizedToDelete");
+			throw new InvalidRequestException("You are not authorized to delete that instance");
 	}
 
 	/**
-	 * Suspends an instance
+	 * Suspend process instance
 	 * 
 	 * @param instanceId
-	 *            Instance's id to be suspended
-	 * 
-	 * @return The updated {@link WfProcessInstance}
+	 * @return
 	 * @throws InvalidRequestException
 	 */
 	@Transactional(rollbackFor = Exception.class)
 	public WfProcessInstance suspendProcessInstance(String instanceId) throws InvalidRequestException {
-
-		WorkflowInstance instance;
+		WorkflowInstance workflowInstance;
 
 		try {
-			instance = processRepository.getInstanceById(instanceId);
-
+			workflowInstance = processRepository.getInstanceById(instanceId);
+			
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("processIntanceNotFound");
+			throw new InvalidRequestException("Process instance with id " + instanceId + " not found");
 		}
 
-		if (hasRole(ROLE_ADMIN) || hasGroup(instance.getDefinitionVersion().getWorkflowDefinition().getOwner())) {
-
+		if (hasRole(ROLE_ADMIN) || hasGroup(workflowInstance.getDefinitionVersion().getWorkflowDefinition().getOwner())) {
 			try {
 				activitiRuntimeSrv.suspendProcessInstanceById(instanceId);
-
+				
 			} catch (ActivitiException e) {
-				throw new InvalidRequestException("suspendingFailed");
+				logger.error(e.getMessage());
+				throw new InvalidRequestException("Could not suspend the instance");
 			}
-
-			instance.setStatus(WorkflowInstance.STATUS_SUSPENDED);
-			instance = processRepository.save(instance);
-
+			
+			workflowInstance.setStatus(WorkflowInstance.STATUS_SUSPENDED);
+			workflowInstance = processRepository.save(workflowInstance);
+			
+			return new WfProcessInstance(workflowInstance);
+			
 		} else
-			throw new InvalidRequestException("You are not authorized to suspend instance");
-
-		return new WfProcessInstance(instance);
+			throw new InvalidRequestException("You are not authorized to suspend that instance");
 	}
 
 	/**
 	 * Resume a suspended process instance
 	 * 
 	 * @param instanceId
-	 *            Instance's id to be resumed
-	 * 
-	 * @return The updated {@link WfProcessInstance}
+	 * @return
 	 * @throws InvalidRequestException
 	 */
 	@Transactional(rollbackFor = Exception.class)
 	public WfProcessInstance resumeProcessInstance(String instanceId) throws InvalidRequestException {
-		WorkflowInstance instance;
-
+		WorkflowInstance workflowInstance;
+		
 		try {
-			instance = processRepository.getInstanceById(instanceId);
-
+			workflowInstance = processRepository.getInstanceById(instanceId);
+			
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("processIntanceNotFound");
+			throw new InvalidRequestException("Process instance with id " + instanceId + " not found");
 		}
 
-		if (instance.getStatus().equals(WorkflowInstance.STATUS_RUNNING))
-			throw new InvalidRequestException("instanceAlreadyRunning");
-
-		if (hasRole(ROLE_ADMIN) || hasGroup(instance.getDefinitionVersion().getWorkflowDefinition().getOwner())) {
-
+		if (hasRole(ROLE_ADMIN) || hasGroup(workflowInstance.getDefinitionVersion().getWorkflowDefinition().getOwner())) {
 			try {
 				activitiRuntimeSrv.activateProcessInstanceById(instanceId);
-
+				
 			} catch (ActivitiException e) {
-				throw new InvalidRequestException("resumingFailed");
-			}
+				logger.error(e.getMessage());
+				throw new InvalidRequestException("Could not resume the instance");
+			} 
 
-			instance.setStatus(WorkflowInstance.STATUS_RUNNING);
-			instance = processRepository.save(instance);
-
-			return new WfProcessInstance(instance);
-
+			workflowInstance.setStatus(WorkflowInstance.STATUS_RUNNING);
+			workflowInstance = processRepository.save(workflowInstance);
+			
+			return new WfProcessInstance(workflowInstance);
+			
 		} else
-			throw new InvalidRequestException("notAuthorizedToResume");
+			throw new InvalidRequestException("You are not authorized to resume the instance");
 	}
 
 	/**
-	 * Returns all available definitions by owner
+	 * Creates a new process definition from just its metadata. No BPMN
+	 * definition is attached yet.
 	 * 
-	 * @param owners
-	 *            List of owners
-	 * 
-	 * @return List of {@link WfProcess}
+	 * @param process
+	 *            the metadata of the process
+	 *            
+	 * @return the saved process definition
+	 * @throws InvalidRequestException
 	 */
+	@Deprecated
+	@Transactional(rollbackFor = Exception.class)
+	public WfProcess createNewProcessDefinition(WfProcess process) throws InvalidRequestException {
+		WorkflowDefinition definition = new WorkflowDefinition();
+		definition.updateFrom(process);
+		
+		// check user roles/groups
+		if(hasRole(ROLE_ADMIN) || hasGroup(definition.getOwner())) {
+			// 1. apply some rules
+			if (StringUtil.isEmpty(definition.getName()))
+				throw new InvalidRequestException("the name is required for the new process definition");
+
+			try {
+				WorkflowDefinition sameNameWorkflowDefinition = processRepository.getByName(definition.getName());
+
+				if (sameNameWorkflowDefinition != null)
+					process.setName(definition.getName() + " - " + DateFormatUtils.format(Calendar.getInstance(), "d-M-yyyy HH.mm.ss"));
+
+			} catch (EmptyResultDataAccessException e) {
+				
+			}
+
+			// 2. Initialize process definition
+			definition.setActiveDeploymentId(null);
+
+			// 3. Create Process Definition Folder
+			Folder folder = cmisFolder.createFolder(null, definition.getName());
+			definition.setFolderId(folder.getId());
+
+			// 4. Set default icon
+			String defaultIcon = environment.getProperty("defaultIcon");
+			definition.setIcon(defaultIcon);
+
+			// 5. ask repository to save the new process definition
+			return new WfProcess(processRepository.save(definition));
+			
+		} else
+			throw new InvalidRequestException("You are not authorized to create a process definition for that owner");
+	}
+
+	/**
+	 * Rertuns a list of workflow definition API models
+	 * 
+	 * @return
+	 */
+	@Deprecated
+	public List<WfProcess> getProcessDefinitions() {
+		List<WorkflowDefinition> definitions = processRepository.getAll();
+		
+		return WfProcess.fromWorkflowDefinitions(definitions);
+	}
+
+	/**
+	 * Returns as list workflow definition API models by selected owners
+	 * 
+	 * @param ownerName
+	 * @return as list workflow definition API models by owner
+	 */
+	@Deprecated
+	public List<WfProcess> getDefinitionsByOwner(String owner) {
+		List<WorkflowDefinition> definitions = processRepository.getDefinitionsByOwner(owner);
+		
+		return WfProcess.fromWorkflowDefinitions(definitions);
+	}
+	
+	@Deprecated
 	public List<WfProcess> getDefinitionsByOwners(List<String> owners) {
 		List<WorkflowDefinition> definitions = processRepository.getDefinitionsByOwners(owners);
 
@@ -397,46 +586,50 @@ public class ProcessService {
 	 * 
 	 * @param process
 	 *            the metadata of the process
-	 * 
 	 * @return the saved process definition
 	 * @throws InvalidRequestException
 	 */
+	@Deprecated
 	@Transactional(rollbackFor = Exception.class)
 	public WfProcess update(WfProcess process) throws InvalidRequestException {
 		WorkflowDefinition definition;
 
 		try {
 			definition = processRepository.getById(process.getId());
-
-		} catch (NoResultException | EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("noProcessWithId");
+			
+		} catch (EmptyResultDataAccessException e) {
+			throw new InvalidRequestException("No process found with the given id");
 		}
 
-		if (hasRole(ROLE_ADMIN) || hasGroup(definition.getOwner())) {
-
+		if (hasRole(ROLE_ADMIN) || hasGroup(definition.getOwner()) || definition.getOwner() == null) {
+			
 			// 1. apply some rules
 			if (StringUtil.isEmpty(definition.getName()))
-				throw new InvalidRequestException("nameRequired");
+				throw new InvalidRequestException("the name is required for the process definition");
 
 			try {
 				Long nameCount = processRepository.getCheckName(definition);
 
 				if (nameCount > 0)
-					process.setName(definition.getName() + " - "
-							+ DateFormatUtils.format(Calendar.getInstance(), "d-M-yyyy HH.mm.ss"));
+					process.setName(definition.getName() + " - " + DateFormatUtils.format(Calendar.getInstance(), "d-M-yyyy HH.mm.ss"));
 
 			} catch (EmptyResultDataAccessException e) {
-
 			}
 
 			// 3. Update Process Definition Folder
 			cmisFolder.updateFolderName(definition.getFolderId(), definition.getName());
 
 			definition.updateFrom(process);
+
+			if (process.getRegistryId() != null)
+				definition.setRegistry(processRepository.getRegistryById(process.getRegistryId()));
+			else
+				definition.setRegistry(null);
+
 			processRepository.save(definition);
 
-		} else
-			throw new InvalidRequestException("notAuthorizedToUpdateDefinition");
+		} else 
+			throw new InvalidRequestException("Seems you are not authorized to update the definition");
 
 		return new WfProcess(definition);
 	}
@@ -453,19 +646,20 @@ public class ProcessService {
 	 * @return the newly created process definition
 	 * @throws InvalidRequestException
 	 */
+	@Deprecated
 	@Transactional(rollbackFor = Exception.class)
-	public WfProcess createNewProcessDefinition(InputStream inputStream, String filename, String justification)
-			throws InvalidRequestException {
+	public WfProcess createNewProcessDefinition(InputStream inputStream, String filename) throws InvalidRequestException {
 		Deployment deployment;
+
 		String defaultIcon = environment.getProperty("defaultIcon");
 		String bpmn;
 
 		try {
-			bpmn = IOUtils.toString(inputStream, "UTF-8");
+			bpmn = IOUtils.toString(inputStream);
 
 		} catch (IOException e) {
 			logger.error("Unable to read BPMN Input Stream. " + e.getMessage());
-			throw new InvalidRequestException("Unable to read BPMN Input Stream");
+			throw new InvalidRequestException("Unable to read BPMN Input Stream.");
 		}
 
 		// parse the id of the process from the bpmn file
@@ -474,12 +668,14 @@ public class ProcessService {
 		// check whether another process with the same process id in its bpmn
 		// file exists
 		if (processId == null) {
+
 			logger.error("Process Definition Key is null");
-			throw new InvalidRequestException("processKeyNull");
+			throw new InvalidRequestException("Process key is null.");
 
 		} else if (definitionExistenceCheck(processId)) {
+
 			logger.error("Process Definition Key " + processId + " already exists");
-			throw new InvalidRequestException("processWithKeyAlreadyExists");
+			throw new InvalidRequestException("Process with key " + processId + " already exists.");
 		}
 
 		// 1. Deploy the BPMN file to Activiti repository service
@@ -490,7 +686,7 @@ public class ProcessService {
 			deployment = activitiRepositorySrv.createDeployment().addString("input.bpmn20.xml", bpmn).name(filename)
 					.deploy();
 		} catch (XMLException | ActivitiIllegalArgumentException ex) {
-			String message = "BPMNInputNotValid";
+			String message = "The BPMN input is not valid. Error string: " + ex.getMessage();
 			logger.error(message);
 			throw new InvalidRequestException(message);
 		}
@@ -499,7 +695,7 @@ public class ProcessService {
 		// definition ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		if (deployment == null) {
 			logger.error("BPMN file error");
-			throw new InvalidRequestException("BPMNInputNotValid");
+			throw new InvalidRequestException("The BPMN input is not valid");
 		}
 
 		logger.info("New BPMN deployment: " + deployment.getName());
@@ -509,7 +705,7 @@ public class ProcessService {
 
 		if (processDef == null) {
 			logger.error("BPMN file error");
-			throw new InvalidRequestException("BPMNInputNotValid");
+			throw new InvalidRequestException("The BPMN input is not valid");
 		}
 
 		WorkflowDefinition workflow = new WorkflowDefinition();
@@ -517,11 +713,12 @@ public class ProcessService {
 		workflow.setDescription(processDef.getDescription());
 		workflow.setAssignBySupervisor(false);
 		workflow.setIcon(defaultIcon);
-
+		
 		String definitionName = processDef.getName();
 		workflow.setName((definitionName == null) ? "you must name it" : definitionName);
 
 		try {
+
 			WorkflowDefinition sameNameWorkflowDefinition = null;
 
 			try {
@@ -544,7 +741,6 @@ public class ProcessService {
 		definitionVersion.setVersion(processDef.getVersion());
 		definitionVersion.setDeploymentdate(deployment.getDeploymentTime());
 		definitionVersion.setProcessDefinitionId(processDef.getKey());
-		definitionVersion.setJustification(justification);
 
 		workflow.addDefinitionVersion(definitionVersion);
 
@@ -566,38 +762,35 @@ public class ProcessService {
 
 	/**
 	 * 
-	 * @param definitionId
+	 * @param id
 	 * @param inputStream
 	 * @param filename
 	 * @return
 	 * @throws InvalidRequestException
 	 */
+	@Deprecated
 	@Transactional(rollbackFor = Exception.class)
-	public WfProcessVersion createNewProcessVersion(int definitionId, InputStream inputStream, String filename,
-			String justification) throws InvalidRequestException {
+	public WfProcessVersion createNewProcessVersion(int id, InputStream inputStream, String filename) throws InvalidRequestException {
 		Deployment deployment;
 		ProcessDefinition processDef;
 		String bpmn;
-		WorkflowDefinition workflowDefinition;
+		WorkflowDefinition workflow;
 
-		// get the workflow definition
 		try {
-			workflowDefinition = processRepository.getById(definitionId);
-
-		} catch (NoResultException | EmptyResultDataAccessException noRes) {
-			throw new InvalidRequestException("noProcessDefinitionWithID");
+			workflow = processRepository.getById(id);
+			
+		} catch(Exception e) {
+			logger.error("Process with id " + id + " not found." + e.getMessage());
+			throw new InvalidRequestException("Process with id " + id + " not found.");
 		}
 
-		// check user's roles/groups
-		if (hasRole(ROLE_ADMIN) || hasGroup(workflowDefinition.getOwner())) {
-
-			// parse the bpmn file
+		if (hasRole(ROLE_ADMIN) || hasGroup(workflow.getOwner())) {
 			try {
-				bpmn = IOUtils.toString(inputStream, "UTF-8");
+				bpmn = IOUtils.toString(inputStream);
 
 			} catch (IOException e) {
 				logger.error("Unable to read BPMN Input Stream. " + e.getMessage());
-				throw new InvalidRequestException("Unable to read BPMN Input Stream");
+				throw new InvalidRequestException("Unable to read BPMN Input Stream.");
 			}
 
 			// parse the id of the process from the bpmn file
@@ -605,25 +798,25 @@ public class ProcessService {
 
 			// verify that the latest version has a bpmn file with the same
 			// process id
-			if (!definitionVersionExistenceCheck(definitionId, processId)) {
-				logger.error("successiveVersionsSameKey");
-				throw new InvalidRequestException("successiveVersionsSameKey");
+			if (!definitionVersionExistenceCheck(id, processId)) {
+				logger.error("Successive process versions should have the same key");
+				throw new InvalidRequestException("Successive process versions should have the same key");
 			}
 
 			try {
+				// get the deployment
 				deployment = ActivitiHelper.createDeployment(activitiRepositorySrv, bpmn, filename);
-
+				
 			} catch (ActivitiException e) {
 				logger.error(e.getMessage());
 				throw new InvalidRequestException(e.getMessage());
 			}
 
-			logger.debug("New BPMN deployment: " + deployment.getName());
+			logger.info("New BPMN deployment: " + deployment.getName());
 
 			try {
-				processDef = ActivitiHelper.getProcessDefinitionByDeploymentId(activitiRepositorySrv,
-						deployment.getId());
-
+				processDef = ActivitiHelper.getProcessDefinitionByDeploymentId(activitiRepositorySrv, deployment.getId());
+				
 			} catch (ActivitiException e) {
 				logger.error(e.getMessage());
 				throw new InvalidRequestException(e.getMessage());
@@ -634,54 +827,46 @@ public class ProcessService {
 			definitionVersion.setStatus(WorkflowDefinitionStatus.NEW.toString());
 			definitionVersion.setVersion(processDef.getVersion());
 			definitionVersion.setDeploymentdate(deployment.getDeploymentTime());
-			definitionVersion.setProcessDefinitionId(ActivitiHelper
-					.getProcessDefinitionByDeploymentId(activitiRepositorySrv, deployment.getId()).getId());
-			definitionVersion.setJustification(justification);
+			definitionVersion.setProcessDefinitionId(ActivitiHelper.getProcessDefinitionByDeploymentId(activitiRepositorySrv, deployment.getId()).getId());
 
-			workflowDefinition.addDefinitionVersion(definitionVersion);
+			workflow.addDefinitionVersion(definitionVersion);
 
-			processRepository.save(workflowDefinition);
-			createTaskDetails(workflowDefinition);
+			processRepository.save(workflow);
+			createTaskDetails(workflow);
 
 			return new WfProcessVersion(definitionVersion);
 
 		} else
-			throw new InvalidRequestException("notAuthorizedToUpdateDefinition");
+			throw new InvalidRequestException("The definition you are trying to edit doesn't belong to your group");
 	}
 
 	/**
-	 * Updates a process version
 	 * 
 	 * @param processId
-	 *            The id of the process to be updated
-	 * 
-	 * @param wfProcessVersion
-	 *            The process version entity
-	 * 
-	 * @return {@link WfProcessVersion} The updated entity
-	 * 
+	 * @param version
+	 * @return
 	 * @throws InvalidRequestException
 	 */
+	@Deprecated
 	@Transactional(rollbackFor = Exception.class)
-	public WfProcessVersion updateVersion(int processId, WfProcessVersion wfProcessVersion)
-			throws InvalidRequestException {
+	public WfProcessVersion updateVersion(int processId, WfProcessVersion version) throws InvalidRequestException {
 		DefinitionVersion definitionVersion;
-
+		
 		try {
-			definitionVersion = processRepository.getVersionById(wfProcessVersion.getId());
+			definitionVersion = processRepository.getVersionById(version.getId());
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("noProcessVersionWithId");
+			throw new InvalidRequestException("No process version found with the given id");
 		}
 
 		if (hasRole(ROLE_ADMIN) || hasGroup(definitionVersion.getWorkflowDefinition().getOwner())) {
-			definitionVersion.updateFrom(wfProcessVersion);
+			definitionVersion.updateFrom(version);
 			processRepository.saveVersion(processId, definitionVersion);
 
 			return new WfProcessVersion(definitionVersion);
 
 		} else
-			throw new InvalidRequestException("definitionNotInYourGroup");
+			throw new InvalidRequestException("The definition you are trying to edit doesn't belong to your group");
 	}
 
 	/**
@@ -691,6 +876,7 @@ public class ProcessService {
 	 *            the id of process
 	 * @return
 	 */
+	@Deprecated
 	public InputStreamResource getProcessDiagram(int processId) {
 
 		WorkflowDefinition process = processRepository.getById(processId);
@@ -705,39 +891,9 @@ public class ProcessService {
 			BpmnAutoLayout autoLayout = new BpmnAutoLayout(bpmnModel);
 			autoLayout.execute();
 		}
-
+		
 		InputStream is = processDiagramGenerator.generateJpgDiagram(bpmnModel);
 		return new InputStreamResource(is);
-	}
-
-	/**
-	 * Generates an image of the bpmn model based on the definition and the
-	 * given task to be highlighted
-	 * 
-	 * @param definitionId
-	 *            The definition id
-	 * 
-	 * @param taskDefinition
-	 *            The task's definition to be highlighted
-	 * 
-	 * @return
-	 */
-	public InputStreamResource getTaskProcessDiagram(int definitionId, String taskDefinition) {
-		WorkflowDefinition definition = processRepository.getById(definitionId);
-
-		ProcessDiagramGenerator processDiagramGenerator = new DefaultProcessDiagramGenerator();
-		BpmnModel bpmnModel = activitiRepositorySrv.getBpmnModel(definition.getKey());
-		List<String> taskId = new ArrayList<>();
-
-		if (bpmnModel.getLocationMap().size() == 0) {
-			BpmnAutoLayout autoLayout = new BpmnAutoLayout(bpmnModel);
-			autoLayout.execute();
-		}
-
-		// the task's definition id
-		taskId.add(taskDefinition);
-		InputStream resource = processDiagramGenerator.generateDiagram(bpmnModel, "jpeg", taskId);
-		return new InputStreamResource(resource);
 	}
 
 	/**
@@ -753,15 +909,29 @@ public class ProcessService {
 		ProcessDiagramGenerator processDiagramGenerator = new DefaultProcessDiagramGenerator();
 
 		BpmnModel bpmnModel = activitiRepositorySrv.getBpmnModel(definition.getKey());
-
-		if (bpmnModel.getLocationMap().size() == 0) {
-			BpmnAutoLayout autoLayout = new BpmnAutoLayout(bpmnModel);
-			autoLayout.execute();
-		}
-
-		InputStream resource = processDiagramGenerator.generateDiagram(bpmnModel, "jpeg",
-				activitiRuntimeSrv.getActiveActivityIds(instanceId));
-
+		InputStream resource = processDiagramGenerator.generateDiagram(bpmnModel, "jpeg", activitiRuntimeSrv.getActiveActivityIds(instanceId));
+		
+		return new InputStreamResource(resource);
+	}
+	
+	/**
+	 * Generates a diagram based on given task.
+	 * Shows the task's position in diagram
+	 * 
+	 * @param wfTask
+	 * @return
+	 */
+	public InputStreamResource getTaskProcessDiagram(int definitionId, String taskDefinition) {
+		WorkflowDefinition definition = processRepository.getById(definitionId);
+		
+		ProcessDiagramGenerator processDiagramGenerator = new DefaultProcessDiagramGenerator();
+		BpmnModel bpmnModel = activitiRepositorySrv.getBpmnModel(definition.getKey());
+		List<String> taskId = new ArrayList<>();
+		
+		// the task's definition id
+		taskId.add(taskDefinition);
+		
+		InputStream resource = processDiagramGenerator.generateDiagram(bpmnModel, "jpeg", taskId);
 		return new InputStreamResource(resource);
 	}
 
@@ -772,116 +942,98 @@ public class ProcessService {
 	 * @param processId
 	 * @throws InvalidRequestException
 	 */
+	@Deprecated
 	@Transactional(rollbackFor = Exception.class)
 	public void deleteProcessDefinition(int processId) throws InvalidRequestException {
 		WorkflowDefinition definition;
-
+		
 		// get workflow definition
 		try {
 			definition = processRepository.getById(processId);
-
-		} catch (NoResultException | EmptyResultDataAccessException noResult) {
-			throw new InvalidRequestException("noProcessWithId");
+			
+		} catch (Exception e) {
+			throw new InvalidRequestException("No process with id: " + processId + "found");
 		}
 
 		if (hasRole(ROLE_ADMIN) || hasGroup(definition.getOwner())) {
 
 			// check if any of the process deployments have instances
 			boolean found = false;
-
+			
 			for (DefinitionVersion version : definition.getDefinitionVersions()) {
-				if (activitiHistorySrv.createHistoricProcessInstanceQuery().notDeleted()
-						.deploymentId(version.getDeploymentId()).count() > 0)
+				
+				if (activitiHistorySrv.createHistoricProcessInstanceQuery().notDeleted().deploymentId(version.getDeploymentId()).count() > 0)
 					found = true;
 			}
-
+			
+			// throw an exception since there are assosiated instances with that definition
 			if (found)
-				throw new InvalidRequestException("definitionNotDeletedAssociatedEntries");
+				throw new InvalidRequestException("The process definition with id: " + processId + "could not be deleted. There are associated entries");
 
 			// delete all process definitions (all versions)
 			String activeDeploymentId = definition.getActiveDeploymentId();
 
 			boolean activeDeleted = false;
-
-			// delete all version from definition
 			for (DefinitionVersion version : definition.getDefinitionVersions()) {
-
+				
 				if (version.getDeploymentId().isEmpty())
 					continue;
 
-				// get definition's instance
-				List<WorkflowInstance> instances = processRepository.getInstancesByDefinitionVersionId(version.getId());
-
-				for (WorkflowInstance instance : instances) {
-
-					// delete from our table
-					processRepository.deleteProcessInstance(instance.getId());
-
-					// delete from activiti
-					activitiRuntimeSrv.deleteProcessInstance(instance.getId(), null);
-				}
-
 				activitiRepositorySrv.deleteDeployment(version.getDeploymentId());
-
+				
 				if (version.getDeploymentId().equals(activeDeploymentId))
 					activeDeleted = true;
 			}
 
 			// delete active deployment if not already deleted
-			if (!activeDeleted && activeDeploymentId != null && !activeDeploymentId.isEmpty())
+			if (!activeDeleted && activeDeploymentId != null && !activeDeploymentId.isEmpty()) {
 				activitiRepositorySrv.deleteDeployment(activeDeploymentId);
+			}
 
 			// delete workflow definition entry
 			processRepository.delete(processId);
 
-			// delete definition's cmis folder
-			try {
-				cmisFolder.deleteFolderById(definition.getFolderId());
-
-			} catch (Exception e) {
-				throw new InvalidRequestException("errorDeletingDefinitionFolder");
-			}
-
+			cmisFolder.deleteFolderById(definition.getFolderId());
+			
 		} else
-			throw new InvalidRequestException("notAuthorizedToDeleteDefinition");
+			throw new InvalidRequestException("You are not authorized to delete the definition");
 	}
 
 	/**
-	 * Deletes the specific version of the process definition. Fail if instances
-	 * are found
+	 * Deletes the specific version of the process definition
 	 * 
 	 * @param processId
 	 * @param deploymentId
-	 * @throws InvalidRequestException
+	 * @return
+	 * @throws InvalidRequestException If any instance found
 	 */
+	@Deprecated
 	@Transactional(rollbackFor = Exception.class)
 	public WfProcess deleteProcessDefinitionVersion(int processId, String deploymentId) throws InvalidRequestException {
-
+		WorkflowDefinition definition;
+		
 		// get workflow definition
-		WorkflowDefinition workflowDefinition;
-
 		try {
-			workflowDefinition = processRepository.getById(processId);
-
-		} catch (EmptyResultDataAccessException | NoResultException noRes) {
-			throw new InvalidRequestException("noProcessWithId");
+			definition = processRepository.getById(processId);
+			
+		} catch (Exception e) {
+			throw new InvalidRequestException("no process with id: " + processId + " found.");
 		}
 
-		// check if the version id the last one
-		if (workflowDefinition.getDefinitionVersions().size() < 2)
-			throw new InvalidRequestException(
-					"errorDeleteLastVersion");
-
 		// no need to check anything
-		if (hasRole(ROLE_ADMIN) || hasGroup(workflowDefinition.getOwner())) {
-
+		if (hasRole(ROLE_ADMIN) || hasGroup(definition.getOwner())) {
+			
+			// check if the version id the last one
+			if (definition.getDefinitionVersions().size() < 2)
+				throw new InvalidRequestException("Trying to delete the last version. Delete the process definition instead.");
+			
 			// check the existence of the deploymentId
 			boolean found = false;
 			boolean used = false;
-			List<DefinitionVersion> versions = workflowDefinition.getDefinitionVersions();
+			List<DefinitionVersion> versions = definition.getDefinitionVersions();
 
 			for (DefinitionVersion version : versions) {
-
+				
 				if (!version.getDeploymentId().equals(deploymentId)) {
 					continue;
 				}
@@ -889,97 +1041,90 @@ public class ProcessService {
 				found = true;
 
 				// check if the version is ever used
-				if (activitiHistorySrv.createHistoricProcessInstanceQuery().notDeleted().deploymentId(deploymentId)
-						.count() > 0) {
+				if (activitiHistorySrv.createHistoricProcessInstanceQuery().notDeleted().deploymentId(deploymentId).count() > 0) {
 					used = true;
 					break;
 				}
-
+				
 				// remove version
 				versions.remove(version);
 				break;
 			}
 			// definition version not found
 			if (!found)
-				throw new InvalidRequestException("processDefinitionNotInProcess");
+				throw new InvalidRequestException("The process definition version with id: " + deploymentId + " does not exist in process " + processId);
 
 			// definition with the specific version is used
 			if (used)
-				throw new InvalidRequestException("definitionNotDeletedAssociatedEntries");
+				throw new InvalidRequestException("The process definition version with id: " + deploymentId + "could not be deleted. There are associated entries");
 
 			// delete the deployment
 			activitiRepositorySrv.deleteDeployment(deploymentId);
 
 			// remove the version for the process definition
-			workflowDefinition.setDefinitionVersions(versions);
+			definition.setDefinitionVersions(versions);
 
 			// update the process definition
 			// if the deleted version was the active one, set the active
-			// deployment to most recent one
-			if (workflowDefinition.getActiveDeploymentId().equals(deploymentId))
-				workflowDefinition
-						.setActiveDeploymentId(workflowDefinition.getDefinitionVersions().get(0).getDeploymentId());
+			// deployment
+			// to most recent one
+			if (definition.getActiveDeploymentId().equals(deploymentId))
+				definition.setActiveDeploymentId(definition.getDefinitionVersions().get(0).getDeploymentId());
 
-			return new WfProcess(processRepository.save(workflowDefinition));
+			return new WfProcess(processRepository.save(definition));
 
 		} else
-			throw new InvalidRequestException("definitionNotInYourGroup");
+			throw new InvalidRequestException("The definition you are trying to edit doesn't belong to your group");
 	}
 
 	/**
-	 * Sets active version to a process definition
+	 * Sets the active version for the workflow definition
 	 * 
 	 * @param processId
-	 *            The definition's to set active version
-	 * 
+	 *            the workflow definition object
 	 * @param versionId
-	 *            The version's id to set
-	 * 
-	 * @return {@link WfProcess} The updated definition
-	 * 
+	 *            the id of the version to become active
 	 * @throws InvalidRequestException
 	 */
+	@Deprecated
 	@Transactional(rollbackFor = Exception.class)
 	public WfProcess setActiveVersion(int processId, int versionId) throws InvalidRequestException {
 
-		WorkflowDefinition workflowDefinition;
-
+		WorkflowDefinition definition;
+		
 		try {
-			workflowDefinition = processRepository.getById(processId);
-
-		} catch (EmptyResultDataAccessException | NoResultException noRes) {
-			throw new InvalidRequestException("noProcessWithId");
+			definition = processRepository.getById(processId);
+			
+		} catch(Exception e) {
+			throw new InvalidRequestException("no process with id: " + processId + " found.");
 		}
 
-		// check user's roles/groups
-		if (hasRole(ROLE_ADMIN) || hasGroup(workflowDefinition.getOwner())) {
-
+		// nothing to check
+		if (hasRole(ROLE_ADMIN) || hasGroup(definition.getOwner())) {
 			boolean found = false;
-
-			for (DefinitionVersion version : workflowDefinition.getDefinitionVersions()) {
+			
+			for (DefinitionVersion version : definition.getDefinitionVersions()) {
 				if (version.getId() == versionId) {
-
+					
 					version.setStatus(WorkflowDefinitionStatus.ACTIVE.toString());
-
-					workflowDefinition.setActiveDeploymentId(version.getDeploymentId());
-					workflowDefinition.setKey(ActivitiHelper
-							.getProcessDefinitionByDeploymentId(activitiRepositorySrv, version.getDeploymentId())
-							.getId());
-
+					definition.setActiveDeploymentId(version.getDeploymentId());
+					definition.setKey(ActivitiHelper.getProcessDefinitionByDeploymentId(activitiRepositorySrv, version.getDeploymentId()).getId());
 					found = true;
+					
 				} else {
-					if (version.getStatus().equals(WorkflowDefinitionStatus.ACTIVE.toString()))
+					if (version.getStatus().equals(WorkflowDefinitionStatus.ACTIVE.toString())) {
 						version.setStatus(WorkflowDefinitionStatus.INACTIVE.toString());
+					}
 				}
 			}
 
-			if (!found)
-				throw new InvalidRequestException("processDefinitionNotInProcess");
+			if (!found) 
+				throw new InvalidRequestException("The process definition version with id: " + versionId + " does not exist in process " + definition.getId());
 
-			return new WfProcess(processRepository.save(workflowDefinition));
+			return new WfProcess(processRepository.save(definition));
 
 		} else
-			throw new InvalidRequestException("definitionNotInYourGroup");
+			throw new InvalidRequestException("The definition you are trying to edit doesn't belong to your group");
 	}
 
 	/**
@@ -987,73 +1132,62 @@ public class ProcessService {
 	 * 
 	 * @param processId
 	 *            the process id
-	 * 
 	 * @param versionId
 	 *            the of the id to be deactivated
-	 * 
 	 * @return the modified workflow definition
 	 */
+	@Deprecated
 	@Transactional(rollbackFor = Exception.class)
 	public WfProcessVersion deactivateVersion(int processId, int versionId) throws InvalidRequestException {
 
-		WorkflowDefinition workflowDefinition;
-
+		WorkflowDefinition definition;
+		
 		try {
-			workflowDefinition = processRepository.getById(processId);
-
-		} catch (EmptyResultDataAccessException | NoResultException noRes) {
-			throw new InvalidRequestException("noProcessWithId");
+			definition = processRepository.getById(processId);
+			
+		} catch (Exception e) {
+			throw new InvalidRequestException("no process with id: " + processId + " found.");
 		}
+		
+		DefinitionVersion version = definition.getVersion(versionId);
 
-		DefinitionVersion definitionVersion = workflowDefinition.getVersion(versionId);
+		// nothing to check
+		if (hasRole(ROLE_ADMIN) || hasGroup(definition.getOwner())) {
+			version.setStatus(WorkflowDefinitionStatus.INACTIVE.toString());
 
-		if (hasRole(ROLE_ADMIN) || hasGroup(workflowDefinition.getOwner())) {
-			definitionVersion.setStatus(WorkflowDefinitionStatus.INACTIVE.toString());
-
-			if (workflowDefinition.getActiveDeploymentId() != null
-					&& workflowDefinition.getActiveDeploymentId().equals(definitionVersion.getDeploymentId())) {
-				workflowDefinition.setActiveDeploymentId(null);
-				processRepository.save(workflowDefinition);
+			if (definition.getActiveDeploymentId() != null && definition.getActiveDeploymentId().equals(version.getDeploymentId())) {
+				definition.setActiveDeploymentId(null);
+				processRepository.save(definition);
 			}
 
-			return new WfProcessVersion(processRepository.saveVersion(processId, definitionVersion));
+			return new WfProcessVersion(processRepository.saveVersion(processId, version));
 
 		} else
-			throw new InvalidRequestException("definitionNotInYourGroup");
+			throw new InvalidRequestException("The definition you are trying to edit doesn't belong to your group");
 	}
 
 	/**
 	 * Return the full metadata set for the workflow definition
 	 * 
-	 * @param processId
+	 * @param id
 	 *            the id of the workflow definition
-	 * 
 	 * @param device
-	 *            The device which metadata will be retrieved
-	 * 
-	 * @return {@link WfProcess} with metadata
+	 * @return
 	 * @throws InvalidRequestException
 	 */
-	public WfProcess getProcessMetadata(int processId, String device) throws InvalidRequestException {
-		WorkflowDefinition workflowDefinition;
+	@Deprecated
+	public WfProcess getProcessMetadata(int id, String device) throws InvalidRequestException {
+
+		WorkflowDefinition definition = processRepository.getById(id);
+		WfProcess process = new WfProcess(definition);
+
+		StartFormData startForm = activitiFormSrv.getStartFormData(definition.getKey());
+
+		BpmnModel bpmnModel = activitiRepositorySrv.getBpmnModel(process.getProcessDefinitionId());
 		List<UserTaskFormElement> taskFormElements = new ArrayList<UserTaskFormElement>();
 		Map<String, UserTaskFormElement> mappedUserTaskFormElements = new HashMap<>();
 		UserTaskDetails taskDetail = new UserTaskDetails();
-		List<WfFormProperty> formProperties = new ArrayList<WfFormProperty>();
 
-		try {
-			workflowDefinition = processRepository.getById(processId);
-
-		} catch (EmptyResultDataAccessException | NoResultException noRes) {
-			throw new InvalidRequestException("noProcessWithId");
-		}
-
-		WfProcess process = new WfProcess(workflowDefinition);
-
-		// get the start form for the definition
-		StartFormData startForm = activitiFormSrv.getStartFormData(workflowDefinition.getKey());
-
-		BpmnModel bpmnModel = activitiRepositorySrv.getBpmnModel(process.getProcessDefinitionId());
 		List<org.activiti.bpmn.model.Process> processes = bpmnModel.getProcesses();
 
 		for (org.activiti.bpmn.model.Process p : processes) {
@@ -1076,6 +1210,8 @@ public class ProcessService {
 			}
 		}
 
+		List<WfFormProperty> formProperties = new ArrayList<WfFormProperty>();
+
 		for (WfFormProperty formProperty : getWfFormProperties(startForm.getFormProperties())) {
 			UserTaskFormElement userTaskFormElement = mappedUserTaskFormElements.get(formProperty.getId());
 
@@ -1092,236 +1228,509 @@ public class ProcessService {
 	}
 
 	/**
-	 * Starts a new instance using its form data (no multipart files present)
+	 * Return the full metadata set for the workflow definition
+	 * 
+	 * @param id
+	 *            the id of the workflow definition
+	 * @return
+	 */
+	public WfProcessMetadata getPublicProcessMetadata(String formId, String device) throws InvalidRequestException {
+
+		try {
+
+			ExternalForm form = processRepository.getFormById(formId);
+
+			// get the bpmn model in order to get the start form
+			BpmnModel bpmnModel = activitiRepositorySrv.getBpmnModel(form.getWorkflowDefinition().getKey());
+			List<UserTaskFormElement> taskFormElements = new ArrayList<UserTaskFormElement>();
+			Map<String, UserTaskFormElement> mappedUserTaskFormElements = new HashMap<>();
+			UserTaskDetails taskDetail = new UserTaskDetails();
+
+			WfProcessMetadata processMetadata = new WfProcessMetadata();
+
+			processMetadata.setName(form.getWorkflowDefinition().getName());
+			processMetadata.setIcon(form.getWorkflowDefinition().getIcon());
+			processMetadata.setDescription(form.getWorkflowDefinition().getDescription());
+
+			final char[] NUMBERS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+
+			Captcha captcha = new Captcha.Builder(130, 40).addText(new DefaultTextProducer(5, NUMBERS)).addNoise()
+					.build();
+
+			try {
+
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+				ImageIO.write(captcha.getImage(), "png", out);
+				out.flush();
+
+				byte[] imageBytes = out.toByteArray();
+				out.close();
+
+				String image = "data:image/png;base64," + Base64.encodeBase64String(imageBytes);
+
+				processMetadata.setCaptchaImage(image);
+
+				String hash = generateCaptchaHash(captcha.getAnswer());
+
+				if (hash == null) {
+
+					logger.error("Generating Captcha Hash failed.");
+				}
+
+				processMetadata.setCaptchaHash(hash);
+
+			} catch (IOException e) {
+
+				logger.error("Generating Captcha Image failed. " + e.getMessage());
+			}
+
+			StartFormData startForm = activitiFormSrv.getStartFormData(form.getWorkflowDefinition().getKey());
+
+			List<org.activiti.bpmn.model.Process> processes = bpmnModel.getProcesses();
+
+			for (org.activiti.bpmn.model.Process p : processes) {
+				List<StartEvent> startEvents = p.findFlowElementsOfType(StartEvent.class);
+				for (StartEvent startEvent : startEvents) {
+
+					// task detail
+					taskDetail = processRepository.getUserTaskDetailByDefinitionKey(startEvent.getId(),
+							form.getWorkflowDefinition().getKey());
+
+					// get the task form elements
+					taskFormElements = processRepository.getUserTaskFromElements(form.getWorkflowDefinition().getKey(),
+							taskDetail.getId());
+
+					// fill the usertaskform element map using as key the
+					// element id and as value the user taskform element
+					for (UserTaskFormElement userTaskFormElement : taskFormElements) {
+						mappedUserTaskFormElements.put(userTaskFormElement.getElementId(), userTaskFormElement);
+					}
+
+				}
+			}
+
+			List<WfFormProperty> formProperties = new ArrayList<WfFormProperty>();
+
+			// loop through form properties
+			for (WfFormProperty formProperty : getWfFormProperties(startForm.getFormProperties())) {
+				UserTaskFormElement userTaskFormElement = mappedUserTaskFormElements.get(formProperty.getId());
+
+				if (userTaskFormElement.getDevice().equalsIgnoreCase(device)
+						|| userTaskFormElement.getDevice().equals(UserTaskFormElement.ALL_DEVICES)) {
+					formProperty.setDescription(userTaskFormElement.getDescription());
+					formProperties.add(formProperty);
+				}
+			}
+
+			processMetadata.setProcessForm(formProperties);
+
+			return processMetadata;
+
+		} catch (EmptyResultDataAccessException e) {
+			logger.error(e.getMessage());
+			throw new InvalidRequestException("the process definition cannot be externally started");
+		}
+	}
+
+	/**
+	 * Start a new process instance with form data (used by workspace client, no
+	 * files are present)
 	 * 
 	 * @param processId
-	 *            The process id of the instance to be started
+	 *            The id of the workflow definition
 	 * 
 	 * @param instanceData
-	 *            The instance's form data
+	 *            The instance's data to start the instance
 	 * 
 	 * @return The started {@link WfProcessInstance}
-	 * 
 	 * @throws InvalidRequestException
 	 * @throws InternalException
 	 */
 	@Transactional(rollbackFor = Exception.class)
-	public WfProcessInstance startProcess(int processId, WfProcessInstance instanceData)
-			throws InvalidRequestException, InternalException {
-
+	public WfProcessInstance startProcess(int processId, WfProcessInstance instanceData) throws InvalidRequestException, InternalException {
 		AccessToken token = getAccessToken();
-		WorkflowDefinition workflowDefinition;
-
+		WorkflowDefinition definition;
+		
 		try {
-			workflowDefinition = processRepository.getById(processId);
-
-		} catch (NoResultException | EmptyResultDataAccessException noRes) {
-			throw new InvalidRequestException("noProcessFoundToStartInstance");
+			 definition = processRepository.getById(processId);
+			 
+		} catch(EmptyResultDataAccessException | NoResultException noRes) {
+			throw new InvalidRequestException("No process found to start the instnace");
 		}
-
-		if (hasGroup(workflowDefinition.getOwner()) || hasRole(ROLE_ADMIN))
-			return startProcess(workflowDefinition, instanceData, token.getEmail());
+		
+		if (hasRole(ROLE_ADMIN) || hasGroup(definition.getOwner()))
+			return startProcess(definition, instanceData, token.getEmail());
 		else
-			throw new InvalidRequestException("notAuthorizedToStart");
+			throw new InvalidRequestException("You are not authorized to start the instance");
 	}
-
+	
 	/**
-	 * Starts a new instance using its form data (multipart files are present)
+	 * Start a new process instance with form data (used by workspace client,
+	 * files are present)
 	 * 
 	 * @param processId
-	 *            The process id of the instance to be started
+	 *            The id of the workflow definition
 	 * 
 	 * @param instanceData
-	 *            The instance's form data
+	 *            The instance's data to start the instance
 	 * 
 	 * @param files
-	 *            The multipart files used to start the instance
+	 *            The files to start the instance
 	 * 
 	 * @return The started {@link WfProcessInstance}
-	 * 
 	 * @throws InvalidRequestException
 	 * @throws InternalException
 	 */
 	@Transactional(rollbackFor = Exception.class)
-	public WfProcessInstance startProcess(int processId, WfProcessInstance instanceData, MultipartFile[] files)
-			throws InvalidRequestException, InternalException {
-
+	public WfProcessInstance startProcess(int processId, WfProcessInstance instanceData, MultipartFile[] files) throws InvalidRequestException, InternalException {
 		AccessToken token = getAccessToken();
+		
 		WorkflowDefinition workflowDefinition;
-
+		
 		try {
 			workflowDefinition = processRepository.getById(processId);
-
-		} catch (EmptyResultDataAccessException | NoResultException noRes) {
-			throw new InvalidRequestException("noProcessFoundToStartInstance");
+			 
+		} catch(EmptyResultDataAccessException | NoResultException noRes) {
+			throw new InvalidRequestException("No process found to start the instnace");
 		}
 
-		// check if title is unique
-		if (processRepository.getCheckInstanceName(instanceData.getTitle()) > 0)
-			throw new InvalidRequestException("instanceTitleUnique");
-
-		// check user's roles/groups
-		if (hasGroup(workflowDefinition.getOwner()) || hasRole(ROLE_ADMIN))
+		if (hasRole(ROLE_ADMIN) || hasGroup(workflowDefinition.getOwner()))
 			return startProcess(workflowDefinition, instanceData, token.getEmail(), token.getName(), files);
 		else
-			throw new InvalidRequestException("notAuthorizedToStart");
+			throw new InvalidRequestException("You are not authorized to start the instance");
 	}
-
+	
 	/**
-	 * Start a new instance with no multipart files
+	 * Starts a new instance using an external form (used by external client, no
+	 * files are present)
 	 * 
-	 * @param definition
-	 *            The workflow definition of the instance to be started
+	 * @param formId
+	 *            The form's id which the instance will be started
 	 * 
-	 * @param wfProcessInstance
-	 *            The process instance entity
+	 * @param instanceData
+	 *            The instance's data to start the instance
 	 * 
-	 * @param userId
 	 * @return The started {@link WfProcessInstance}
+	 * @throws InvalidRequestException
+	 * @throws InternalException
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public WfProcessInstance startPublicProcess(String formId, WfProcessInstance instanceData) throws InvalidRequestException, InternalException {
+		
+		ExternalForm externalForm;
+		
+		// check captcha first
+		if (!validCaptcha(instanceData.getCaptchaHash(), instanceData.getCaptchaAnswer()))
+			throw new InvalidRequestException("the request captcha is not valid");
+		
+		// get the external form
+		try {
+			externalForm = processRepository.getFormById(formId);
+			
+		} catch(EmptyResultDataAccessException | NoResultException noRes) {
+			throw new InvalidRequestException("Could not find external form to start the process");
+		}
+		
+		// set supervisor
+		instanceData.setSupervisor(externalForm.getSupervisor());
+		
+		Registry registry = externalForm.getWorkflowDefinition().getRegistry();
+
+		if (registry != null && instanceData.getReference() == null) {
+			instanceData.setReference(TemplateHelper.getReference(registry));
+			processRepository.saveRegistry(registry);
+		}
+		
+		// set title based on template
+		instanceData.setTitle(TemplateHelper.getTitle(externalForm, instanceData));
+
+		try {
+			return startProcess(externalForm.getWorkflowDefinition(), instanceData, null);
+
+		} catch (Exception e) {
+			throw new InvalidRequestException("Could not start process. " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * Starts a new instance using an external form (used by external client,
+	 * files are present)
+	 * 
+	 * @param formId
+	 *            The form's id which the instance will be started
+	 * 
+	 * @param instanceData
+	 *            The instance's data to start the instance
+	 * 
+	 * @param files
+	 *            The files to start the instance
+	 * 
+	 * @return The started {@link WfProcessInstance}
+	 * @throws InvalidRequestException
+	 * @throws InternalException
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public WfProcessInstance startPublicProcess(String formId, WfProcessInstance instanceData, MultipartFile[] files) throws InvalidRequestException, InternalException {
+		
+		ExternalForm externalForm;
+
+		// check captcha
+		if (!validCaptcha(instanceData.getCaptchaHash(), instanceData.getCaptchaAnswer()))
+			throw new InvalidRequestException("the request captcha is not valid");
+
+		// get the external form
+		try {
+			externalForm = processRepository.getFormById(formId);
+
+		} catch (EmptyResultDataAccessException | NoResultException noRes) {
+			throw new InvalidRequestException("Could not find external form to start the process");
+		}
+		
+		instanceData.setSupervisor(externalForm.getSupervisor());
+		
+		Registry registry = externalForm.getWorkflowDefinition().getRegistry();
+
+		if (registry != null && instanceData.getReference() == null) {
+			instanceData.setReference(TemplateHelper.getReference(registry));
+			processRepository.saveRegistry(registry);
+		}
+
+		// set title based on template
+		instanceData.setTitle(TemplateHelper.getTitle(externalForm, instanceData));
+		
+		try {
+			return startProcess(externalForm.getWorkflowDefinition(), instanceData, null, null, files);
+
+		} catch (Exception e) {
+			throw new InvalidRequestException("Could not start process. " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * Starts a new instance using an external form (used by mobile client, no
+	 * files are present)
+	 * 
+	 * @param formId
+	 *            The form's id which the instance will be started
+	 * 
+	 * @param instanceData
+	 *            The instance's data to start the instance
+	 * 
+	 * @return The started {@link WfProcessInstance}
+	 * @throws InvalidRequestException
+	 * @throws InternalException
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public WfProcessInstance startPublicMobileProcess(String formId, WfProcessInstance instanceData) throws InvalidRequestException, InternalException {
+		
+		ExternalForm externalForm;
+
+		// get the external form
+		try {
+			externalForm = processRepository.getFormById(formId);
+
+		} catch (EmptyResultDataAccessException | NoResultException noRes) {
+			throw new InvalidRequestException("Could not find external form to start the process");
+		}
+		
+		instanceData.setSupervisor(externalForm.getSupervisor());
+		
+		Registry registry = externalForm.getWorkflowDefinition().getRegistry();
+
+		if (registry != null && instanceData.getReference() == null) {
+			instanceData.setReference(TemplateHelper.getReference(registry));
+			processRepository.saveRegistry(registry);
+		}
+
+		instanceData.setTitle(TemplateHelper.getTitle(externalForm, instanceData));
+
+		try {
+			return startProcess(externalForm.getWorkflowDefinition(), instanceData, null);
+
+		} catch (Exception e) {
+			throw new InvalidRequestException("Could not start process. " + e.getMessage());
+		}
+	}
+	
+	/**
+	 *  Starts a new instance using an external form (used by mobile client,
+	 *   files are present)
+	 * 
+	 * @param formId The form's id which the instance will be started
+	 * 
+	 * @param instanceData The instance's data to start the instance
+	 * 
+	 * @param files The files to start the instance
+	 * 
+	 * @return The started {@link WfProcessInstance}
+	 * @throws InvalidRequestException
+	 * @throws InternalException
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public WfProcessInstance startPublicMobileProcess(String formId, WfProcessInstance instanceData, MultipartFile[] files) throws InvalidRequestException, InternalException {
+
+		ExternalForm externalForm;
+
+		// get the external form
+		try {
+			externalForm = processRepository.getFormById(formId);
+
+		} catch (EmptyResultDataAccessException | NoResultException noRes) {
+			throw new InvalidRequestException("Could not find external form to start the process");
+		}
+		
+		instanceData.setSupervisor(externalForm.getSupervisor());
+		
+		Registry registry = externalForm.getWorkflowDefinition().getRegistry();
+
+		if (registry != null && instanceData.getReference() == null) {
+			instanceData.setReference(TemplateHelper.getReference(registry));
+			processRepository.saveRegistry(registry);
+		}
+
+		instanceData.setTitle(TemplateHelper.getTitle(externalForm, instanceData));
+
+		try {
+			return startProcess(externalForm.getWorkflowDefinition(), instanceData, null, null, files);
+
+		} catch (Exception e) {
+			throw new InvalidRequestException("Could not start process. " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * All the other start process functions, set the instance with some info
+	 * such as supervisor, title based on template, registry, checking for captcha etc, and then all
+	 * of them are resulting to this one function or the other one with
+	 * MultipartFile.<br>
+	 * 
+	 * This function actually starts the all instances where no files are present.
+	 * 
+	 * @param definition The workflow definition which the instance will be started
+	 * @param instanceData
+	 * @param userId
+	 * @return
 	 * @throws InternalException
 	 * @throws InvalidRequestException
 	 */
 	@Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
-	public WfProcessInstance startProcess(WorkflowDefinition definition, WfProcessInstance wfProcessInstance,
-			String userId) throws InternalException, InvalidRequestException {
-
+	public WfProcessInstance startProcess(WorkflowDefinition definition, WfProcessInstance instanceData, String userId) throws InternalException, InvalidRequestException {
+		
 		DefinitionVersion activeVersion = definition.getActiveVersion();
-
-		// check if definition has an active version
+		
 		if (activeVersion == null)
-			throw new InvalidRequestException("processDefinitionVersionNotActive");
+			throw new InvalidRequestException("The process definition version is not active");
 
-		// check if instance has title
-		if (wfProcessInstance.getTitle() == null || wfProcessInstance.getTitle().length() == 0)
+		if (instanceData.getTitle() == null || instanceData.getTitle().length() == 0)
 			throw new InvalidRequestException("The process title is not set");
-
+		
 		// check if title is unique
-		if (processRepository.getCheckInstanceName(wfProcessInstance.getTitle()) > 0)
-			throw new InvalidRequestException("instanceTitleUnique");
+		if (processRepository.getCheckInstanceName(instanceData.getTitle()) > 0)
+			throw new InvalidRequestException("The instance title should be unique");
 
 		try {
-			if (wfProcessInstance.getProcessForm() != null) {
-				for (WfFormProperty property : wfProcessInstance.getProcessForm()) {
+			
+			if (instanceData.getProcessForm() != null) {
 
-					if (property.getType().equals("conversation"))
+				for (WfFormProperty property : instanceData.getProcessForm()) {
+					if (property.getType().equals("conversation")) 
 						property.setValue(fixConversationMessage(property.getValue(), userId));
 				}
 			}
 
-			Map<String, String> variableValues = new HashMap<>();
+			Registry registry = definition.getRegistry();
 
-			// get the start form properties if exists
-			if (wfProcessInstance.getVariableValues() != null)
-				variableValues.putAll(wfProcessInstance.getVariableValues());
-
+			if (registry != null && instanceData.getReference() == null) {
+				instanceData.setReference(TemplateHelper.getReference(registry));
+				processRepository.saveRegistry(registry);
+			}
+			
+			String instanceId = "";
+			
+			Map<String, String> variableValues = instanceData.getVariableValues();
 			Folder processFolder = cmisFolder.getFolderById(definition.getFolderId());
-			Folder folder = cmisFolder.createInstanceFolder(processFolder, wfProcessInstance.getTitle());
-
-			/*
-			 * since we put instance's properties such as title, reference, etc
-			 * as variables values on start form, we should always start the
-			 * instance as it had a start form in that way, when the start event
-			 * listener will "hit", it will always have that variables since we
-			 * used them to save/create the new instance
-			 */
-
-			// set instance's properties besides the start form properties
-			variableValues.put("instanceTitle", wfProcessInstance.getTitle());
-			variableValues.put("instanceSupervisor", wfProcessInstance.getSupervisor());
-			variableValues.put("folderId", folder.getId());
-			variableValues.put("definitionVersionId", "" + activeVersion.getId());
-
-			activitiFormSrv.submitStartFormData(definition.getKey(), variableValues);
-
-			/*
-			 * if (variableValues != null) { variableValues.put("instanceTitle",
-			 * instanceData.getTitle()); variableValues.put("instanceReference",
-			 * instanceData.getReference());
-			 * variableValues.put("instanceSupervisor",
-			 * instanceData.getSupervisor()); variableValues.put("folderId",
-			 * folder.getId()); variableValues.put("definitionVersionId", "" +
-			 * activeVersion.getId());
-			 * 
-			 * activitiFormSrv.submitStartFormData(definition.getKey(),
-			 * variableValues); } else
-			 * activitiRuntimeSrv.startProcessInstanceById(definition.getKey());
-			 */
-
-			return wfProcessInstance;
-
+			Folder folder = cmisFolder.createInstanceFolder(processFolder, instanceData.getTitle());
+			
+			if (variableValues != null) {
+				variableValues.put("instanceTitle", instanceData.getTitle());
+				variableValues.put("instanceReference", instanceData.getReference());
+				variableValues.put("instanceSupervisor", instanceData.getSupervisor());
+				variableValues.put("folderId", folder.getId());
+				variableValues.put("definitionVersionId", "" + activeVersion.getId());
+				variableValues.put("device", instanceData.getClient());
+				variableValues.put("instanceStartDate", new Date().toString());
+				
+				instanceId = activitiFormSrv.submitStartFormData(definition.getKey(), variableValues).getId();
+			} else
+				instanceId = activitiRuntimeSrv.startProcessInstanceById(definition.getKey()).getId();
+			
+			instanceData.setId(instanceId);
+			instanceData.setStartDate(new Date());
+			instanceData.setDefinitionIcon(definition.getIcon());
+			return instanceData;
+			
 		} catch (ActivitiException e) {
-			logger.error("Failed to start instance " + e.getMessage() + " / " + e.getCause().getMessage());
-
-			if (e.getCause() instanceof ServiceException) {
+			logger.error(e.getMessage());
+			
+			if(e.getCause() instanceof ServiceException) {
 				ServiceException serviceException = (ServiceException) e.getCause();
 				throw new InternalException(serviceException.getCode() + ". " + serviceException.getMessage());
-			} else
+			}
+			else
 				throw new InvalidRequestException(e.getMessage());
-
+			
 		} catch (CmisStorageException e) {
 			logger.error(e.getMessage());
 			throw new InternalException(e.getMessage());
-		}
+			
+		} catch (RuntimeException runTimeEx) {
+			throw new InternalException(runTimeEx.getMessage());
+		} 
 	}
 
 	/**
-	 * Starts an instance with files
+	 * Start a new process instance with form data and files
 	 * 
 	 * @param definition
-	 *            The process definition which the instance will be started
-	 * 
-	 * @param wfProcessInstance
-	 *            Properties which user set before started the instance
-	 * 
-	 * @param userId
-	 *            The email of the user who starts the instance (used as author
-	 *            in documents's properties)
-	 * 
-	 * @param user
-	 *            The name of the user who starts the instance (used as author
-	 *            in documents's properties)
-	 * 
+	 *            is the id of the workflow definition
+	 * @param instanceData
+	 *            is the form data in key-value pairs
 	 * @param files
-	 *            {@link MultipartFile} in order to start the instance
-	 * 
-	 * @return A started {@link WfProcessInstance}
-	 * 
-	 * @throws InvalidRequestException
-	 * @throws InternalException
+	 *            is the uploaded files
+	 * @throws InternalException 
 	 */
-	@Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
-	public WfProcessInstance startProcess(WorkflowDefinition definition, WfProcessInstance wfProcessInstance,
-			String userId, String user, MultipartFile[] files) throws InvalidRequestException, InternalException {
+	@Transactional(rollbackFor = Exception.class)
+	public WfProcessInstance startProcess(WorkflowDefinition definition, WfProcessInstance instanceData, String userId, String user, MultipartFile[] files)
+			throws InvalidRequestException, InternalException {
 
-		// get definition version
 		DefinitionVersion activeVersion = definition.getActiveVersion();
 
-		// check if definition has version
 		if (activeVersion == null)
-			throw new InvalidRequestException("processDefinitionVersionNotActive");
+			throw new InvalidRequestException("the process definition version is not active");
 
-		// check if instance has title
-		if (wfProcessInstance.getTitle() == null || wfProcessInstance.getTitle().length() == 0)
-			throw new InvalidRequestException("The process title is not set");
+		if (instanceData.getTitle() == null || instanceData.getTitle().length() == 0)
+			throw new InvalidRequestException("the process title is not set");
 
 		// check if title is unique
-		if (processRepository.getCheckInstanceName(wfProcessInstance.getTitle()) > 0)
-			throw new InvalidRequestException("instanceTitleUnique");
+		if (processRepository.getCheckInstanceName(instanceData.getTitle()) > 0)
+			throw new InvalidRequestException("The instance title should be unique");
 
-		// create a map used to hold the files
 		Map<String, MultipartFile> filesMap = new HashMap<String, MultipartFile>();
 
 		for (MultipartFile file : files) {
 			filesMap.put(file.getOriginalFilename(), file);
 		}
 
-		// create instance's folder
 		Folder processFolder = cmisFolder.getFolderById(definition.getFolderId());
-		Folder folder = cmisFolder.createInstanceFolder(processFolder, wfProcessInstance.getTitle());
+		Folder folder = cmisFolder.createInstanceFolder(processFolder, instanceData.getTitle());
 
 		try {
-			if (wfProcessInstance.getProcessForm() != null) {
-				for (WfFormProperty property : wfProcessInstance.getProcessForm()) {
+
+			if (instanceData.getProcessForm() != null) {
+
+				for (WfFormProperty property : instanceData.getProcessForm()) {
+
 					if (property.getType().equals("document")) {
 
 						ObjectMapper mapper = new ObjectMapper();
@@ -1332,37 +1741,25 @@ public class ProcessService {
 
 							MultipartFile file = filesMap.get(property.getId());
 
-							Document document = saveOrUpdateDocument(folder, wfDocument, file.getInputStream(),
-									file.getContentType());
+							Document document = saveOrUpdateDocument(folder, wfDocument, file.getInputStream(), file.getContentType());
 							document.refresh();
+
 							wfDocument.setDocumentId(document.getId());
 							wfDocument.setVersion(document.getVersionLabel());
 
 							Calendar now = Calendar.getInstance();
 
-							// DocumentType documentType = new
-							// DocumentType(wfDocument.getTitle(),
-							// wfDocument.getVersion(),
-							// wfDocument.getDocumentId(), user, userId,
-							// now.getTime(), wfDocument.getRefNo());
-
-							DocumentType documentType = new DocumentType();
-							documentType.setTitle(wfDocument.getTitle());
-							documentType.setVersion(wfDocument.getVersion());
-							documentType.setDocumentId(wfDocument.getDocumentId());
-							documentType.setAuthor(user);
-							documentType.setAuthorId(userId);
-							documentType.setSubmittedDate(now.getTime());
-							documentType.setRefNo(wfDocument.getRefNo());
+							DocumentType documentType = new DocumentType(wfDocument.getTitle(), wfDocument.getVersion(),
+									wfDocument.getDocumentId(), user, userId, now.getTime(), wfDocument.getRefNo());
 
 							property.setValue(mapper.writeValueAsString(documentType));
 
 						} catch (JsonParseException e) {
 							e.printStackTrace();
-
+							
 						} catch (JsonMappingException e) {
 							e.printStackTrace();
-
+							
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -1372,48 +1769,117 @@ public class ProcessService {
 				}
 			}
 
-			Map<String, String> variableValues = new HashMap<>();
+			Registry registry = definition.getRegistry();
 
-			// get the start form properties if exists
-			if (wfProcessInstance.getVariableValues() != null)
-				variableValues.putAll(wfProcessInstance.getVariableValues());
+			if (registry != null && instanceData.getReference() == null) {
+				instanceData.setReference(TemplateHelper.getReference(registry));
+				processRepository.saveRegistry(registry);
+			}
+			
+			String instanceId = "";
+			
+			Map<String, String> variableValues = instanceData.getVariableValues();
+			
+			if (variableValues != null) {
+				
+				variableValues.put("instanceTitle", instanceData.getTitle());
+				variableValues.put("instanceReference", instanceData.getReference());
+				variableValues.put("instanceSupervisor", instanceData.getSupervisor());
+				variableValues.put("folderId", folder.getId());
+				variableValues.put("definitionVersionId", "" + activeVersion.getId());
+				variableValues.put("device", instanceData.getClient());
+				
+				instanceId = activitiFormSrv.submitStartFormData(definition.getKey(), variableValues).getId();
+			} else
+				instanceId = activitiRuntimeSrv.startProcessInstanceById(definition.getKey()).getId();
 
-			/*
-			 * since we put instance's properties such as title, reference, etc
-			 * as variables values on start form, we should always start the
-			 * instance as it had a start form in that way, when the start event
-			 * listener will "hit", it will always have that variables since we
-			 * used them to save/create the new instance
-			 */
-
-			// set instance's properties besides the start form properties
-			variableValues.put("instanceTitle", wfProcessInstance.getTitle());
-			variableValues.put("instanceSupervisor", wfProcessInstance.getSupervisor());
-			variableValues.put("folderId", folder.getId());
-			variableValues.put("definitionVersionId", "" + activeVersion.getId());
-
-			activitiFormSrv.submitStartFormData(definition.getKey(), variableValues);
-
-			return wfProcessInstance;
-
+			instanceData.setId(instanceId);
+			instanceData.setStartDate(new Date());
+			instanceData.setDefinitionIcon(definition.getIcon());
+			return instanceData;
+			
 		} catch (ActivitiException e) {
-			logger.error("Failed to start instance " + e.getMessage() + " / " + e.getCause().getMessage());
-
-			if (e.getCause() instanceof ServiceException) {
+			logger.error(e.getMessage());
+			
+			if(e.getCause() instanceof ServiceException) {
 				ServiceException serviceException = (ServiceException) e.getCause();
 				throw new InternalException(serviceException.getCode() + ". " + serviceException.getMessage());
-			} else
+			}
+			else
 				throw new InvalidRequestException(e.getMessage());
-
+			
 		} catch (CmisStorageException e) {
 			logger.error(e.getMessage());
 			throw new InternalException(e.getMessage());
 		}
 	}
 
+	private boolean validCaptcha(String hash, String answer) {
+
+		try {
+
+			Cipher cipher = Cipher.getInstance("AES");
+			cipher.init(Cipher.DECRYPT_MODE, key);
+
+			byte[] recoveredBytes = cipher.doFinal(Base64.decodeBase64(hash));
+
+			String decryptedHash = new String(recoveredBytes);
+
+			return answer.equals(decryptedHash);
+
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+
+		} catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+
+		} catch (InvalidKeyException e) {
+			e.printStackTrace();
+
+		} catch (IllegalBlockSizeException e) {
+			e.printStackTrace();
+
+		} catch (BadPaddingException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	private String generateCaptchaHash(String captcha) {
+
+		try {
+
+			Cipher cipher = Cipher.getInstance("AES");
+			cipher.init(Cipher.ENCRYPT_MODE, key);
+
+			byte[] encrypted = cipher.doFinal(captcha.getBytes());
+
+			return Base64.encodeBase64String(encrypted);
+
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+
+		} catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+
+		} catch (InvalidKeyException e) {
+			e.printStackTrace();
+
+		} catch (IllegalBlockSizeException e) {
+
+			e.printStackTrace();
+		} catch (BadPaddingException e) {
+
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
 	private String fixConversationMessage(String conversationValue, String userId) {
 
 		Calendar now = Calendar.getInstance();
+
 		ObjectMapper mapper = new ObjectMapper();
 		ConversationType conversation;
 
@@ -1435,10 +1901,10 @@ public class ProcessService {
 
 		} catch (JsonParseException e) {
 			e.printStackTrace();
-
+			
 		} catch (JsonMappingException e) {
 			e.printStackTrace();
-
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -1455,26 +1921,42 @@ public class ProcessService {
 	public List<WfProcessInstance> getSupervisedInstances() {
 
 		// get intsances supervised by user
-		return WfProcessInstance
-				.fromWorkflowInstances(processRepository.getSupervisedProcesses(getAccessToken().getEmail()));
+		return WfProcessInstance.fromWorkflowInstances(processRepository.getSupervisedProcesses(getAccessToken().getEmail()));
 	}
+
+	/**
+	 * Return instances by process id
+	 * 
+	 * @param processes
+	 * @return
+	 */
+	/*
+	 * public WfProcessInstance getInstancesByProcess(int processId) {
+	 * 
+	 * return new
+	 * WfProcessInstance(processRepository.getInstanceByProcessId(processId)); }
+	 */
 
 	/**
 	 * Save a document
 	 * 
 	 * @param instanceId
 	 *            is the process instance id the document will be added to
-	 * @param wfDocument
+	 *            
+	 * @param document
 	 *            is the document metadata
+	 *            
 	 * @param inputStream
 	 *            is the document file InputStream
+	 *            
 	 * @param contentType
 	 *            is the document file content type
+	 *            
 	 * @return
 	 * @throws InvalidRequestException
 	 */
-	public WfDocument saveDocument(String instanceId, String variableName, WfDocument wfDocument,
-			InputStream inputStream, String contentType) throws InvalidRequestException {
+	
+	public WfDocument saveDocument(String instanceId, String variableName, WfDocument wfDocument, InputStream inputStream, String contentType) throws InvalidRequestException {
 
 		WorkflowInstance instance;
 
@@ -1482,7 +1964,7 @@ public class ProcessService {
 			instance = processRepository.getInstanceById(instanceId);
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("processInstanceIDNotValid");
+			throw new InvalidRequestException("The process instance ID is not valid.");
 		}
 
 		Folder folder = cmisFolder.getFolderById(instance.getFolderId());
@@ -1503,7 +1985,7 @@ public class ProcessService {
 	 * 
 	 * @param instanceId
 	 *            is the process instance id the document will be added to
-	 * @param wfDocument
+	 * @param document
 	 *            is the document metadata
 	 * @return
 	 * @throws InvalidRequestException
@@ -1511,8 +1993,10 @@ public class ProcessService {
 	public WfDocument updateDocument(String instanceId, String variableName, WfDocument wfDocument)
 			throws InvalidRequestException {
 
-		if (wfDocument.getDocumentId() == null)
-			throw new InvalidRequestException("documentIDNull");
+		if (wfDocument.getDocumentId() == null) {
+
+			throw new InvalidRequestException("the document ID is null.");
+		}
 
 		Document document = cmisDocument.updateDocumentById(wfDocument.getDocumentId(), wfDocument.getTitle());
 		document.refresh();
@@ -1529,10 +2013,10 @@ public class ProcessService {
 
 		Calendar now = Calendar.getInstance();
 
-		AccessToken token = getAccessToken();
+		AccessToken token = this.getAccessToken();
 
-		String userId = token.getEmail();
-		String user = token.getName();
+		String userId = (String) token.getEmail();
+		String user = (String) token.getName();
 
 		DocumentType documentType = (DocumentType) activitiRuntimeSrv.getVariable(instanceId, variableName);
 
@@ -1563,41 +2047,68 @@ public class ProcessService {
 		Document document = null;
 
 		if (wfDocument.getDocumentId() != null) {
+
 			document = cmisDocument.updateDocumentById(wfDocument.getDocumentId(), wfDocument.getTitle(), contentType,
 					inputStream);
+
 			document.refresh();
+
 		} else {
+
 			try {
 				document = cmisDocument.createDocument(folder, wfDocument.getTitle(), contentType, inputStream);
 
 			} catch (CmisStorageException e) {
-				throw new InvalidRequestException("duplicateDocumentTitle");
+
+				throw new InvalidRequestException("Duplicate document title.");
 			}
 		}
 
 		return document;
 	}
 
-	/**
-	 * Returns instance's documents by a task id
-	 * 
-	 * @param taskId
-	 *            Instance's task id
-	 * 
-	 * @return A list of {@link WfDocument}
-	 * @throws InvalidRequestException
-	 */
-	public List<WfDocument> getProcessInstanceDocumentsByTask(int taskId) throws InvalidRequestException {
-
-		Task task = activitiTaskSrv.createTaskQuery().taskId("" + taskId).singleResult();
+	public List<WfDocument> getProcessInstanceDocuments(int id) throws InvalidRequestException {
 
 		WorkflowInstance instance;
 
 		try {
+			instance = processRepository.getInstanceById("" + id);
+
+		} catch (EmptyResultDataAccessException e) {
+
+			throw new InvalidRequestException("The process instance ID is not valid.");
+		}
+
+		Folder folder = cmisFolder.getFolderById(instance.getFolderId());
+
+		List<WfDocument> wfDocuments = new ArrayList<WfDocument>();
+		List<Document> documents = cmisFolder.getFolderDocuments(folder);
+
+		for (Document document : documents) {
+
+			WfDocument wfDocument = new WfDocument();
+			wfDocument.setTitle(document.getName());
+			wfDocument.setDocumentId(document.getId());
+			wfDocument.setVersion(document.getVersionLabel());
+
+			wfDocuments.add(wfDocument);
+		}
+
+		return wfDocuments;
+	}
+
+	public List<WfDocument> getProcessInstanceDocumentsByTask(int id) throws InvalidRequestException {
+
+		Task task = activitiTaskSrv.createTaskQuery().taskId("" + id).singleResult();
+
+		WorkflowInstance instance;
+		
+		try {
 			instance = processRepository.getInstanceById(task.getProcessInstanceId());
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("processInstanceIDNotValid");
+
+			throw new InvalidRequestException("The process instance ID is not valid.");
 		}
 
 		Folder folder = cmisFolder.getFolderById(instance.getFolderId());
@@ -1638,12 +2149,10 @@ public class ProcessService {
 	}
 
 	/**
-	 * Returns instance's documents
+	 * Returns instance's documents by id
 	 * 
 	 * @param instanceId
-	 *            Instance's id
-	 * 
-	 * @return A list of {@link WfDocument}
+	 * @return
 	 * @throws InvalidRequestException
 	 */
 	public List<WfDocument> getDocumentsByInstance(String instanceId) throws InvalidRequestException {
@@ -1654,7 +2163,8 @@ public class ProcessService {
 			instance = processRepository.getInstanceById(instanceId);
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("processInstanceIDNotValid");
+
+			throw new InvalidRequestException("The process instance ID is not valid.");
 		}
 
 		Folder folder = cmisFolder.getFolderById(instance.getFolderId());
@@ -1697,10 +2207,12 @@ public class ProcessService {
 	/**
 	 * Get supervised tasks if user has role admin then all tasks returned
 	 * 
-	 * @return List of {@link WfTask}
+	 * @return
+	 * @throws InvalidRequestException 
 	 */
-	public List<WfTask> getSupervisedTasks() {
-
+	@Deprecated
+	public List<WfTask> getSupervisedTasks() throws InvalidRequestException {
+		
 		List<Task> tasks = new ArrayList<Task>();
 		List<WfTask> returnList = new ArrayList<WfTask>();
 
@@ -1708,8 +2220,7 @@ public class ProcessService {
 			tasks = activitiTaskSrv.createTaskQuery().active().orderByDueDateNullsLast().asc().list();
 
 			for (Task task : tasks) {
-				TaskPath taskPath = processRepository.getTaskPath(task.getProcessInstanceId(),
-						task.getTaskDefinitionKey());
+				TaskPath taskPath = processRepository.getTaskPath(task.getProcessInstanceId(), task.getTaskDefinitionKey());
 				WfTask wfTask = new WfTask(task);
 				wfTask.setProcessInstance(new WfProcessInstance(taskPath.getInstance()));
 				wfTask.setStartForm(taskPath.getDefinition().hasStartForm());
@@ -1719,8 +2230,7 @@ public class ProcessService {
 		} else {
 			tasks = activitiTaskSrv.createTaskQuery().active().orderByDueDateNullsLast().asc().list();
 			for (Task task : tasks) {
-				TaskPath taskPath = processRepository.getTaskPath(task.getProcessInstanceId(),
-						task.getTaskDefinitionKey());
+				TaskPath taskPath = processRepository.getTaskPath(task.getProcessInstanceId(), task.getTaskDefinitionKey());
 				if (taskPath.getInstance().getSupervisor().equals(getAccessToken().getEmail())) {
 					WfTask wfTask = new WfTask(task);
 					wfTask.setProcessInstance(new WfProcessInstance(taskPath.getInstance()));
@@ -1740,8 +2250,10 @@ public class ProcessService {
 	 * 
 	 * @param instanceId
 	 * @return
+	 * @throws InvalidRequestException
 	 */
-	public List<WfTask> getTasksByInstanceId(String instanceId) {
+	@Deprecated
+	public List<WfTask> getTasksByInstanceId(String instanceId) throws InvalidRequestException {
 		List<WfTask> returnList = new ArrayList<WfTask>();
 		List<HistoricTaskInstance> historicTasks = new ArrayList<HistoricTaskInstance>();
 
@@ -1754,10 +2266,11 @@ public class ProcessService {
 			WfTask wfTask = new WfTask(task);
 			wfTask.setProcessInstance(new WfProcessInstance(instance));
 			hydrateTask(wfTask);
-
+			
 			returnList.add(wfTask);
 		}
 		return returnList;
+
 	}
 
 	/**
@@ -1790,7 +2303,7 @@ public class ProcessService {
 	 * 
 	 * @return
 	 */
-
+	@Deprecated
 	public List<WfTask> getUserCompletedTasks() {
 		List<WfTask> returnList = new ArrayList<WfTask>();
 
@@ -1849,33 +2362,29 @@ public class ProcessService {
 	}
 
 	/**
-	 * Searches for completed tasks based on given criteria
-	 * 
+	 * On new service function name -> searchCompletedTasks
 	 * @param definitionKey
-	 *            The process definition key(not the id)
-	 * 
 	 * @param instanceTitle
-	 *            The instance's title
-	 * 
 	 * @param after
-	 *            Task's completed date after
-	 * 
 	 * @param before
-	 *            Task's completed date after
-	 * 
 	 * @param isSupervisor
-	 *            If the user is supervisor
-	 * 
-	 * @return A list of found {@link WfTask}
-	 * 
+	 * @return
 	 * @throws InvalidRequestException
 	 */
-	public List<WfTask> getSearchedCompletedTasks(String definitionKey, String instanceTitle, long after, long before,
-			String isSupervisor) throws InvalidRequestException {
-
+	@Deprecated
+	public List<WfTask> getSearchedCompletedTasks(String definitionKey, String instanceTitle, long after, long before, String isSupervisor) throws InvalidRequestException {
+		
 		List<WfTask> returnList = new ArrayList<WfTask>();
-		Date dateAfter = new Date(after);
-		Date dateBefore = new Date(before);
+		
+		Date dateAfter = null;
+		Date dateBefore = null;
+		
+		if(after != 0)
+			dateAfter = new Date(after);
+		
+		if(before != 0)
+			dateBefore = new Date(before);
+		
 		List<HistoricTaskInstance> taskList = new ArrayList<HistoricTaskInstance>();
 		WorkflowInstance instance = new WorkflowInstance();
 
@@ -1894,19 +2403,18 @@ public class ProcessService {
 					for (DefinitionVersion version : definition.getDefinitionVersions()) {
 
 						try {
-							for (WorkflowInstance processInstance : processRepository
-									.getInstancesByDefinitionVersionId(version.getId())) {
+							for (WorkflowInstance processInstance : processRepository.getInstancesByDefinitionVersionId(version.getId())) {
 								processInstanceIds.add(processInstance.getId());
 							}
+							
 						} catch (EmptyResultDataAccessException e) {
-							throw new InvalidRequestException("noInstanceFoundForProcess");
+							throw new InvalidRequestException("No instance found for the selected process");
 						}
 
 					}
+					
 					if (processInstanceIds.size() > 0)
 						query.processInstanceIdIn(processInstanceIds);
-					else
-						query.processInstanceId(" ");
 
 				} else
 					query.processDefinitionId(definitionKey);
@@ -1914,11 +2422,6 @@ public class ProcessService {
 
 			if (dateAfter != null) {
 				query = query.taskCompletedAfter(dateAfter);
-			}
-
-			if (dateBefore.getTime() == 0) {
-				dateBefore = new Date();
-				query = query.taskCompletedBefore(dateBefore);
 			}
 
 			if (dateBefore != null) {
@@ -1938,7 +2441,6 @@ public class ProcessService {
 
 						WfTask wfTask = new WfTask(task);
 						wfTask.setProcessInstance(new WfProcessInstance(instance));
-						wfTask.setDefinitionName(instance.getDefinitionVersion().getWorkflowDefinition().getName());
 						wfTask.setIcon(instance.getDefinitionVersion().getWorkflowDefinition().getIcon());
 						returnList.add(wfTask);
 					}
@@ -1959,12 +2461,11 @@ public class ProcessService {
 					for (DefinitionVersion version : definition.getDefinitionVersions()) {
 
 						try {
-							for (WorkflowInstance processInstance : processRepository
-									.getInstancesByDefinitionVersionId(version.getId())) {
+							for (WorkflowInstance processInstance : processRepository.getInstancesByDefinitionVersionId(version.getId())) {
 								processInstanceIds.add(processInstance.getId());
 							}
 						} catch (EmptyResultDataAccessException e) {
-							throw new InvalidRequestException("noInstanceFoundForProcess");
+							throw new InvalidRequestException("No instance found for the selected process");
 						}
 					}
 
@@ -1972,7 +2473,7 @@ public class ProcessService {
 						query.processInstanceIdIn(processInstanceIds);
 					else
 						query.processInstanceId(" ");
-
+					
 				} else
 					query.processDefinitionId(definitionKey);
 
@@ -1980,11 +2481,6 @@ public class ProcessService {
 
 			if (dateAfter != null) {
 				query = query.taskCompletedAfter(dateAfter);
-			}
-
-			if (dateBefore.getTime() == 0) {
-				dateBefore = new Date();
-				query = query.taskCompletedBefore(dateBefore);
 			}
 
 			if (dateBefore != null) {
@@ -2008,7 +2504,6 @@ public class ProcessService {
 
 							WfTask wfTask = new WfTask(task);
 							wfTask.setProcessInstance(new WfProcessInstance(instance));
-							wfTask.setDefinitionName(instance.getDefinitionVersion().getWorkflowDefinition().getName());
 							wfTask.setIcon(instance.getDefinitionVersion().getWorkflowDefinition().getIcon());
 							returnList.add(wfTask);
 						}
@@ -2016,21 +2511,17 @@ public class ProcessService {
 					// user is not admin or process admin
 				} else {
 					if (instance != null) {
-						if (StringUtils.containsIgnoreCase(instance.getTitle(), instanceTitle)
-								&& instance.getSupervisor().equals(getAccessToken().getEmail())) {
+						if (StringUtils.containsIgnoreCase(instance.getTitle(), instanceTitle) && instance.getSupervisor().equals(getAccessToken().getEmail())) {
 
 							WfTask wfTask = new WfTask(task);
 							wfTask.setProcessInstance(new WfProcessInstance(instance));
-							wfTask.setDefinitionName(instance.getDefinitionVersion().getWorkflowDefinition().getName());
 							wfTask.setIcon(instance.getDefinitionVersion().getWorkflowDefinition().getIcon());
 							returnList.add(wfTask);
 						}
 					}
-
 				} // end of check roles
 			}
 		}
-
 		return returnList;
 	}
 
@@ -2039,10 +2530,12 @@ public class ProcessService {
 	 * 
 	 * @return
 	 */
-
+	@Deprecated
 	public List<WfTask> getUserCompledTasksByInstanceIds(List<String> instanceIds) {
 		List<WfTask> returnList = new ArrayList<WfTask>();
-		String assignee = getAccessToken().getEmail();
+
+		AccessToken token = this.getAccessToken();
+		String assignee = (String) token.getEmail();
 
 		List<HistoricTaskInstance> completedUserTasks = new ArrayList<HistoricTaskInstance>();
 
@@ -2068,9 +2561,10 @@ public class ProcessService {
 	 * 
 	 * @return
 	 */
-
+	@Deprecated
 	public List<WfTask> getCompletedTasksByInstances(List<String> instanceIds) {
 		List<WfTask> returnList = new ArrayList<WfTask>();
+
 		List<HistoricTaskInstance> completedUserTasks = new ArrayList<HistoricTaskInstance>();
 
 		completedUserTasks = activitiHistorySrv.createHistoricTaskInstanceQuery().processInstanceIdIn(instanceIds)
@@ -2107,12 +2601,14 @@ public class ProcessService {
 
 		return processKeys;
 	}
-
+	
 	/**
-	 * Return the task
+	 * Returns a {@link WfTask} by id
 	 * 
 	 * @param taskId
-	 * @return
+	 *            The task's id
+	 * 
+	 * @return {@link WfTask}
 	 * @throws InvalidRequestException
 	 */
 	public WfTask getTask(String taskId) throws InvalidRequestException {
@@ -2122,7 +2618,7 @@ public class ProcessService {
 			task = activitiHistorySrv.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
 
 		} catch (ActivitiException noRes) {
-			throw new InvalidRequestException("noTaskWithID");
+			throw new InvalidRequestException("There is no task with the given id");
 		}
 
 		WfTask wfTask = new WfTask(task);
@@ -2151,8 +2647,7 @@ public class ProcessService {
 	 * @return
 	 * @throws InvalidRequestException
 	 */
-	public List<WfFormProperty> getTaskFormPropertiesByTaskDefintionKey(String taskDefinitionKey,
-			String processDefinitionId) throws InvalidRequestException {
+	public List<WfFormProperty> getTaskFormPropertiesByTaskDefintionKey(String taskDefinitionKey, String processDefinitionId) throws InvalidRequestException {
 
 		List<WfFormProperty> returnList = new ArrayList<WfFormProperty>();
 		List<UserTaskFormElement> taskFormElements = new ArrayList<UserTaskFormElement>();
@@ -2162,8 +2657,7 @@ public class ProcessService {
 
 		//
 		try {
-			formProperties = ActivitiHelper.getTaskFormDefinition(activitiRepositorySrv, processDefinitionId,
-					taskDefinitionKey);
+			formProperties = ActivitiHelper.getTaskFormDefinition(activitiRepositorySrv, processDefinitionId, taskDefinitionKey);
 			taskDetails = processRepository.getUserTaskDetailByDefinitionKey(taskDefinitionKey, processDefinitionId);
 			taskFormElements = processRepository.getUserTaskFromElements(processDefinitionId, taskDetails.getId());
 
@@ -2183,12 +2677,10 @@ public class ProcessService {
 				UserTaskFormElement userTaskFormElement = null;
 
 				// get the user task form element from map
-				if (!mappedUserTaskFormElements.isEmpty()) {
+				if (!mappedUserTaskFormElements.isEmpty())
 					userTaskFormElement = mappedUserTaskFormElements.get(formPropery.getId());
-				}
 
 				if (formPropery.getType().equals("enum")) {
-
 					List<FormValue> formValues = formPropery.getFormValues();
 
 					for (int i = 0; formValues != null && i < formValues.size(); i++) {
@@ -2196,21 +2688,27 @@ public class ProcessService {
 					}
 
 				} else if (formPropery.getType().equals("date")) {
-
 					dateFormat = formPropery.getDatePattern();
 				}
 
-				WfFormProperty wfProperty = null;
+				WfFormProperty wfFormProperty = new WfFormProperty();
+				
+				wfFormProperty.setId(formPropery.getId());
+				wfFormProperty.setName(formPropery.getName());
+				wfFormProperty.setType(formPropery.getType());
+				wfFormProperty.setValue("");
+				wfFormProperty.setReadable(formPropery.isReadable());
+				wfFormProperty.setWritable(formPropery.isWriteable());
+				wfFormProperty.setRequired(formPropery.isRequired());
+				wfFormProperty.setFormValues(values);
+				wfFormProperty.setFormat(dateFormat);
+				wfFormProperty.setDescription(userTaskFormElement.getDescription());
+				wfFormProperty.setDevice(userTaskFormElement.getDevice());
 
-				wfProperty = new WfFormProperty(formPropery.getId(), formPropery.getName(), formPropery.getType(), "",
-						formPropery.isReadable(), formPropery.isWriteable(), formPropery.isRequired(), values,
-						dateFormat, userTaskFormElement.getDescription(), userTaskFormElement.getDevice());
-
-				returnList.add(wfProperty);
+				returnList.add(wfFormProperty);
 			}
 
 		} catch (Exception e) {
-
 			formProperties = ActivitiHelper.getTaskFormDefinition(activitiRepositorySrv, processDefinitionId);
 			taskDetails = processRepository.getUserTaskDetailByDefinitionKey(taskDefinitionKey, processDefinitionId);
 			taskFormElements = processRepository.getUserTaskFromElements(processDefinitionId, taskDetails.getId());
@@ -2231,12 +2729,10 @@ public class ProcessService {
 				UserTaskFormElement userTaskFormElement = null;
 
 				// get the user task form element from map
-				if (!mappedUserTaskFormElements.isEmpty()) {
+				if (!mappedUserTaskFormElements.isEmpty())
 					userTaskFormElement = mappedUserTaskFormElements.get(formPropery.getId());
-				}
 
 				if (formPropery.getType().equals("enum")) {
-
 					List<FormValue> formValues = formPropery.getFormValues();
 
 					for (int i = 0; formValues != null && i < formValues.size(); i++) {
@@ -2244,17 +2740,24 @@ public class ProcessService {
 					}
 
 				} else if (formPropery.getType().equals("date")) {
-
 					dateFormat = formPropery.getDatePattern();
 				}
 
-				WfFormProperty wfProperty = null;
-
-				wfProperty = new WfFormProperty(formPropery.getId(), formPropery.getName(), formPropery.getType(), "",
-						formPropery.isReadable(), formPropery.isWriteable(), formPropery.isRequired(), values,
-						dateFormat, userTaskFormElement.getDescription(), userTaskFormElement.getDevice());
-
-				returnList.add(wfProperty);
+				WfFormProperty wfFormProperty = new WfFormProperty();
+				
+				wfFormProperty.setId(formPropery.getId());
+				wfFormProperty.setName(formPropery.getName());
+				wfFormProperty.setType(formPropery.getType());
+				wfFormProperty.setValue("");
+				wfFormProperty.setReadable(formPropery.isReadable());
+				wfFormProperty.setWritable(formPropery.isWriteable());
+				wfFormProperty.setRequired(formPropery.isRequired());
+				wfFormProperty.setFormValues(values);
+				wfFormProperty.setFormat(dateFormat);
+				wfFormProperty.setDescription(userTaskFormElement.getDescription());
+				wfFormProperty.setDevice(userTaskFormElement.getDevice());
+				
+				returnList.add(wfFormProperty);
 			}
 		}
 		return returnList;
@@ -2267,161 +2770,76 @@ public class ProcessService {
 	 * @return
 	 */
 	public WfTask getCompletedTask(String taskId) {
+
 		HistoricTaskInstance task = activitiHistorySrv.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
+
 		WorkflowInstance taskInstance = processRepository.getInstanceById(task.getProcessInstanceId());
 
 		WfTask wfTask = new WfTask(task);
+
 		wfTask.setProcessInstance(new WfProcessInstance(taskInstance));
+
 		wfTask.setIcon(taskInstance.getDefinitionVersion().getWorkflowDefinition().getIcon());
+
 		return wfTask;
 	}
 
 	/**
-	 * Completes a task
+	 * Completes task
 	 * 
-	 * @param wfTask
-	 *            The task to be completed
-	 * 
+	 * @param task
 	 * @throws InvalidRequestException
 	 */
-	@Transactional(rollbackFor = Exception.class)
-	public void completeTask(WfTask wfTask) throws InvalidRequestException {
+	@Deprecated
+	public void completeTask(WfTask task) throws InvalidRequestException {
 		String assignee = getAccessToken().getEmail();
 
 		// check if task has the same assignee as the person requests to
 		// complete it or if that person has role admin
-		if (wfTask.getAssignee().equals(assignee) || hasRole(ROLE_ADMIN)) {
+		if (task.getAssignee().equals(assignee) || hasRole(ROLE_ADMIN)) {
 			try {
+				
 				// check if task's instance exists before doing anything else
-				WorkflowInstance tasksInstance = processRepository.getInstanceById(wfTask.getProcessInstance().getId());
+				WorkflowInstance tasksInstance = processRepository.getInstanceById(task.getProcessInstance().getId());
+				
+				if(tasksInstance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
+					throw new InvalidRequestException("The task's instance has been suspended. Please contact system administrator");
+					
+				if(tasksInstance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
+					throw new InvalidRequestException("The task's instance has been deleted. Please contact system administrator");
 
-				if (tasksInstance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
-					throw new InvalidRequestException("instanceSuspended");
+				if (task.getTaskForm() != null) {
 
-				if (tasksInstance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
-					throw new InvalidRequestException("instanceDeleted");
+					for (WfFormProperty property : task.getTaskForm()) {
 
-				if (wfTask.getTaskForm() != null) {
-					for (WfFormProperty property : wfTask.getTaskForm()) {
-
+						// add a new "conversation" message
 						if (property.getType().equals("conversation"))
 							property.setValue(fixConversationMessage(property.getValue(), assignee));
 					}
 
-					Map<String, String> variableValues = wfTask.getVariableValues();
+					// get task's variable values in order to save them
+					Map<String, String> variableValues = task.getVariableValues();
 
 					if (variableValues != null && !variableValues.isEmpty())
-						activitiFormSrv.saveFormData(wfTask.getId(), variableValues);
+						activitiFormSrv.saveFormData(task.getId(), variableValues);
 
-					activitiTaskSrv.complete(wfTask.getId());
+					// finally complete the task
+					activitiTaskSrv.complete(task.getId());
 				}
-
 			} catch (ActivitiException e) {
 				logger.error(e.getMessage());
+				e.printStackTrace();
 				throw new InvalidRequestException(e.getMessage());
-
-			} catch (NoResultException | EmptyResultDataAccessException noResult) {
-				throw new InvalidRequestException(
-						"taskInstanceNotExistsContactAdmin");
+				
+			} catch(NoResultException | EmptyResultDataAccessException noResult ) { 
+				throw new InvalidRequestException("The task's instance does not exists. Please contact system administrator");
 			}
 			// task's assignee not matched with the person who requests to
 			// complete it or not admin
-		} else
-			throw new InvalidRequestException("notAuthorizedToCompleteTask");
-	}
-
-	/**
-	 * Completes a task using Multipart files
-	 * 
-	 * @param wfTask
-	 *            The task to be completed
-	 * 
-	 * @param files
-	 *            {@link MultipartFile} The files required to complete the task
-	 * 
-	 * @throws InvalidRequestException
-	 */
-	@Transactional(rollbackFor = Exception.class)
-	public void completeTask(WfTask wfTask, MultipartFile[] files) throws InvalidRequestException {
-		String userId = getAccessToken().getEmail();
-		String user = getAccessToken().getName();
-
-		// check if task's instance exists before doing anything else
-		WorkflowInstance tasksInstance = processRepository.getInstanceById(wfTask.getProcessInstance().getId());
-
-		if (tasksInstance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
-			throw new InvalidRequestException("instanceSuspended");
-
-		if (tasksInstance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
-			throw new InvalidRequestException("instanceDeleted");
-
-		Map<String, MultipartFile> filesMap = new HashMap<String, MultipartFile>();
-
-		for (MultipartFile file : files) {
-			filesMap.put(file.getOriginalFilename(), file);
+		} else {
+			throw new InvalidRequestException("Seems you are not the authorized to complete the task");
 		}
 
-		Folder folder = cmisFolder.getFolderById(wfTask.getProcessInstance().getFolderId());
-
-		try {
-
-			if (wfTask.getTaskForm() != null) {
-
-				for (WfFormProperty property : wfTask.getTaskForm()) {
-
-					if (property.getType().equals("document")) {
-
-						ObjectMapper mapper = new ObjectMapper();
-						WfDocument wfDocument;
-
-						try {
-							wfDocument = mapper.readValue(property.getValue(), WfDocument.class);
-
-							MultipartFile file = filesMap.get(property.getId());
-
-							Document document = saveOrUpdateDocument(folder, wfDocument, file.getInputStream(),
-									file.getContentType());
-							document.refresh();
-
-							wfDocument.setDocumentId(document.getId());
-							wfDocument.setVersion(document.getVersionLabel());
-
-							Calendar now = Calendar.getInstance();
-
-							DocumentType documentType = new DocumentType(wfDocument.getTitle(), wfDocument.getVersion(),
-									wfDocument.getDocumentId(), user, userId, now.getTime(), wfDocument.getRefNo());
-
-							property.setValue(mapper.writeValueAsString(documentType));
-
-						} catch (JsonParseException e) {
-							e.printStackTrace();
-						} catch (JsonMappingException e) {
-							e.printStackTrace();
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-
-					} else if (property.getType().equals("conversation")) {
-						property.setValue(fixConversationMessage(property.getValue(), userId));
-					}
-				}
-			}
-
-			Map<String, String> variableValues = wfTask.getVariableValues();
-
-			if (variableValues != null && !variableValues.isEmpty())
-				activitiFormSrv.saveFormData(wfTask.getId(), variableValues);
-
-			activitiTaskSrv.complete(wfTask.getId());
-
-		} catch (ActivitiException e) {
-			logger.error(e.getMessage());
-			throw new InvalidRequestException(e.getMessage());
-
-		} catch (NoResultException | EmptyResultDataAccessException noResult) {
-			throw new InvalidRequestException(
-					"taskInstanceNotExistsContactAdmin");
-		}
 	}
 
 	/**
@@ -2431,26 +2849,35 @@ public class ProcessService {
 	 * @param files
 	 * @throws InvalidRequestException
 	 */
+	@Deprecated
+	@Transactional(rollbackFor = Exception.class)
 	public void tempTaskSave(WfTask task, MultipartFile[] files) throws InvalidRequestException {
-		String userId = getAccessToken().getEmail();
+		
+		String userId =  getAccessToken().getEmail();
 		String user = getAccessToken().getName();
-
-		// check if task's instance exists before doing anything else
-		WorkflowInstance tasksInstance = processRepository.getInstanceById(task.getProcessInstance().getId());
-
-		if (tasksInstance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
-			throw new InvalidRequestException("instanceSuspended");
-
-		if (tasksInstance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
-			throw new InvalidRequestException("instanceDeleted");
+		WorkflowInstance workflowInstance;
 
 		Map<String, MultipartFile> filesMap = new HashMap<String, MultipartFile>();
-
+		
 		for (MultipartFile file : files) {
 			filesMap.put(file.getOriginalFilename(), file);
 		}
 
 		Folder folder = cmisFolder.getFolderById(task.getProcessInstance().getFolderId());
+		
+		try {
+			// check if task's instance exists before doing anything else
+			workflowInstance = processRepository.getInstanceById(task.getProcessInstance().getId());
+			
+		} catch(NoResultException | EmptyResultDataAccessException noResult ) { 
+			throw new InvalidRequestException("The task's instance does not exists. Please contact system administrator");
+		}
+		
+		if(workflowInstance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
+			throw new InvalidRequestException("The task's instance has been suspended. Please contact system administrator");
+			
+		if(workflowInstance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
+			throw new InvalidRequestException("The task's instance has been deleted. Please contact system administrator");
 
 		try {
 
@@ -2491,7 +2918,6 @@ public class ProcessService {
 						}
 
 					} else if (property.getType().equals("conversation")) {
-
 						property.setValue(fixConversationMessage(property.getValue(), userId));
 					}
 				}
@@ -2499,17 +2925,14 @@ public class ProcessService {
 
 			Map<String, String> variableValues = task.getVariableValues();
 
-			if (variableValues != null && !variableValues.isEmpty())
+			if (variableValues != null && !variableValues.isEmpty()) {
 				activitiFormSrv.saveFormData(task.getId(), variableValues);
+			}
 
 		} catch (ActivitiException e) {
 			logger.error(e.getMessage());
 			throw new InvalidRequestException(e.getMessage());
-
-		} catch (NoResultException | EmptyResultDataAccessException noResult) {
-			throw new InvalidRequestException(
-					"taskInstanceNotExistsContactAdmin");
-		}
+		} 
 	}
 
 	/**
@@ -2518,28 +2941,118 @@ public class ProcessService {
 	 * @param task
 	 * @throws InvalidRequestException
 	 */
-
+	@Deprecated
 	public void tempTaskSave(WfTask task) throws InvalidRequestException {
-
 		try {
 			// check if task's instance exists before doing anything else
 			WorkflowInstance tasksInstance = processRepository.getInstanceById(task.getProcessInstance().getId());
-
-			if (tasksInstance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
-				throw new InvalidRequestException("instanceSuspended");
-
-			if (tasksInstance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
-				throw new InvalidRequestException("instanceDeleted");
-
+			
+			if(tasksInstance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
+				throw new InvalidRequestException("The task's instance has been suspended. Please contact system administrator");
+			
+			if(tasksInstance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
+				throw new InvalidRequestException("The task's instance has been deleted. Please contact system administrator");
+			
 			activitiFormSrv.saveFormData(task.getId(), task.getVariableValues());
-
+			
 		} catch (ActivitiException e) {
 			logger.error(e.getMessage());
 			throw new InvalidRequestException(e.getMessage());
+			
+		} catch(NoResultException | EmptyResultDataAccessException noResult ) { 
+			throw new InvalidRequestException("The task's instance does not exists. Please contact system administrator");
+		}
+	}
 
-		} catch (NoResultException | EmptyResultDataAccessException noResult) {
-			throw new InvalidRequestException(
-					"taskInstanceNotExistsContactAdmin");
+	/**
+	 * Completes task
+	 * 
+	 * @param task
+	 * @throws InvalidRequestException
+	 */
+	@Deprecated
+	public void completeTask(WfTask task, MultipartFile[] files) throws InvalidRequestException {
+		
+		String userId = getAccessToken().getEmail();
+		String user = getAccessToken().getName();
+		
+		Map<String, MultipartFile> filesMap = new HashMap<String, MultipartFile>();
+		
+		for (MultipartFile file : files) {
+			filesMap.put(file.getOriginalFilename(), file);
+		}
+
+		Folder folder = cmisFolder.getFolderById(task.getProcessInstance().getFolderId());
+		
+		if (task.getAssignee().equals(userId) || hasRole(ROLE_ADMIN)) {
+			try {
+				
+				// check if task's instance exists before doing anything else
+				WorkflowInstance tasksInstance = processRepository.getInstanceById(task.getProcessInstance().getId());
+				
+				if(tasksInstance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
+					throw new InvalidRequestException("The task's instance has been suspended. Please contact system administrator");
+				
+				if(tasksInstance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
+					throw new InvalidRequestException("The task's instance has been deleted. Please contact system administrator");
+
+				if (task.getTaskForm() != null) {
+
+					for (WfFormProperty property : task.getTaskForm()) {
+
+						if (property.getType().equals("document")) {
+
+							ObjectMapper mapper = new ObjectMapper();
+							WfDocument wfDocument;
+
+							try {
+								wfDocument = mapper.readValue(property.getValue(), WfDocument.class);
+
+								MultipartFile file = filesMap.get(property.getId());
+
+								Document document = saveOrUpdateDocument(folder, wfDocument, file.getInputStream(), file.getContentType());
+								document.refresh();
+
+								wfDocument.setDocumentId(document.getId());
+								wfDocument.setVersion(document.getVersionLabel());
+
+								Calendar now = Calendar.getInstance();
+
+								DocumentType documentType = new DocumentType(wfDocument.getTitle(), wfDocument.getVersion(),
+										wfDocument.getDocumentId(), user, userId, now.getTime(), wfDocument.getRefNo());
+
+								property.setValue(mapper.writeValueAsString(documentType));
+
+							} catch (JsonParseException e) {
+								e.printStackTrace();
+							} catch (JsonMappingException e) {
+								e.printStackTrace();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+
+						} else if (property.getType().equals("conversation")) {
+							property.setValue(fixConversationMessage(property.getValue(), userId));
+						}
+					}
+				}
+
+				// get the task's variable values in order to save them
+				Map<String, String> variableValues = task.getVariableValues();
+
+				if (variableValues != null && !variableValues.isEmpty())
+					activitiFormSrv.saveFormData(task.getId(), variableValues);
+
+				// finally complete the task
+				activitiTaskSrv.complete(task.getId());
+
+			} catch (ActivitiException e) {
+				logger.error(e.getMessage());
+				throw new InvalidRequestException(e.getMessage());
+				
+			} catch(NoResultException | EmptyResultDataAccessException noResult ) { 
+				throw new InvalidRequestException("The task's instance does not exists. Please contact system administrator");
+			}
 		}
 	}
 
@@ -2549,6 +3062,7 @@ public class ProcessService {
 	 * @param taskId
 	 * @return
 	 */
+	@Deprecated
 	public List<WfUser> getCandidatesByTaskId(String taskId) {
 		List<WfUser> candidates = new ArrayList<WfUser>();
 		List<WfUser> tempList = new ArrayList<WfUser>();
@@ -2559,8 +3073,7 @@ public class ProcessService {
 			for (WfUser user : realmService.getAllUsers()) {
 
 				if (user.getEmail() != null)
-					user.setPendingTasks(
-							activitiTaskSrv.createTaskQuery().active().taskAssignee(user.getEmail()).count());
+					user.setPendingTasks(activitiTaskSrv.createTaskQuery().active().taskAssignee(user.getEmail()).count());
 
 				if (!candidates.contains(user))
 					candidates.add(user);
@@ -2581,7 +3094,6 @@ public class ProcessService {
 						// role only (term1)
 						try {
 							tempList = realmService.getUsersByRole(term1);
-
 						} catch (Exception e) {
 							logger.error("Error getting groups " + term1 + " " + e.getMessage());
 							continue;
@@ -2589,7 +3101,6 @@ public class ProcessService {
 						for (WfUser user : tempList) {
 							user.setPendingTasks(
 									activitiTaskSrv.createTaskQuery().active().taskAssignee(user.getEmail()).count());
-
 							if (!candidates.contains(user))
 								candidates.add(user);
 						}
@@ -2600,7 +3111,6 @@ public class ProcessService {
 						for (WfUser user : realmService.getUsersByGroup(term1)) {
 							user.setPendingTasks(
 									activitiTaskSrv.createTaskQuery().active().taskAssignee(user.getEmail()).count());
-
 							if (!candidates.contains(user))
 								candidates.add(user);
 						}
@@ -2611,7 +3121,6 @@ public class ProcessService {
 					for (WfUser user : realmService.getUsersByRole(term2)) {
 						user.setPendingTasks(
 								activitiTaskSrv.createTaskQuery().active().taskAssignee(user.getEmail()).count());
-
 						if (!candidates.contains(user))
 							candidates.add(user);
 					}
@@ -2622,7 +3131,6 @@ public class ProcessService {
 					for (WfUser user : realmService.getUsersByGroupAndRole(term1, term2)) {
 						user.setPendingTasks(
 								activitiTaskSrv.createTaskQuery().active().taskAssignee(user.getEmail()).count());
-
 						if (!candidates.contains(user))
 							candidates.add(user);
 					}
@@ -2651,34 +3159,13 @@ public class ProcessService {
 	}
 
 	/**
-	 * <p>
-	 * This function is called when there is no candidate for a specific task.
-	 * </p>
-	 * <p>
-	 * Sends an e-mail to the administrator to notify him for the absence of
-	 * candidates for assigning the task to.
-	 * </p>
-	 *
-	 * @param taskId
-	 *            The ID of the task that has no candidates
-	 */
-	public void notifyAdminForTask(String taskId, String username) throws InvalidRequestException {
-        String adminEmail = environment.getProperty("mail.admin");
-        Task workflowTask = activitiTaskSrv.createTaskQuery().taskId(taskId).singleResult();
-
-        try {
-            mailService.sendNoCandidatesErrorEmail(adminEmail, workflowTask, username);
-        } catch (MessagingException e) {
-            throw new InvalidRequestException("emailNotSentContactAdmin");
-        }
-    }
-
-	/**
-	 * Returns from in progress instances assigned tasks to logged in user
+	 * Returns Assigned tasks for the user in context (Logged in user)
 	 * 
-	 * @return A list of {@link WfTask}
+	 * @return
+	 * @throws InvalidRequestException 
 	 */
-	public List<WfTask> getTasksForUser() {
+	@Deprecated
+	public List<WfTask> getTasksForUser() throws InvalidRequestException {
 		List<WfTask> returnList = new ArrayList<WfTask>();
 		List<Task> taskList = new ArrayList<Task>();
 		String userId = getAccessToken().getEmail();
@@ -2688,9 +3175,9 @@ public class ProcessService {
 
 		for (Task task : taskList) {
 			TaskPath taskPath = processRepository.getTaskPath(task.getProcessInstanceId(), task.getTaskDefinitionKey());
-
+			
 			// check if tasks's instance is running
-			if (taskPath.getInstance().getStatus().equals(WorkflowInstance.STATUS_RUNNING)) {
+			if(taskPath.getInstance().getStatus().equals(WorkflowInstance.STATUS_RUNNING)) {
 				WfTask wfTask = new WfTask(task);
 				wfTask.setStartForm(taskPath.getDefinition().hasStartForm());
 				wfTask.setProcessInstance(new WfProcessInstance(taskPath.getInstance()));
@@ -2702,21 +3189,18 @@ public class ProcessService {
 	}
 
 	/**
-	 * Assigns a task to given assignee
+	 * Set assignee to a task
 	 * 
-	 * @param wfTask
-	 *            The task to be assigned to
-	 * 
+	 * @param taskId
 	 * @param assigneeId
-	 *            The assignee's email
-	 * 
 	 * @throws InvalidRequestException
 	 */
 	@Transactional(rollbackFor = Exception.class)
+	@Deprecated
 	public void assignTask(WfTask wfTask, String assigneeId) throws InvalidRequestException {
-
-		String loggedInUser = getAccessToken().getEmail();
-
+		
+		String userId = getAccessToken().getEmail();
+		
 		if (wfTask.getProcessInstance().getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
 			throw new InvalidRequestException("claimTaskInstanceSuspended");
 
@@ -2728,49 +3212,57 @@ public class ProcessService {
 
 		// check if task is supervised by the person who request to assign the
 		// task or if is admin
-		if (wfTask.getProcessInstance().getSupervisor().equals(loggedInUser) || hasRole(ROLE_ADMIN)) {
+		if (wfTask.getProcessInstance().getSupervisor().equals(userId) || hasRole(ROLE_ADMIN)) {
 			try {
 
 				if (wfTask.getTaskForm() != null) {
+
 					for (WfFormProperty property : wfTask.getTaskForm()) {
 
-						if (property.getType().equals("conversation"))
-							property.setValue(fixConversationMessage(property.getValue(), loggedInUser));
+						if (property.getType().equals("conversation")) {
+
+							property.setValue(fixConversationMessage(property.getValue(), userId));
+						}
 					}
 				}
 
+				//Map<String, String> variableValues = wfTask.getVariableValues();
+				//
+				// if (variableValues != null && !variableValues.isEmpty()) {
+				//
+				// activitiFormSrv.saveFormData(wfTask.getId(), variableValues);
+				// }
+
 				activitiTaskSrv.claim(wfTask.getId(), assigneeId);
-				mailService.sendTaskAssignedMail(assigneeId, wfTask);
+				mailService.sendTaskAssignedMail(assigneeId, wfTask.getId(), wfTask.getName(), wfTask.getDueDate());
 
 			} catch (ActivitiException e) {
-				logger.error("Failed to assign task " + e.getMessage());
+
+				logger.error(e.getMessage());
 				throw new InvalidRequestException(e.getMessage());
 			}
 			// the person who request to assign the task, is not supervisor for
 			// the task or admin
-		} else
-			throw new InvalidRequestException("noAuthorizedToAssignTask");
+		} else {
+			throw new InvalidRequestException("Seems you are not authorized to assign the task");
+		}
 	}
 
 	/**
-	 * Assigns a task to given assignee (used for tasks with document as form
-	 * property)
+	 * Set assignee to a task
 	 * 
 	 * @param wfTask
-	 *            The task to be assigned to
-	 * 
 	 * @param assigneeId
-	 *            The assignee's email
-	 * 
 	 * @param files
-	 *            Task's files
-	 * 
 	 * @throws InvalidRequestException
 	 */
 	@Transactional(rollbackFor = Exception.class)
+	@Deprecated
 	public void assignTask(WfTask wfTask, String assigneeId, MultipartFile[] files) throws InvalidRequestException {
-		String loggedInUserEmail = getAccessToken().getEmail();
-		String loggedInUserName = getAccessToken().getName();
+		
+		AccessToken token = getAccessToken();
+		String userId = token.getEmail();
+		String user = token.getName();
 
 		if (wfTask.getProcessInstance().getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
 			throw new InvalidRequestException("claimTaskInstanceSuspended");
@@ -2780,14 +3272,15 @@ public class ProcessService {
 
 		if (wfTask.getProcessInstance().getStatus().equals(WorkflowInstance.STATUS_ENDED))
 			throw new InvalidRequestException("claimTaskInstanceEnded");
-
+		
 		// check if task is supervised by the person who request to assign the
 		// task or if is admin
-		if (wfTask.getProcessInstance().getSupervisor().equals(loggedInUserEmail) || hasRole(ROLE_ADMIN)) {
+		if (wfTask.getProcessInstance().getSupervisor().equals(userId) || hasRole(ROLE_ADMIN)) {
 
 			Map<String, MultipartFile> filesMap = new HashMap<String, MultipartFile>();
 
 			for (MultipartFile file : files) {
+
 				filesMap.put(file.getOriginalFilename(), file);
 			}
 
@@ -2818,14 +3311,9 @@ public class ProcessService {
 
 								Calendar now = Calendar.getInstance();
 
-								DocumentType documentType = new DocumentType();
-								documentType.setTitle(wfDocument.getTitle());
-								documentType.setVersion(wfDocument.getVersion());
-								documentType.setDocumentId(wfDocument.getDocumentId());
-								documentType.setAuthor(loggedInUserName);
-								documentType.setAuthorId(loggedInUserEmail);
-								documentType.setSubmittedDate(now.getTime());
-								documentType.setRefNo(wfDocument.getRefNo());
+								DocumentType documentType = new DocumentType(wfDocument.getTitle(),
+										wfDocument.getVersion(), wfDocument.getDocumentId(), user, userId,
+										now.getTime(), wfDocument.getRefNo());
 
 								property.setValue(mapper.writeValueAsString(documentType));
 
@@ -2838,38 +3326,49 @@ public class ProcessService {
 							}
 
 						} else if (property.getType().equals("conversation")) {
-							property.setValue(fixConversationMessage(property.getValue(), loggedInUserEmail));
+
+							property.setValue(fixConversationMessage(property.getValue(), userId));
 						}
 					}
 				}
 
+				// Map<String, String> variableValues =
+				// wfTask.getVariableValues();
+				//
+				// if (variableValues != null && !variableValues.isEmpty()) {
+				//
+				// activitiFormSrv.saveFormData(wfTask.getId(), variableValues);
+				// }
+
 				activitiTaskSrv.claim(wfTask.getId(), assigneeId);
-				mailService.sendTaskAssignedMail(assigneeId, wfTask);
+				mailService.sendTaskAssignedMail(assigneeId, wfTask.getId(), wfTask.getName(), wfTask.getDueDate());
 
 			} catch (ActivitiException e) {
+
 				logger.error(e.getMessage());
 				throw new InvalidRequestException(e.getMessage());
 			}
 			// the person who request to assign the task, is not supervisor for
 			// the task or admin
-		} else
-			throw new InvalidRequestException("noAuthorizedToAssignTask");
+		} else {
+			throw new InvalidRequestException("Seems you are not authorized to assign the task");
+		}
 	}
 
 	/**
 	 * Removes assignee from a task
 	 * 
 	 * @param taskId
-	 *            Task's id to remove assignee from
-	 * 
 	 * @throws InvalidRequestException
 	 */
+	@Deprecated
 	public void unClaimTask(String taskId) throws InvalidRequestException {
+		
 		String user = getAccessToken().getEmail();
-		Task task = null;
-		WorkflowInstance instance = null;
+		Task task;
+		WorkflowInstance instance;
 
-		try{
+		try {
 			task = activitiTaskSrv.createTaskQuery().taskId(taskId).singleResult();
 			instance = processRepository.getInstanceById(task.getProcessInstanceId());
 
@@ -2881,11 +3380,11 @@ public class ProcessService {
 
 			if (instance.getStatus().equals(WorkflowInstance.STATUS_ENDED))
 				throw new InvalidRequestException("claimTaskInstanceEnded");
-		}
-		catch(Exception exception){
-			if(!(exception instanceof InvalidRequestException)){
-				throw new InvalidRequestException("claimTaskInstanceNotActive");
-			}
+
+			// assume that the exception equals to a deleted instance
+		} catch (Exception noResult) {
+			logger.error(noResult.getMessage());
+			throw new InvalidRequestException("claimTaskInstanceDeleted");
 		}
 
 		// check if user is supervisor of the task's instance, or the assignee
@@ -2904,14 +3403,14 @@ public class ProcessService {
 	}
 
 	/**
-	 * Sets logged in user as assignee to a task
+	 * Claims the logged in assignee to the task
 	 * 
 	 * @param taskId
-	 *            The task's id to set assignee
-	 * 
 	 * @throws InvalidRequestException
 	 */
+	@Deprecated
 	public void claimTask(String taskId) throws InvalidRequestException {
+		
 		Task task;
 		WorkflowInstance instance;
 
@@ -2929,12 +3428,11 @@ public class ProcessService {
 				throw new InvalidRequestException("claimTaskInstanceEnded");
 
 			activitiTaskSrv.claim(taskId, getAccessToken().getEmail());
-		}
-		catch(Exception exception){
-			if(!(exception instanceof InvalidRequestException)){
-				throw new InvalidRequestException("claimTaskInstanceNotActive");
-			} else
-				throw exception;
+
+			// assume that the exception equals to a deleted instance
+		} catch (Exception noResult) {
+			logger.error(noResult.getMessage());
+			throw new InvalidRequestException("claimTaskInstanceDeleted");
 		}
 	}
 
@@ -2942,8 +3440,9 @@ public class ProcessService {
 	 * Returns a list of Wftasks to be claim by user according to user role
 	 * 
 	 * @return
+	 * @throws InvalidRequestException 
 	 */
-	public List<WfTask> getCandidateUserTasks() {
+	public List<WfTask> getCandidateUserTasks() throws InvalidRequestException {
 
 		// list to store tasks according to user role/group
 		List<Task> taskList = new ArrayList<Task>();
@@ -3003,18 +3502,18 @@ public class ProcessService {
 
 		for (Task task : taskList) {
 			TaskPath taskPath = processRepository.getTaskPath(task.getProcessInstanceId(), task.getTaskDefinitionKey());
-
+			
 			// check if task's instance is running
-			if (taskPath.getInstance().getStatus().equals(WorkflowInstance.STATUS_RUNNING)) {
-
+			if(taskPath.getInstance().getStatus().equals(WorkflowInstance.STATUS_RUNNING)) {
+				
 				// check if tasks is assignable only by supervisor
 				if (!taskPath.getTaskDetails().isAssign()) {
 					WfTask hydratedTask = new WfTask(task);
-
+					
 					hydratedTask.setStartForm(taskPath.getDefinition().hasStartForm());
 					hydratedTask.setProcessInstance(new WfProcessInstance(taskPath.getInstance()));
 					hydrateTask(hydratedTask);
-
+					
 					returnList.add(hydratedTask);
 				}
 			}
@@ -3097,8 +3596,7 @@ public class ProcessService {
 
 		Date alertDate = cal.getTime();
 
-		List<Task> dueTasks = activitiTaskSrv.createTaskQuery().active().taskDueBefore(alertDate).taskDueAfter(today)
-				.list();
+		List<Task> dueTasks = activitiTaskSrv.createTaskQuery().active().taskDueBefore(alertDate).taskDueAfter(today).list();
 
 		for (Task task : dueTasks) {
 
@@ -3112,7 +3610,7 @@ public class ProcessService {
 				unAssigned = true;
 			}
 
-			mailService.sendDueTaskMail(recipient, task, unAssigned);
+			mailService.sendDueTaskMail(recipient, task.getId(), task.getName(), task.getDueDate(), unAssigned);
 		}
 
 		List<Task> expiredTasks = activitiTaskSrv.createTaskQuery().active().taskDueBefore(today).list();
@@ -3129,7 +3627,7 @@ public class ProcessService {
 				unAssigned = true;
 			}
 
-			mailService.sendTaskExpiredMail(recipient, task, unAssigned);
+			mailService.sendTaskExpiredMail(recipient, task.getId(), task.getName(), task.getDueDate(), unAssigned);
 		}
 	}
 
@@ -3150,24 +3648,26 @@ public class ProcessService {
 	 * @return
 	 * @throws InvalidRequestException
 	 */
-	@Transactional
+	@Deprecated
+	@Transactional(rollbackFor = Exception.class)
 	public WfTaskDetails updateTaskDetails(WfTaskDetails wfTaskDetails) throws InvalidRequestException {
 
 		UserTaskDetails taskDetails;
 		try {
 			taskDetails = processRepository.getUserTaskDetailsById(wfTaskDetails.getId());
-
+			
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("noTaskDetailsEntity");
+			throw new InvalidRequestException("No task details entity was found with the given id");
 		}
 
 		if (hasRole(ROLE_ADMIN) || hasGroup(taskDetails.getDefinitionVersion().getWorkflowDefinition().getOwner())) {
 			taskDetails.updateFrom(wfTaskDetails);
 			taskDetails = processRepository.save(taskDetails);
+			
+		} else 
+			throw new InvalidRequestException("You are not authorized to update the task details");
 
-			return new WfTaskDetails(taskDetails);
-		} else
-			throw new InvalidRequestException("notAuthorizedToUpdateTaskDetails");
+		return new WfTaskDetails(taskDetails);
 	}
 
 	/**
@@ -3175,14 +3675,14 @@ public class ProcessService {
 	 * 
 	 * @param processInstanceId
 	 */
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public void notifyInstanceEnding(String processInstanceId) {
 		WorkflowInstance instance = processRepository.getProcessInstance(processInstanceId);
 		instance.setStatus(WorkflowInstance.STATUS_ENDED);
 		instance.setEndDate(new Date());
 		processRepository.save(instance);
 	}
-
+	
 	/**
 	 * Used to start any instance with or wo documents.<br>
 	 * Creates a record in workflowinstance's table by getting the variable
@@ -3199,38 +3699,44 @@ public class ProcessService {
 	 * @param processInstanceId
 	 *            From the start event the process instance id
 	 */
-	@Transactional
-	public void notifyInstanceStarted(String processInstanceId) throws ServiceException {
-		// get instance's variables, after we added them from startProcess
-		// function
+	@Transactional(rollbackFor = Exception.class)
+	public void notifyInstanceStarted(String processInstanceId) throws ServiceException  {
+		// get instance's variables, after we added them from startProcess function
 		Map<String, Object> instanceVariables = activitiRuntimeSrv.getVariables(processInstanceId);
-
+	
 		try {
-			// implicity add instance's id variable to instance
+			// implicity add instance's id variable to instance 
 			activitiRuntimeSrv.setVariable(processInstanceId, "instanceId", processInstanceId);
-
+			
 			// checking if not null else it will throw an exception ?!
-			if (instanceVariables != null) {
+			if(instanceVariables != null) {
+				
+				String definitionVersionId = (String) instanceVariables.get("definitionVersionId");
+				
+				if (definitionVersionId == null || definitionVersionId.isEmpty()) {
+					logger.info("Sub process started");
+					return;
+				}
+				
 				WorkflowInstance workflowInstance = new WorkflowInstance();
-
+				
 				workflowInstance.setId(processInstanceId);
 				workflowInstance.setFolderId((String) instanceVariables.get("folderId"));
 				workflowInstance.setTitle((String) instanceVariables.get("instanceTitle"));
+				workflowInstance.setReference((String) instanceVariables.get("instanceReference"));
 				workflowInstance.setSupervisor((String) instanceVariables.get("instanceSupervisor"));
 				workflowInstance.setStartDate(new Date());
 				workflowInstance.setStatus(WorkflowInstance.STATUS_RUNNING);
-
-				String definitionVersionId = (String) instanceVariables.get("definitionVersionId");
-
-				DefinitionVersion definitionVersion = processRepository
-						.getDefinitionVersionById(Integer.parseInt(definitionVersionId));
+				workflowInstance.setClient((String) instanceVariables.get("device"));
+				
+				DefinitionVersion definitionVersion = processRepository.getDefinitionVersionById(Integer.parseInt(definitionVersionId));
 				workflowInstance.setDefinitionVersion(definitionVersion);
-
+				
 				processRepository.save(workflowInstance);
-
-			} else
+				
+			} else 
 				throw new ServiceException("Failed to start instance", "Please contact system administator");
-
+				
 		} catch (ServiceException ex) {
 			throw new ServiceException(ex.getCode(), ex.getMessage());
 		}
@@ -3241,7 +3747,6 @@ public class ProcessService {
 	 * 
 	 * @return
 	 */
-	@Transactional
 	public List<WfTask> getAllActiveTasks() {
 		List<WfTask> wfTasks = new ArrayList<WfTask>();
 
@@ -3261,78 +3766,45 @@ public class ProcessService {
 
 		return wfTasks;
 	}
-
+	
 	/**
-	 * Returns active tasks by given criteria
-	 *
-	 * @param definitionName
-	 * @param taskName
-	 * @param after
-	 * @param before
-	 *
-	 * @return
-	 */
-	@Transactional
-	public List<WfTask> getActiveTasks(String definitionName, String taskName, long after, long before) {
-		List<WfTask> wfTasks = new ArrayList<>();
-
-		// get all active tasks
-		List<Task> tasks = activitiTaskSrv.createTaskQuery().active().list();
-
-		Date dateAfter = new Date(after);
-		Date dateBefore = new Date(before);
-
-		if(definitionName.isEmpty() || definitionName.equals("all"))
-			definitionName = null;
-		else
-			definitionName = processRepository.getDefinitionByKey(definitionName).getName();
-
-		if(taskName.isEmpty() || taskName.equals(" "))
-			taskName = null;
-
-		for (Task task : tasks) {
-			if(dateBefore.getTime() == 0)
-				dateBefore = new Date();
-
-			if((taskName != null && !taskName.toLowerCase().equals(task.getName().toLowerCase()))||
-					!task.getCreateTime().after(dateAfter) ||
-					!task.getCreateTime().before(dateBefore))
-				continue;
-
-			WorkflowInstance instance = processRepository.getInstanceById(task.getProcessInstanceId());
-			if(definitionName == null ||
-					definitionName.toLowerCase().equals(instance.getDefinitionVersion().getWorkflowDefinition().
-							getName().toLowerCase())){
-				WfTask wfTask = new WfTask(task);
-				wfTask.setIcon(instance.getDefinitionVersion().getWorkflowDefinition().getIcon());
-				wfTask.setDefinitionName(instance.getDefinitionVersion().getWorkflowDefinition().getName());
-				wfTask.setProcessInstance(new WfProcessInstance(instance));
-
-				wfTasks.add(wfTask);
-			}
-		}
-
-		return wfTasks;
-	}
-
-	/**
-	 * Returns tasks of ended processes based on certain criteria.
+	 * Searches for ended instances based on given criteria
 	 * 
 	 * @param title
+	 *            The instance's title
+	 * 
 	 * @param after
+	 *            The instance should be completed after
+	 * 
 	 * @param before
+	 *            The instance should be completed before
+	 * 
 	 * @param anonymous
-	 * @return
+	 *            If true will return all instances matched with the given
+	 *            criteria, else will return the instances not only matched with
+	 *            the criteria, but the instances which logged in user is
+	 *            supervisor
+	 * 
+	 * @return List of {@link WfTask}
 	 */
+	@Deprecated
 	public List<WfTask> getEndedProcessInstancesTasks(String title, long after, long before, boolean anonymous) {
-
 		List<WfTask> wfTasks = new ArrayList<WfTask>();
-
 		Date dateAfter = new Date(after);
-		Date dateBefore = new Date(before);
+		Date dateBefore;
+		
+		if(before != 0)
+			dateBefore = new Date(before);
+		
+		// get the next day
+		else {
+			Date today = new Date();
+			dateBefore = new Date(today.getTime() + (1000 * 60 * 60 * 24));
+		}
 
 		if (title.isEmpty() || title.equals(" "))
 			title = null;
+		
 		String assignee = (anonymous) ? null : getAccessToken().getEmail();
 
 		List<HistoricTaskInstance> historicTasks = activitiHistorySrv.createHistoricTaskInstanceQuery()
@@ -3341,18 +3813,17 @@ public class ProcessService {
 		WorkflowInstance instance;
 
 		for (HistoricTaskInstance hit : historicTasks) {
+			
 			try {
 				instance = processRepository.getInstanceById(hit.getProcessInstanceId());
+				
 			} catch (EmptyResultDataAccessException e) {
 				instance = null;
 			}
+			
 			if (instance != null) {
 				String instanceTitle = instance.getTitle().toLowerCase();
-
-				if (dateBefore.getTime() == 0) {
-					dateBefore = new Date();
-				}
-
+				
 				if (instance.getStatus().equals(WorkflowInstance.STATUS_ENDED)
 						&& (title == null || instanceTitle.indexOf(title.toLowerCase()) > -1)
 						&& instance.getEndDate().after(dateAfter) && instance.getEndDate().before(dateBefore)
@@ -3367,9 +3838,8 @@ public class ProcessService {
 
 		return wfTasks;
 	}
-
+	
 	/**
-	 * Get all tasks of specified user
 	 * 
 	 * @param after
 	 * @param before
@@ -3381,77 +3851,66 @@ public class ProcessService {
 		List<WfTask> wfTasks = new ArrayList<WfTask>();
 		Date dateAfter = new Date(after);
 		Date dateBefore = new Date(before);
+		WfUser user = realmService.getUser(userId);
 
-		String assignee = "";
+		if (user == null)
+			throw new InvalidRequestException("No user exists with id " + userId);
 
-		if (userId != null && assignee.equals(""))
-			assignee = realmService.getUser(userId).getEmail();
+		String assignee = user.getEmail();
 
-		HistoricTaskInstanceQuery taskQuery = activitiHistorySrv.createHistoricTaskInstanceQuery();
-
-		if (assignee != null && !assignee.equals(""))
-			taskQuery.taskAssignee(assignee);
-
-		if (after != 0)
+		HistoricTaskInstanceQuery taskQuery = activitiHistorySrv.createHistoricTaskInstanceQuery().taskAssignee(assignee);
+		
+		if(after != 0)
 			taskQuery.taskCreatedAfter(dateAfter);
-
-		if (before != 0)
+		
+		if(before != 0)
 			taskQuery.taskCreatedBefore(dateBefore);
-
+			
 		List<HistoricTaskInstance> historicTasks = taskQuery.list();
 
 		for (HistoricTaskInstance hit : historicTasks) {
 			WfTask wfTask = new WfTask(hit);
 
+			
 			try {
 				WorkflowInstance instance = processRepository.getInstanceById(hit.getProcessInstanceId());
-
 				WorkflowDefinition workflowDefinition = instance.getDefinitionVersion().getWorkflowDefinition();
-
+	
 				wfTask.setProcessInstance(new WfProcessInstance(instance));
 				wfTask.setIcon(workflowDefinition.getIcon());
 				wfTask.setDefinitionName(workflowDefinition.getName());
 				wfTask.setProcessId(workflowDefinition.getId());
-
+				
 				// finally add task if not already exists to return list
 				if (!wfTasks.contains(wfTask))
-					wfTasks.add(hydrateTask(wfTask));
-
-			} catch (Exception e) {
-
+					wfTasks.add(wfTask);
+				
+			} catch(Exception e) {
+				
 			}
 		}
-
+		
 		return wfTasks;
 	}
 
 	/**
-	 * <p>
-	 * This function is called when a new task is created.
-	 * </p>
-	 * <p>
-	 * Based on system settings will check if its enabled to assign a user to
-	 * the task if there is only one candidate.
-	 * </p>
-	 * <p>
-	 * Also will check if the assigned notification option is enabled in order
-	 * to send an email to the user who has been assigned to a task
-	 * </p>
+	 * Apply current workflow settings
 	 * 
-	 * @param task
-	 *            Task which has been created
+	 * @param executionId
 	 */
-	@Transactional
 	public void applyTaskSettings(Task task) {
 		WorkflowSettings settings = getSettings();
 		List<WfUser> users = getCandidatesByTaskId(task.getId());
-
+		String adminEmail = environment.getProperty("mail.admin");
+		
+		for(String variableName : task.getProcessVariables().keySet()) {
+			logger.debug("Variable : " + variableName + " VALUE " + task.getProcessVariables().get(variableName) );
+		}
+		
 		if (users == null || users.isEmpty()) {
-			String adminEmail = environment.getProperty("mail.admin");
-
 			WorkflowDefinition workflowDef = processRepository.getProcessByDefinitionId(task.getProcessDefinitionId());
-			WorkflowInstance instance = processRepository.getInstanceById(task.getProcessInstanceId());
-			mailService.sendDefinitionErrorMail(adminEmail, workflowDef, task, instance);
+
+			mailService.sendBpmnErrorEmail(adminEmail, workflowDef, task.getName());
 			return;
 		}
 
@@ -3463,7 +3922,7 @@ public class ProcessService {
 		activitiTaskSrv.claim(task.getId(), userEmail);
 
 		if (settings.isAssignmentNotification())
-			mailService.sendTaskAssignedMail(userEmail, new WfTask(task));
+			mailService.sendTaskAssignedMail(userEmail, task.getId(), task.getName(), task.getDueDate());
 	}
 
 	/**
@@ -3484,17 +3943,23 @@ public class ProcessService {
 	}
 
 	/**
-	 * Updates system settings
+	 * Update the system settings using the settings (api model)
 	 * 
-	 * @param wfSettings
-	 *            {@link WfSettings} The updated settings
-	 * 
-	 * @return {@link WfSettings} The updated settings
+	 * @param settings
+	 * @return
 	 */
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public WorkflowSettings updateSettings(WfSettings wfSettings) {
 
-		WorkflowSettings settings = new WorkflowSettings(wfSettings);
+		byte[] facebooktokens = null;
+		byte[] twittertokens = null;
+
+		if (settingsStatus.getWorkflowSettings() != null){
+			facebooktokens = settingsStatus.getWorkflowSettings().getFacebookTokens();
+			twittertokens = settingsStatus.getWorkflowSettings().getTwitterTokens();
+		}
+
+		WorkflowSettings settings = new WorkflowSettings(wfSettings, facebooktokens, twittertokens);
 		settingsStatus.setWorkflowSettings(settings);
 
 		return processRepository.updateSettings(settings);
@@ -3503,37 +3968,270 @@ public class ProcessService {
 	/**
 	 * Update the system settings
 	 * 
-	 * @param settings
-	 * @return
+	 * @param settings The entity to be updated
+	 * 
+	 * @return {@link WorkflowSettings} The updated settings
 	 */
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public WorkflowSettings updateSettings(WorkflowSettings settings) {
 		settingsStatus.setWorkflowSettings(settings);
 		return processRepository.updateSettings(settings);
 	}
 
 	/**
-	 * Saves a task form element
+	 * Renamed from "getProcessExternalForms" Returns all available external
+	 * forms for a definition by its id
+	 * 
+	 * @param definitionId
+	 * @return
+	 */
+	public List<WfPublicForm> getExternalFromsByDefinitionId(int definitionId) {
+		List<WfPublicForm> wfPublicForms = new ArrayList<WfPublicForm>();
+		List<ExternalForm> externalForms = new ArrayList<ExternalForm>();
+
+		externalForms = processRepository.getProcessExternalForms(definitionId);
+		wfPublicForms = WfPublicForm.fromExternalForms(externalForms);
+
+		return wfPublicForms;
+	}
+
+	/**
+	 * Returns all available registries
+	 * 
+	 * @return List of {@link Registry}
+	 */
+	public List<Registry> getRegistries() {
+		
+		return processRepository.getRegistries();
+	}
+
+	/**
+	 * Updates a registry
+	 * 
+	 * @param registry The entity to be updated
+	 * @throws InvalidRequestException
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public void updateRegistry(Registry registry) throws InvalidRequestException {
+
+		processRepository.saveRegistry(registry);
+	}
+	
+	/**
+	 * Creates a new registry
+	 * 
+	 * @param registry The entity to be created
+	 * 
+	 * @throws InvalidRequestException
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public void createRegistry(Registry registry) throws InvalidRequestException {
+		if (processRepository.checkIfRegistryExists(registry.getId()) > 0)
+			throw new InvalidRequestException("Registry with id " + registry.getId() + " exists");
+
+		processRepository.saveRegistry(registry);
+	}
+	
+	/**
+	 * Deletes a registry if it does not belong to a definition
+	 * 
+	 * @param registryId
+	 *            The registry's id to be deleted
+	 * 
+	 * @throws InvalidRequestException
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public void deleteRegistry(String registryId) throws InvalidRequestException {
+		if (processRepository.checkIfDefinitionHasRegistry(registryId) > 0)
+			throw new InvalidRequestException("Cannot delete registry because its referred to a definition");
+		else
+			processRepository.deleteRegistry(registryId);
+	}
+
+	/**
+	 * Renamed from "createExternalForm"
+	 * 
+	 * Creates an external form
+	 * 
+	 * @param wfPublicForm
+	 *            The entity to be created
+	 * 
+	 * @return {@link WfPublicForm} The created entity
+	 * @throws InvalidRequestException
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public WfPublicForm createPublicForm(WfPublicForm wfPublicForm) throws InvalidRequestException {
+		WorkflowDefinition workflowDefinition;
+		ExternalForm externalForm = new ExternalForm();
+
+		try {
+			workflowDefinition = processRepository.getById(wfPublicForm.getWorkflowDefinitionId());
+			
+		} catch (EmptyResultDataAccessException e) {
+			throw new InvalidRequestException("There is no process with the specified id.");
+		}
+
+		if (hasRole(ROLE_ADMIN) || hasGroup(workflowDefinition.getOwner())) {
+			
+			// check if there is an external form with the same name
+			Long count = processRepository.checkForExternalForm(wfPublicForm.getFormId());
+
+			if (count > 0)
+				throw new InvalidRequestException("An external form with identical id exists.");
+
+			externalForm.updateFrom(wfPublicForm, workflowDefinition);
+			externalForm = processRepository.saveExternalForm(externalForm);
+			
+		} else
+			throw new InvalidRequestException("You are not authorized to create external form");
+
+		return new WfPublicForm(externalForm);
+	}
+
+	/**
+	 * Updates an external form
+	 * 
+	 * @param
+	 * @return
+	 * @throws InvalidRequestException
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public WfPublicForm updateExternalForm(WfPublicForm wfPublicForm) throws InvalidRequestException {
+		WorkflowDefinition workflow;
+		ExternalForm externalForm = new ExternalForm();
+
+		try {
+			workflow = processRepository.getById(wfPublicForm.getWorkflowDefinitionId());
+			
+		} catch (EmptyResultDataAccessException e) {
+			throw new InvalidRequestException("There is no process with the specified id.");
+		}
+
+		if (hasRole(ROLE_ADMIN) || hasGroup(workflow.getOwner())) {
+			externalForm.updateFrom(wfPublicForm, workflow);
+			externalForm = processRepository.saveExternalForm(externalForm);
+
+		} else
+			throw new InvalidRequestException("You are not authorized to update external form");
+
+		return new WfPublicForm(externalForm);
+	}
+
+	/**
+	 * Delete an external form
+	 * 
+	 * @param id
+	 * @throws InvalidRequestException
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public void deleteExternalForm(String externalFormId) throws InvalidRequestException {
+		ExternalForm externalForm;
+
+		try {
+			externalForm = processRepository.getExternalForm(externalFormId);
+			
+		} catch (EmptyResultDataAccessException e) {
+			throw new InvalidRequestException("There is no external form with the specified id");
+		}
+
+		if (hasRole(ROLE_ADMIN) || hasGroup(externalForm.getWorkflowDefinition().getOwner()))
+			processRepository.deleteExternalForm(externalForm.getId());
+		else
+			throw new InvalidRequestException("You are not authorized to delete the external form");
+	}
+
+	/**
+	 * Suspend / Resume an external form
+	 * 
+	 * @param id
+	 *            External form's id
+	 * 
+	 * @param enabled
+	 *            A boolean to enable/disable the external form
+	 * 
+	 * @return {@link WfPublicForm} The updated entity
+	 * @throws InvalidRequestException
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public WfPublicForm modifyExternalFormStatus(String externalFormId, boolean enabled) throws InvalidRequestException {
+		ExternalForm externalForm;
+
+		try {
+			externalForm = processRepository.getExternalForm(externalFormId);
+
+			
+		} catch(NoResultException | EmptyResultDataAccessException noResult ) {
+			throw new InvalidRequestException("There is no external form with the specified id");
+		}
+		
+		if (hasRole(ROLE_ADMIN) || hasGroup(externalForm.getWorkflowDefinition().getOwner())){
+			externalForm.setEnabled(enabled);
+			externalForm = processRepository.saveExternalForm(externalForm);
+			
+		}else
+			throw new InvalidRequestException("You are not authorized to delete the external form");
+
+		return new WfPublicForm(externalForm);
+	}
+
+	/**
+	 * Returns status for an instance based on reference id
+	 * 
+	 * @param referenceId
+	 *            The reference id to search for an instance
+	 * 
+	 * @return {@link WfProcessStatus}
+	 * @throws InvalidRequestException
+	 */
+	public WfProcessStatus getProcessStatusByReferenceId(String referenceId) throws InvalidRequestException {
+		WfProcessStatus processStatus = new WfProcessStatus();
+		WorkflowInstance instance = new WorkflowInstance();
+
+		// need that list in order to use the function to get the tasks for
+		// that instance
+		List<String> instanceIds = new ArrayList<String>();
+
+		try {
+			instance = processRepository.getInstanceByReferenceId(referenceId);
+			
+			// set to process status object its properties
+			processStatus.setStatus(instance.getStatus());
+			instanceIds.add(instance.getId());
+			
+			List<Task> pendingTasks = activitiTaskSrv.createTaskQuery().processInstanceId(instance.getId()).orderByTaskCreateTime().desc().list();
+			processStatus.setTasks(getCompletedTasksByInstances(instanceIds));
+
+			if (pendingTasks != null && pendingTasks.size() > 0)
+				processStatus.setPendingTaskDescr(pendingTasks.get(0).getName());
+
+		} catch (Exception e) {
+			logger.error("Request with id: " + referenceId + " not found.");
+			throw new InvalidRequestException("No request with that reference found.");
+		}
+
+		return processStatus;
+	}
+	
+	/**
+	 * Updates from a UserTaskFormElement its description and device properties
 	 * 
 	 * @param wfFormProperty
-	 *            {@link WfFormProperty} contains the details for the task's
-	 *            form property
+	 *            The entity contains the description and the device of the
+	 *            property
 	 * 
 	 * @param taskDefinitionKey
-	 *            The task's definition key (not the task's id)
+	 *            The task's key
 	 * 
 	 * @param definitionVersion
-	 *            Process version's id
+	 *            The definition's version
 	 * 
-	 * 
-	 * @return The saved {@link UserTaskFormElement}
+	 * @return {@link UserTaskFormElement} The updated entity
 	 */
-	@Transactional
-	public UserTaskFormElement saveTaskFormElement(WfFormProperty wfFormProperty, String taskDefinitionKey,
-			String definitionVersion) {
+	@Deprecated
+	@Transactional(rollbackFor = Exception.class)
+	public UserTaskFormElement saveTaskFormElement(WfFormProperty wfFormProperty, String taskDefinitionKey, String definitionVersion) {
 
-		UserTaskFormElement taskFormElement = processRepository.getUserTaskFromElement(definitionVersion,
-				taskDefinitionKey, wfFormProperty.getId());
+		UserTaskFormElement taskFormElement = processRepository.getUserTaskFromElement(definitionVersion, taskDefinitionKey, wfFormProperty.getId());
 
 		taskFormElement.setDescription(wfFormProperty.getDescription());
 		taskFormElement.setDevice(wfFormProperty.getDevice());
@@ -3546,8 +4244,9 @@ public class ProcessService {
 	 * 
 	 * @param instanceId
 	 * @return
+	 * @throws InvalidRequestException
 	 */
-	public List<WfFormProperty> getStartFormByInstanceId(String instanceId) {
+	public List<WfFormProperty> getStartFormByInstanceId(String instanceId) throws InvalidRequestException {
 
 		List<WfFormProperty> returnList = new ArrayList<WfFormProperty>();
 
@@ -3618,20 +4317,381 @@ public class ProcessService {
 
 	/**
 	 * 
-	 * @param instanceId
+	 * Retrieves and stores a permanent token and the page id for a facebook page
+	 * 
+	 * @param fbResponse
+	 * @throws InvalidRequestException
+	 */
+	public boolean claimPermanentAccessToken(FBLoginResponse fbResponse) throws InvalidRequestException {
+
+		String accessPage = fbResponse.getPage();
+
+		if (accessPage == null) {
+			throw new InvalidRequestException("No page has been specified");
+		}
+
+		WorkflowSettings settings = this.getSettings();
+
+		Map<String, String> tokensMap = settings.fetchFacebookTokensAsMap();
+		if (tokensMap == null)
+			tokensMap = new HashMap<String, String>();
+
+		// check if a token exists for the page. If yes, return.
+		if (tokensMap.get(accessPage) != null)
+			return true;
+
+		String oauthUrl = environment.getProperty("fb.graphOauthUrl");
+		String clientId = environment.getProperty("fb.clientId");
+		String grantType = environment.getProperty("fb.grantType");
+		String clientSecret = environment.getProperty("fb.clientSecret");
+
+		URI buildLLT = UriBuilder.fromPath(oauthUrl).queryParam("client_id", clientId)
+				.queryParam("grant_type", grantType).queryParam("client_secret", clientSecret)
+				.queryParam("fb_exchange_token", fbResponse.getAccessToken()).build();
+
+		String url = buildLLT.toString();
+
+		//Obtain long-live token to exchange for a permanent token
+		Facebook facebook = new FacebookTemplate(fbResponse.getAccessToken());
+		String graphTokenUrl = facebook.getBaseGraphApiUrl();
+		ResponseEntity<String> exchange = facebook.restOperations().exchange(url, HttpMethod.GET, HttpEntity.EMPTY, String.class);
+		String response = exchange.getBody();
+		String longLiveToken = extractFBResponseElement(response, "access_token", "=");
+
+		if (longLiveToken.isEmpty() || longLiveToken == null)
+			return false;
+
+		URI buildPT = UriBuilder.fromPath(graphTokenUrl + fbResponse.getUserID() + "/accounts")
+				.queryParam("access_token", longLiveToken).build();
+
+		url = buildPT.toString();
+
+		try {
+			exchange = facebook.restOperations().exchange(url, HttpMethod.GET, HttpEntity.EMPTY, String.class);
+		} catch (RestClientException e) {
+
+			throw new InvalidRequestException(
+					"Request failed. Check the facebook " + "connection parameters:: " + e.getMessage());
+		}
+
+		response = exchange.getBody();
+
+		JSONObject jObj = new JSONObject(response);
+		String data = jObj.getString("data");
+
+		JSONArray jsonArray = jObj.getJSONArray("data");
+		Object jsonArrayObject;
+		String page = null;
+		String pageId = null;
+		String permanentToken = null;
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			jsonArrayObject = jsonArray.get(i);
+			page = extractFBResponseElement(jsonArrayObject.toString(), "name", ":");
+			page = page.substring(1, page.length() - 1);
+			
+			if (page.equals(accessPage)) {
+				pageId = extractFBResponseElement(jsonArrayObject.toString(), "id", ":");
+				pageId = pageId.substring(1, pageId.length() - 1);
+				permanentToken = extractFBResponseElement(data, "access_token", ":");
+				permanentToken = permanentToken.substring(1, permanentToken.length() - 1);				
+			}
+		}
+
+		//Store permanent token and page id
+		if (permanentToken != null) {
+			tokensMap.put(accessPage, permanentToken+","+pageId);
+			settings.assignFacebookTokensFromMap(tokensMap);
+			this.updateSettings(settings);
+			return true;
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Confirms validity of permanent access token for each registered Facebook
+	 * page and retrieves the profile and cover images of the account
+	 * 
+	 * @param pages
 	 * @return
+	 * @throws IOException
+	 */
+	public List<ApiFacebookPage> confirmAccessTokens(String[] pages) throws IOException {
+
+		List<ApiFacebookPage> facebookPages = new ArrayList<ApiFacebookPage>();
+
+		Facebook facebook;
+		String graphTokenUrl;
+		String[] values;
+		String tokenToTest;
+		String pageId;
+
+		String validateUrl;
+
+		if (pages == null || pages.length == 0)
+			return null;
+
+		WorkflowSettings settings = this.getSettings();
+		Map<String, String> tokensMap = settings.fetchFacebookTokensAsMap();
+
+		if (tokensMap == null || tokensMap.isEmpty())
+			return null;
+
+		for (int i = 0; i < pages.length; i++) {
+			String page = pages[i];
+			if (tokensMap.containsKey(page)) {
+				values = tokensMap.get(page).split(",");
+				tokenToTest = values[0];
+				pageId = values[1];
+
+				validateUrl = environment.getProperty("fb.validateUrl");
+				validateUrl += tokenToTest;
+
+				URL url = new URL(validateUrl);
+				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+
+				StringBuilder sb = new StringBuilder();
+				String line;
+				try {
+					while ((line = rd.readLine()) != null) {
+						sb.append(line);
+					}
+					rd.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+				ApiFacebookPage fbpage;
+				facebook = new FacebookTemplate(tokenToTest);
+				graphTokenUrl = facebook.getBaseGraphApiUrl();
+
+				if (sb.indexOf(environment.getProperty("fb.clientId")) > -1) {
+					URI uri = null;
+					try {
+						// Use token to retrieve profile and cover pictures urls
+						uri = new URI(
+								graphTokenUrl + pageId + "?access_token=" + tokenToTest + "&fields=picture,cover");
+					} catch (URISyntaxException e) {
+						e.printStackTrace();
+					}
+
+					ResponseEntity<String> exchange = facebook.restOperations().exchange(uri, HttpMethod.GET,
+							HttpEntity.EMPTY, String.class);
+
+					String exchangeBody = exchange.getBody();
+
+					String profilePicUrl = null;
+					String coverPicUrl = null;
+
+					// Parse the json response to retrieve the desired urls.
+					JsonParser jparser = Json.createParser(new StringReader(exchangeBody));
+					while (jparser.hasNext()) {
+						Event event = jparser.next();
+						if (event.equals(Event.KEY_NAME) && jparser.getString().equals("url")) {
+							jparser.next();
+							profilePicUrl = jparser.getString();
+						}
+						if (event.equals(Event.KEY_NAME) && jparser.getString().equals("source")) {
+							jparser.next();
+							coverPicUrl = jparser.getString();
+						}
+					}
+
+					fbpage = new ApiFacebookPage(page, true, profilePicUrl, coverPicUrl);
+
+				} else
+					fbpage = new ApiFacebookPage(page, false, null, null);
+
+				facebookPages.add(fbpage);
+			}
+
+			else
+				facebookPages.add(new ApiFacebookPage(page, false, null, null));
+		}
+
+		return facebookPages;
+	}
+	
+	/**
+	 * Removes access to the specified facebook page
+	 * 
+	 * @param pagename
+	 * @return
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public void removeFacebookPageAccess(String pageName) {
+
+		if (pageName == null || pageName.isEmpty())
+			return;
+
+		WorkflowSettings settings = this.getSettings();
+		Map<String, String> tokensMap = settings.fetchFacebookTokensAsMap();
+		
+		if (tokensMap == null || tokensMap.isEmpty())
+			return;
+
+		tokensMap.remove(pageName);
+		settings.assignFacebookTokensFromMap(tokensMap);
+		processRepository.updateSettings(settings);
+	}
+	
+	/**
+	 * Authenticate & Authorize Twitter
+	 * 
+	 * @return
+	 */
+	@SuppressWarnings("unused")
+	public TwitterAuthorization authTwitter() {
+
+		String consumerKey = environment.getProperty("twitter.consumerKey");
+		String consumerSecret = environment.getProperty("twitter.consumerSecret");
+		String callback = environment.getProperty("twitter.callback");
+
+		Twitter twitter = new TwitterTemplate(consumerKey, consumerSecret);
+		OAuth1Operations oauth1Operations = twitterConnectionFactory.getOAuthOperations();
+		OAuth1Parameters oAuth1Parameters = new OAuth1Parameters();
+
+		requestToken = oauth1Operations.fetchRequestToken(callback, null);
+
+		@SuppressWarnings("static-access")
+		String authorizeUrl = oauth1Operations.buildAuthorizeUrl(requestToken.getValue(), oAuth1Parameters.NONE);
+		TwitterAuthorization auth = new TwitterAuthorization(authorizeUrl, requestToken.getValue());
+
+		return auth;
+	}
+	
+	/**
+	 * Twitter Service associated with the callback
+	 * 
+	 * @param oauthVerifier
+	 */
+	public ModelAndView getTwitterAccessToken(String oauthVerifier) {
+
+		WorkflowSettings settings = this.getSettings();
+		Map<String, String> tokensMap = settings.fetchTwitterTokensAsMap();
+
+		if (tokensMap == null)
+			tokensMap = new HashMap<String, String>();
+
+		String consumerKey = environment.getProperty("twitter.consumerKey");
+		String consumerSecret = environment.getProperty("twitter.consumerSecret");
+		String returnUrl = environment.getProperty("managerURL");
+
+		OAuth1Operations oauth1Operations = twitterConnectionFactory.getOAuthOperations();
+
+		AuthorizedRequestToken authorizedRequestToken = new AuthorizedRequestToken(requestToken, oauthVerifier);
+		OAuthToken accessToken = oauth1Operations.exchangeForAccessToken(authorizedRequestToken, null);
+		accessToken.getValue();
+		Twitter twitter = new TwitterTemplate(consumerKey, consumerSecret, accessToken.getValue(),
+				accessToken.getSecret());
+		String screenName = twitter.userOperations().getScreenName();
+
+		TwitterProfile profile = twitter.userOperations().getUserProfile();
+
+		// check if an access token already exists for the twitter account
+		if (tokensMap.get(screenName) != null)
+			tokensMap.remove(screenName);
+
+		tokensMap.put(screenName, accessToken.getValue() + "," + accessToken.getSecret() + "," + profile.getName() + ","
+				+ profile.getProfileImageUrl() + "," + profile.getProfileBannerUrl());
+
+		settings.assignTwitterTokensFromMap(tokensMap);
+		updateSettings(settings);
+		ModelAndView redirect = new ModelAndView("redirect:" + returnUrl + "/app");
+		return redirect;
+	}
+	
+	/**
+	 * Get all authorized twitter accounts
+	 * 
+	 * @return
+	 */
+	public List<ApiTwitterAccount> getTwitterAccounts() {
+		List<ApiTwitterAccount> accounts = new ArrayList<ApiTwitterAccount>();
+
+		WorkflowSettings settings = getSettings();
+
+		Map<String, String> accountsMap = settings.fetchTwitterTokensAsMap();
+
+		if (accountsMap != null) {
+
+			for (Map.Entry<String, String> entry : accountsMap.entrySet()) {
+				String valuesString = entry.getValue();
+				String[] values = valuesString.split(",");
+				// value[2]:name
+				// value[3]:profileImageUrl
+				// value[4]:coverImageUrl
+				ApiTwitterAccount account = new ApiTwitterAccount(entry.getKey(), values[2], values[3], values[4]);
+				accounts.add(account);
+			}
+
+		}
+
+		return accounts;
+	}
+
+	/**
+	 * Removes access to the specified twitter account
+	 * 
+	 * @param screenName
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public void removeTwitterAccountAccess(String screenName) {
+		if (screenName == null || screenName.isEmpty())
+			return;
+
+		WorkflowSettings settings = getSettings();
+		Map<String, String> tokensMap = settings.fetchTwitterTokensAsMap();
+		
+		if (tokensMap == null || tokensMap.isEmpty())
+			return;
+
+		tokensMap.remove(screenName);
+		settings.assignTwitterTokensFromMap(tokensMap);
+		processRepository.updateSettings(settings);
+	}
+	
+	
+	/**
+	 * Returns all mobile enabled external forms
+	 * 
+	 * @return
+	 */
+	public List<WfPublicService> getExternalServices() {
+		List<WfPublicService> returnList = new ArrayList<WfPublicService>();
+		List<ExternalForm> externalForms = new ArrayList<ExternalForm>();
+
+		externalForms = processRepository.getExternalForms();
+
+		for (ExternalForm externalForm : externalForms) {
+			if (externalForm.isEnabled() && externalForm.isMobileEnabled()) {
+				WfPublicService externalService = new WfPublicService(externalForm);
+				returnList.add(externalService);
+			}
+		}
+		return returnList;
+	}
+	
+	/**
+	 * Returns a process instance by its id
+	 * 
+	 * @param instanceId
+	 *            The process instance's id
+	 * 
+	 * @return {@link WfProcessInstance}
 	 * @throws InvalidRequestException
 	 */
 	public WfProcessInstance getProcessInstanceById(String instanceId) throws InvalidRequestException {
-
 		WfProcessInstance wfProcessInstance;
-
+		
 		try {
 			wfProcessInstance = new WfProcessInstance(processRepository.getInstanceById(instanceId));
+			
 		} catch (Exception e) {
-			throw new InvalidRequestException("processIntanceNotFound");
+			throw new InvalidRequestException("Instance with id: " + instanceId + " not found. Please contact the system administrator");
 		}
-
 		return wfProcessInstance;
 	}
 
@@ -3640,13 +4700,102 @@ public class ProcessService {
 	 * 
 	 * @param instanceId
 	 */
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public void deleteProcessCompletedInstance(String instanceId) {
 		// delete from activiti
 		activitiHistorySrv.deleteHistoricProcessInstance(instanceId);
 
 		// delete from workflow instance table
 		processRepository.deleteProcessInstance(instanceId);
+	}
+
+	/**
+	 * Returns a list of external wrapper class which contains group and forms
+	 * 
+	 * @return
+	 */
+	public List<ExternalWrapper> getExternalWrapper() {
+		List<ExternalWrapper> returnList = new ArrayList<ExternalWrapper>();
+
+		returnList = processRepository.getExternalFormsGroupsWrapped();
+		return returnList;
+	}
+
+	/**
+	 * Returns all available external groups
+	 * 
+	 * @return
+	 */
+	public List<WfPublicGroup> getExternalGroups() {
+		List<WfPublicGroup> returnList = WfPublicGroup.fromExternalGroups(processRepository.getExternalGroups());
+
+		return returnList;
+	}
+
+	/**
+	 * Creates a new external group
+	 * 
+	 * @param wfExternalGroup
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public void createExternalGroup(WfPublicGroup wfExternalGroup) {
+		// create an entity object for an api one
+		ExternalGroup externalGroup = new ExternalGroup(wfExternalGroup);
+
+		processRepository.createExternalGroup(externalGroup);
+	}
+
+	/**
+	 * Returns all available external forms
+	 * 
+	 * @return
+	 */
+	public List<WfPublicForm> getExternalforms() {
+
+		return WfPublicForm.fromExternalForms(processRepository.getExternalForms());
+	}
+
+	/**
+	 * Deletes a public group by id
+	 * 
+	 * @param groupId
+	 *            Group's id to be deleted
+	 * 
+	 * @throws InvalidRequestException
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public void deletePublicGroup(int groupId) throws InvalidRequestException {
+
+		if (processRepository.checkIfPublicGroupHasForms(groupId) > 0) {
+			throw new InvalidRequestException("Group has external forms");
+
+		} else {
+
+			try {
+				processRepository.deletePublicGroup(groupId);
+
+			} catch (Exception e) {
+				throw new InvalidRequestException("Couldn't delete group " + e.getMessage());
+			}
+		}
+	}
+
+	/**
+	 * Updates a public group
+	 * 
+	 * @param publicGroup
+	 * @throws InvalidRequestException
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public void updatePublicGroup(WfPublicGroup publicGroup) throws InvalidRequestException {
+
+		try {
+			ExternalGroup externalGroup = new ExternalGroup(publicGroup);
+			processRepository.updatePublicGroup(externalGroup);
+
+		} catch (Exception e) {
+			throw new InvalidRequestException("Couldn't update group " + e.getMessage());
+		}
 	}
 
 	/**
@@ -3661,13 +4810,74 @@ public class ProcessService {
 
 		return realmService.getUsersByGroupAndRole(process.getOwner(), ROLE_SUPERVISOR);
 	}
+	
+	/**
+	 * Creates a new mobile user or update the existing one
+	 * 
+	 * @param wfMobileUser
+	 */
+	@Transactional
+	public void saveExternalUser(WfExternalUser wfExternalUser) {
+		
+		try {
+			ExternalUser externalUser = processRepository.getExternalUserByDeviceId(wfExternalUser.getDeviceId());
+			
+			// in case user exists
+			if(externalUser != null) {
+				externalUser.setAddress(wfExternalUser.getAddress());
+				externalUser.setDeviceId(wfExternalUser.getDeviceId());
+				externalUser.setEmail(wfExternalUser.getEmail());
+				externalUser.setName(wfExternalUser.getName());
+				externalUser.setPhoneNumber(wfExternalUser.getPhoneNo());
+				externalUser.setSimPhoneNumber(wfExternalUser.getSimPhoneNumber());
+				externalUser.setClient(wfExternalUser.getClient());
+				
+				processRepository.saveExternalUser(externalUser);
+			} 
+			
+		// in case user doesn't exists	
+		} catch (Exception e) {
+			processRepository.saveExternalUser(new ExternalUser(wfExternalUser));
+		}
+	}
+	
+	public void sendTaskDueDateNotification(String taskId, String content) throws InternalException {
+		Task task = activitiTaskSrv.createTaskQuery().taskId(taskId).singleResult();
+		
+		mailService.sendTaskDueDateNotification(task, content);
+	}
+	
+	/**
+	 * 
+	 * @param body
+	 * @param element
+	 * @param delimiter
+	 * @return
+	 */
+	private String extractFBResponseElement(String body, String element, String delimiter) {
+		String[] parts = body.split(",");
+		for (String part : parts) {
+			if (part.indexOf(element) != -1) {
+				String[] partsParams = part.split(delimiter);
+				//--
+				if(partsParams[1].indexOf("&") > -1){
+					String[] subparts = partsParams[1].split("&");
+					return subparts[0];
+				}
+				//--
+				return partsParams[1];
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Returns all in progress instances
-	 *
+	 * 
 	 * @return a list of in progress instances
+	 * @throws InvalidRequestException
 	 */
-	public List<WfProcessInstance> getInProgressInstances() {
+	public List<WfProcessInstance> getInProgressInstances() throws InvalidRequestException {
 		ArrayList<WfProcessInstance> returnList = new ArrayList<WfProcessInstance>();
 
 		returnList.addAll(WfProcessInstance.fromWorkflowInstances(processRepository.getInProgressInstances()));
@@ -3676,107 +4886,27 @@ public class ProcessService {
 	}
 
 	/**
-	 * Returns all in progress instances by given criteria
-	 *
-	 * @return a list of in progress instances
+	 * Changes instance's supervisor
+	 * 
+	 * @param instanceId The instance's id
+	 * 
+	 * @param supervisor The email of the new supervisor
+	 * 
+	 * @throws InvalidRequestException
 	 */
-	public List<WfProcessInstance> getInProgressInstances(String definitionName, String instanceTitle, long after,
-			  long before) {
-		ArrayList<WfProcessInstance> returnList = new ArrayList<>();
-		Date dateAfter = new Date(after);
-		Date dateBefore = new Date(before);
-
-		if(definitionName.isEmpty() || definitionName.equals("all"))
-			definitionName = null;
-		else
-			definitionName = processRepository.getDefinitionByKey(definitionName).getName();
-
-		if(instanceTitle.isEmpty() || instanceTitle.equals(" "))
-			instanceTitle = null;
-
-
-		for(WfProcessInstance instance : WfProcessInstance.fromWorkflowInstances(processRepository.getInProgressInstances())) {
-			if (instance != null) {
-				String title = instance.getTitle().toLowerCase();
-				String name = instance.getDefinitionName().toLowerCase();
-
-				if (dateBefore.getTime() == 0) {
-					dateBefore = new Date();
-				}
-
-				if ((instanceTitle == null || instanceTitle.toLowerCase().equals(title))
-						&& (definitionName == null || definitionName.toLowerCase().equals(name))
-						&& instance.getStartDate() != null && instance.getStartDate().after(dateAfter)
-						&& instance.getStartDate() != null && instance.getStartDate().before(dateBefore)) {
-
-					returnList.add(instance);
-				}
-			}
-		}
-		return returnList;
-	}
-
-	/**
-	 * Returns all ended instances by given criteria
-	 *
-	 * @param definitionName
-	 *            The definition's name to get its ended instances
-	 * @param instanceTitle
-	 *            The process instance title
-	 * @param after
-	 *            The date after which to get the ended instances
-	 * @param before
-	 *            The date before which to get the ended instances
-	 *
-	 * @return A list of {@link WfProcessInstance}
-	 */
-	public List<WfProcessInstance> getEndedProcessInstances(String definitionName, String instanceTitle, long after,
-			long before) {
-		ArrayList<WfProcessInstance> returnList = new ArrayList<>();
-		Date dateAfter = new Date(after);
-		Date dateBefore = new Date(before);
-
-		if(definitionName.isEmpty() || definitionName.equals("all"))
-			definitionName = null;
-		else
-			definitionName = processRepository.getDefinitionByKey(definitionName).getName();
-
-		if(instanceTitle.isEmpty() || instanceTitle.equals(" "))
-			instanceTitle = null;
-
-
-		for(WfProcessInstance instance : WfProcessInstance.fromWorkflowInstances(processRepository.getEndedProgressInstances())) {
-			if (instance != null) {
-				String title = instance.getTitle().toLowerCase();
-				String name = instance.getDefinitionName().toLowerCase();
-
-				if (dateBefore.getTime() == 0) {
-					dateBefore = new Date();
-				}
-
-				if ((instanceTitle == null || instanceTitle.toLowerCase().equals(title))
-						&& (definitionName == null || definitionName.toLowerCase().equals(name))
-						&& instance.getEndDate() != null && instance.getEndDate().after(dateAfter)
-						&& instance.getEndDate() != null && instance.getEndDate().before(dateBefore)) {
-
-					returnList.add(instance);
-				}
-			}
-		}
-		return returnList;
-	}
-
 	@Transactional(rollbackFor = Exception.class)
 	public void changeInstanceSupervisor(String instanceId, String supervisor) throws InvalidRequestException {
 
-		WorkflowInstance instance = null;
+		WorkflowInstance workflowInstance;
 
 		try {
-			instance = processRepository.getInstanceById(instanceId);
-			instance.setSupervisor(supervisor);
-			processRepository.save(instance);
+			workflowInstance = processRepository.getInstanceById(instanceId);
+			workflowInstance.setSupervisor(supervisor);
+			processRepository.save(workflowInstance);
+			
 		} catch (Exception e) {
-			throw new InvalidRequestException("instanceSupervisorChangeFailed");
+			logger.error(e.getMessage());
+			throw new InvalidRequestException("Instance supervisor change failed");
 		}
 	}
 
@@ -3786,8 +4916,7 @@ public class ProcessService {
 	 * @return Logged-in user's token
 	 */
 	private AccessToken getAccessToken() {
-		KeycloakAuthenticationToken authentication = (KeycloakAuthenticationToken) SecurityContextHolder.getContext()
-				.getAuthentication();
+		KeycloakAuthenticationToken authentication = (KeycloakAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
 		AccessToken token = authentication.getAccount().getKeycloakSecurityContext().getToken();
 
 		return token;
@@ -3811,36 +4940,34 @@ public class ProcessService {
 	 * 
 	 * @return {@link WfTask} The hydrated task
 	 * 
+	 * @throws InvalidRequestException
 	 */
-	private WfTask hydrateTask(WfTask wfTask) {
+	private WfTask hydrateTask(WfTask wfTask) throws InvalidRequestException {
+		
 		List<WfFormProperty> formProperties = new ArrayList<WfFormProperty>();
 
 		// for task which is running
-		try {
+		if(wfTask.getEndDate() == null) {
+
 			TaskFormData taskForm = activitiFormSrv.getTaskFormData(wfTask.getId());
 			formProperties = getWfFormProperties(taskForm.getFormProperties(), wfTask);
 
-			// handle completed task
-		} catch (ActivitiObjectNotFoundException e) {
+		} else {
 
-			HistoricTaskInstance historicTaskInstance = activitiHistorySrv.createHistoricTaskInstanceQuery()
-					.taskId(wfTask.getId()).singleResult();
+			HistoricTaskInstance historicTaskInstance = activitiHistorySrv.createHistoricTaskInstanceQuery().taskId(wfTask.getId()).singleResult();
 			List<org.activiti.bpmn.model.FormProperty> historicFormProperties = new ArrayList<org.activiti.bpmn.model.FormProperty>();
 			List<UserTaskFormElement> taskFormElements = new ArrayList<UserTaskFormElement>();
 			Map<String, UserTaskFormElement> mappedUserTaskFormElements = new HashMap<>();
 			UserTaskDetails taskDetails = new UserTaskDetails();
 
 			// get properties for task
-			historicFormProperties = ActivitiHelper.getTaskFormDefinition(activitiRepositorySrv,
-					wfTask.getProcessDefinitionId(), historicTaskInstance.getTaskDefinitionKey());
+			historicFormProperties = ActivitiHelper.getTaskFormDefinition(activitiRepositorySrv, wfTask.getProcessDefinitionId(), historicTaskInstance.getTaskDefinitionKey());
 
 			// get the task details
-			taskDetails = processRepository.getUserTaskDetailByDefinitionKey(
-					historicTaskInstance.getTaskDefinitionKey(), wfTask.getProcessDefinitionId());
+			taskDetails = processRepository.getUserTaskDetailByDefinitionKey(historicTaskInstance.getTaskDefinitionKey(), wfTask.getProcessDefinitionId());
 
 			// get the task form elements
-			taskFormElements = processRepository.getUserTaskFromElements(wfTask.getProcessDefinitionId(),
-					taskDetails.getId());
+			taskFormElements = processRepository.getUserTaskFromElements(wfTask.getProcessDefinitionId(), taskDetails.getId());
 
 			// fill the usertaskform element map using as key the element id and
 			// as value the user taskform element
@@ -3850,15 +4977,14 @@ public class ProcessService {
 
 			// get the map contains the value as a map of property id and
 			// property value
-			HashMap<String, String> propertyValueMap = getFormItemsValues(wfTask.getProcessInstance().getId(),
-					wfTask.getEndDate());
+			HashMap<String, String> propertyValueMap = getFormItemsValues(wfTask.getProcessInstance().getId(), wfTask.getEndDate());
 
 			// loop through form properties
 			for (org.activiti.bpmn.model.FormProperty formProperty : historicFormProperties) {
 
 				// get the property value from the map using the property id
 				String propertyValue = propertyValueMap.get(formProperty.getId());
-
+				
 				// prepare formValues
 				Map<String, String> values = new HashMap<String, String>();
 
@@ -3872,7 +4998,7 @@ public class ProcessService {
 
 				// date pattern
 				String dateFormat = "";
-
+				
 				if (formProperty.getDatePattern() != null)
 					dateFormat = formProperty.getDatePattern();
 				else
@@ -3901,11 +5027,11 @@ public class ProcessService {
 
 				formProperties.add(wfFormProperty);
 			}
+
 		}
 
 		wfTask.setTaskForm(formProperties);
-		DefinitionVersion definitionVersion = processRepository
-				.getVersionByProcessDefinitionId(wfTask.getProcessDefinitionId());
+		DefinitionVersion definitionVersion = processRepository.getVersionByProcessDefinitionId(wfTask.getProcessDefinitionId());
 		wfTask.initFromDefinitionVersion(definitionVersion);
 		wfTask.setIcon(definitionVersion.getWorkflowDefinition().getIcon());
 		wfTask.setDefinitionName(definitionVersion.getWorkflowDefinition().getName());
@@ -3928,12 +5054,14 @@ public class ProcessService {
 	 * @throws InvalidRequestException
 	 */
 	private HashMap<String, String> getFormItemsValues(String instanceId, Date taskEndDate) {
+		
 		HashMap<String, String> returnMap = new HashMap<>();
-		List<HistoricDetail> details = activitiHistorySrv.createHistoricDetailQuery().processInstanceId(instanceId)
-				.orderByTime().desc().list();
+		List<HistoricDetail> details = activitiHistorySrv.createHistoricDetailQuery().processInstanceId(instanceId).orderByTime().desc().list();
 
 		for (HistoricDetail historicDetail : details) {
+
 			if (historicDetail instanceof HistoricFormPropertyEntity) {
+
 				HistoricFormPropertyEntity formEntity = (HistoricFormPropertyEntity) historicDetail;
 
 				if (formEntity.getTime().before(taskEndDate) || formEntity.getTime().equals(taskEndDate)) {
@@ -3941,11 +5069,21 @@ public class ProcessService {
 					if (formEntity.getPropertyValue() != null)
 						returnMap.put(formEntity.getPropertyId(), formEntity.getPropertyValue());
 				}
+			} else if (historicDetail instanceof HistoricDetailVariableInstanceUpdateEntity) {
+
+				HistoricDetailVariableInstanceUpdateEntity formEntity = (HistoricDetailVariableInstanceUpdateEntity) historicDetail;
+
+				if (formEntity.getTime().before(taskEndDate) || formEntity.getTime().equals(taskEndDate)) {
+
+					if (formEntity.getValue() != null)
+						returnMap.put(formEntity.getVariableName(), formEntity.getValue().toString());
+				}
 			}
 		}
+
 		return returnMap;
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	private List<WfFormProperty> getWfFormProperties(List<FormProperty> formProperties, WfTask wfTask) {
 		List<WfFormProperty> wfFormProperties = new ArrayList<WfFormProperty>();
@@ -3954,11 +5092,9 @@ public class ProcessService {
 
 		Task task = activitiTaskSrv.createTaskQuery().taskId(wfTask.getId()).singleResult();
 
-		UserTaskDetails taskDetails = processRepository.getUserTaskDetailByDefinitionKey(task.getTaskDefinitionKey(),
-				wfTask.getProcessDefinitionId());
+		UserTaskDetails taskDetails = processRepository.getUserTaskDetailByDefinitionKey(task.getTaskDefinitionKey(), wfTask.getProcessDefinitionId());
 
-		taskFormElements = processRepository.getUserTaskFromElements(wfTask.getProcessDefinitionId(),
-				taskDetails.getId());
+		taskFormElements = processRepository.getUserTaskFromElements(wfTask.getProcessDefinitionId(), taskDetails.getId());
 
 		// create the map
 		for (UserTaskFormElement userTaskFormElement : taskFormElements) {
@@ -3968,13 +5104,17 @@ public class ProcessService {
 		for (FormProperty property : formProperties) {
 			// get the value for the property
 			String propertyValue = property.getValue();
+			
+			// set a default value when approve document
+			if(property.getType().getClass().equals(ApproveFormType.class))
+				propertyValue = "false";
 
 			// get the date format
 			String dateFormat = (String) property.getType().getInformation("datePattern");
 
-			// get the task form element values
+			//get the task form element values
 			UserTaskFormElement userTaskFormElement = null;
-
+			
 			if (!mappedUserTaskFormElements.isEmpty())
 				userTaskFormElement = mappedUserTaskFormElements.get(property.getId());
 
@@ -3997,18 +5137,28 @@ public class ProcessService {
 		return wfFormProperties;
 	}
 
+	/**
+	 * Used for the task event's form properties
+	 * 
+	 * @param formProperties
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	private List<WfFormProperty> getWfFormProperties(List<FormProperty> formProperties) {
 		List<WfFormProperty> wfFormProperties = new ArrayList<WfFormProperty>();
 
 		for (FormProperty property : formProperties) {
-
+			
 			// get the date format
 			String dateFormat = (String) property.getType().getInformation("datePattern");
-
+			
 			// get the property's value
 			String propertyValue = property.getValue();
-
+			
+			// set a default value when approve document
+			if(property.getType().getClass().equals(ApproveFormType.class))
+				propertyValue = "false";
+			
 			// create the form property
 			WfFormProperty wfFormProperty = new WfFormProperty();
 			wfFormProperty.setId(property.getId());
@@ -4025,7 +5175,7 @@ public class ProcessService {
 
 			wfFormProperties.add(wfFormProperty);
 		}
-
+		
 		return wfFormProperties;
 	}
 
@@ -4036,13 +5186,13 @@ public class ProcessService {
 	 * 
 	 * @param workflow
 	 */
+	@Transactional(rollbackFor = Exception.class)
 	private void createTaskDetails(WorkflowDefinition workflow) {
-
 		List<DefinitionVersion> definitionVersions = workflow.getDefinitionVersions();
 		int indexOfUpToDateVersion = definitionVersions.size() - 1;
 		DefinitionVersion latestDefinitionVersion = definitionVersions.get(indexOfUpToDateVersion);
 		DefinitionVersion previousDefinitionVersion = null;
-
+		
 		if (indexOfUpToDateVersion > 0)
 			previousDefinitionVersion = definitionVersions.get(indexOfUpToDateVersion - 1);
 
@@ -4092,6 +5242,7 @@ public class ProcessService {
 							userTaskFormElement.setDevice(formItemDevice);
 
 							userTaskFormElement.setElementId(formProperty.getId());
+							userTaskFormElement.setFormat(formProperty.getDatePattern());
 							processRepository.save(userTaskFormElement);
 						}
 						// update definition start form property since we do
@@ -4130,14 +5281,15 @@ public class ProcessService {
 						userTaskFormElement.setUserTaskDetail(userTaskDetails);
 
 						String formItemDescription = (previousDefinitionVersion == null) ? ""
-								: copyFormElementDescriptionFromSimilar(formProperty.getId(), userTaskDetails.getId());
+								: copyFormElementDescriptionFromSimilar(formProperty.getId(), previousDefinitionVersion.getId());
 						userTaskFormElement.setDescription(formItemDescription);
 
 						String formItemDevice = (previousDefinitionVersion == null) ? UserTaskFormElement.ALL_DEVICES
-								: copyFormElementDeviceFromSimilar(formProperty.getId(), userTaskDetails.getId());
+								: copyFormElementDeviceFromSimilar(formProperty.getId(), previousDefinitionVersion.getId());
 						userTaskFormElement.setDevice(formItemDevice);
 
 						userTaskFormElement.setElementId(formProperty.getId());
+						userTaskFormElement.setFormat(formProperty.getDatePattern());
 						processRepository.save(userTaskFormElement);
 					}
 				}
@@ -4167,35 +5319,28 @@ public class ProcessService {
 		return "";
 	}
 
-	private String copyFormElementDescriptionFromSimilar(String elementId, int taskDetailId) {
-
-		List<UserTaskFormElement> userTaskFormElemets = processRepository.getUserTaskFormElements(elementId,
-				taskDetailId);
+	private String copyFormElementDescriptionFromSimilar(String elementId, int definitionVersionId) {
+		List<UserTaskFormElement> userTaskFormElemets = processRepository.getUserTaskFormElements(elementId, definitionVersionId);
 
 		for (UserTaskFormElement element : userTaskFormElemets) {
-
 			if (element.getElementId().equals(elementId)) {
-
-				if (element.getDescription() != null && !element.getDescription().isEmpty())
+				if (element.getDescription() != null && !element.getDescription().isEmpty()) {
 					return element.getDescription();
+				}
 			}
-
 		}
 
 		return "";
 	}
 
-	private String copyFormElementDeviceFromSimilar(String elementId, int taskDetailId) {
-
-		List<UserTaskFormElement> userTaskFormElemets = processRepository.getUserTaskFormElements(elementId,
-				taskDetailId);
+	private String copyFormElementDeviceFromSimilar(String elementId, int definitionVersionId) {
+		List<UserTaskFormElement> userTaskFormElemets = processRepository.getUserTaskFormElements(elementId, definitionVersionId);
 
 		for (UserTaskFormElement element : userTaskFormElemets) {
-
 			if (element.getElementId().equals(elementId)) {
-
-				if (element.getDevice() != null && !element.getDevice().isEmpty())
+				if (element.getDevice() != null && !element.getDevice().isEmpty()) {
 					return element.getDevice();
+				}
 			}
 		}
 
@@ -4203,18 +5348,19 @@ public class ProcessService {
 	}
 
 	/**
+	 * private
+	 * 
 	 * Checks if a process already exists with the same key
 	 * 
 	 * @param key
 	 * @return
 	 */
 	private boolean definitionExistenceCheck(String key) {
-		List<ProcessDefinition> processDefinitions = activitiRepositorySrv.createProcessDefinitionQuery()
-				.processDefinitionKey(key).list();
-
+		List<ProcessDefinition> processDefinitions = activitiRepositorySrv.createProcessDefinitionQuery().processDefinitionKey(key).list();
+		
 		if (processDefinitions == null || processDefinitions.isEmpty())
 			return false;
-
+		
 		return true;
 	}
 
@@ -4227,19 +5373,19 @@ public class ProcessService {
 	 * @return
 	 */
 	private boolean definitionVersionExistenceCheck(int workflowId, String key) {
-
+		// get all definition's versions for the process
 		List<DefinitionVersion> definitionVersions = processRepository.getVersionsByProcessId(workflowId);
-
+		
 		if (definitionVersions == null || definitionVersions.isEmpty())
 			return false;
-
+		
 		int lastVersionIndex = definitionVersions.size() - 1;
-
+		
 		DefinitionVersion lastVersion = definitionVersions.get(lastVersionIndex);
-
+		
 		if (lastVersion.getProcessDefinitionId().indexOf(key + ":") == -1)
 			return false;
-
+		
 		return true;
 	}
 
@@ -4248,19 +5394,16 @@ public class ProcessService {
 	 * 
 	 * Parses the bpmn file to retrieve the id of the process.
 	 * 
-	 * @param bpmn
+	 * @param inputStream
 	 * @return
 	 * @throws InvalidRequestException
 	 */
-
+	@Deprecated
 	private String parseProcessId(String bpmn) throws InvalidRequestException {
-
 		String processId = null;
-
 		XMLInputFactory inputFactory = XMLInputFactory.newInstance();
-
+		
 		try {
-
 			XMLStreamReader streamReader = inputFactory.createXMLStreamReader(new StringReader(bpmn));
 
 			while (streamReader != null && streamReader.hasNext()) {
@@ -4275,7 +5418,6 @@ public class ProcessService {
 		} catch (XMLStreamException e) {
 			logger.error("BPMN XML Stream Exception. " + e.getMessage());
 		}
-
 		return processId;
 	}
 
@@ -4287,7 +5429,6 @@ public class ProcessService {
 	 */
 	@SuppressWarnings("unchecked")
 	private boolean hasRole(String role) {
-
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		List<GrantedAuthority> authorities = (List<GrantedAuthority>) authentication.getAuthorities();
 
@@ -4296,7 +5437,6 @@ public class ProcessService {
 			if (authority.getAuthority().equals(role))
 				return true;
 		}
-
 		return false;
 	}
 
@@ -4309,17 +5449,17 @@ public class ProcessService {
 	private boolean hasGroup(String group) {
 		List<String> userGroups = realmService.getUserGroups();
 
-		if (userGroups == null || userGroups.size() == 0)
+		if(userGroups == null || userGroups.size() ==0)
 			return false;
-
+		
 		return userGroups.contains(group);
 	}
-
+	
 	/**
-	 * A custom exception which extends {@link ActivitiException}, used by
-	 * service layer in order to catch activiti-relation exceptions and then
-	 * throw an {@link InternalException} or {@link InvalidRequestException} to
-	 * propagate it to the controller.
+	 * A custom exception which extends {@link ActivitiException},
+	 * used by service layer in order to catch activiti-relation exceptions 
+	 * and then throw an {@link InternalException} or {@link InvalidRequestException}
+	 * to propagate it to the controller.
 	 * 
 	 * @author kkoutros
 	 *
@@ -4327,7 +5467,7 @@ public class ProcessService {
 	class ServiceException extends ActivitiException {
 
 		private static final long serialVersionUID = 1L;
-
+		
 		private String code;
 		private String message;
 
@@ -4353,4 +5493,5 @@ public class ProcessService {
 			this.message = message;
 		}
 	}
+
 }

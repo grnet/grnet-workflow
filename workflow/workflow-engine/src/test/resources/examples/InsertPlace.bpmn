@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://workstream.cyberstream.gr/workflow/examples">
+  <process id="insertPlace" name="Insert Place to Databse" isExecutable="true">
+    <startEvent id="start-event" name="Start"></startEvent>
+    <userTask id="selectPlace-task" name="Select Place">
+      <extensionElements>
+        <activiti:formProperty id="name" name="Περιγραφή" type="string" variable="name" required="true"></activiti:formProperty>
+        <activiti:formProperty id="position" name="Θέση" type="position" variable="position" required="true"></activiti:formProperty>
+      </extensionElements>
+    </userTask>
+    <serviceTask id="appendDb-task" name="Database Append" activiti:class="gr.cyberstream.workflow.engine.customservicetasks.DbAppend" activiti:extensionId="gr.cyberstream.workflow.designer.servicetasks.DbAppend">
+      <extensionElements>
+        <activiti:field name="datasource">
+          <activiti:string>java:jboss/datasources/WorkflowDS</activiti:string>
+        </activiti:field>
+        <activiti:field name="table">
+          <activiti:string>places</activiti:string>
+        </activiti:field>
+        <activiti:field name="columns">
+          <activiti:string>name,lat,lon</activiti:string>
+        </activiti:field>
+        <activiti:field name="values">
+          <activiti:expression>${name},${position.latitude},${position.longitude}</activiti:expression>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <endEvent id="end-event" name="End"></endEvent>
+    <sequenceFlow id="flow1" sourceRef="start-event" targetRef="selectPlace-task"></sequenceFlow>
+    <sequenceFlow id="flow2" sourceRef="selectPlace-task" targetRef="appendDb-task"></sequenceFlow>
+    <sequenceFlow id="flow3" sourceRef="appendDb-task" targetRef="end-event"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_insertPlace">
+    <bpmndi:BPMNPlane bpmnElement="insertPlace" id="BPMNPlane_insertPlace">
+      <bpmndi:BPMNShape bpmnElement="start-event" id="BPMNShape_start-event">
+        <omgdc:Bounds height="35.0" width="35.0" x="160.0" y="210.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="selectPlace-task" id="BPMNShape_selectPlace-task">
+        <omgdc:Bounds height="55.0" width="105.0" x="300.0" y="200.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="appendDb-task" id="BPMNShape_appendDb-task">
+        <omgdc:Bounds height="55.0" width="105.0" x="500.0" y="200.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="end-event" id="BPMNShape_end-event">
+        <omgdc:Bounds height="35.0" width="35.0" x="700.0" y="210.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="flow1" id="BPMNEdge_flow1">
+        <omgdi:waypoint x="195.0" y="227.0"></omgdi:waypoint>
+        <omgdi:waypoint x="300.0" y="227.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow2" id="BPMNEdge_flow2">
+        <omgdi:waypoint x="405.0" y="227.0"></omgdi:waypoint>
+        <omgdi:waypoint x="500.0" y="227.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow3" id="BPMNEdge_flow3">
+        <omgdi:waypoint x="605.0" y="227.0"></omgdi:waypoint>
+        <omgdi:waypoint x="700.0" y="227.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

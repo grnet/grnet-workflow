@@ -6,9 +6,12 @@ import java.util.Map;
 public class RESTMail {
 
 	private String app;
+
 	private String subject;
 	private String from;
 	private List<RESTRecipient> to;
+	private List<RESTRecipient> bcc;
+	private List<RESTRecipient> cc;
 	private String jobID;
 	private Map<String, Object> parameters;
 
@@ -68,6 +71,22 @@ public class RESTMail {
 
 	public void setTo(List<RESTRecipient> to) {
 		this.to = to;
+	}
+
+	public List<RESTRecipient> getBcc() {
+		return bcc;
+	}
+
+	public void setBcc(List<RESTRecipient> bcc) {
+		this.bcc = bcc;
+	}
+
+	public List<RESTRecipient> getCc() {
+		return cc;
+	}
+
+	public void setCc(List<RESTRecipient> cc) {
+		this.cc = cc;
 	}
 
 	public String getJobID() {

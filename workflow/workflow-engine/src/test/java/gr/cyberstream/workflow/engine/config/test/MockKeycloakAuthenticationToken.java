@@ -15,17 +15,20 @@ public class MockKeycloakAuthenticationToken extends KeycloakAuthenticationToken
 
 	public MockKeycloakAuthenticationToken(KeycloakAccount account) {
 		super(account);
-
+		
 		this.setAuthenticated(true);
 	}
 
 	@Override
 	public Collection<GrantedAuthority> getAuthorities() {
+		
 		List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-
+		
 		for (String role : getAccount().getRoles()) {
+			
 			authorities.add(new SimpleGrantedAuthority(role));
 		}
+		
 		return authorities;
 	}
 }

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
 
 import javax.persistence.EntityManagerFactory;
 import javax.servlet.http.HttpServletRequest;
@@ -45,6 +47,8 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.social.twitter.connect.TwitterConnectionFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -76,14 +80,11 @@ import gr.cyberstream.workflow.engine.listeners.StartEventFormFields;
  */
 @Configuration
 @EnableTransactionManagement
-@ComponentScan(basePackages = { 
-		"gr.cyberstream.workflow.engine.controller", 
-		"gr.cyberstream.workflow.engine.service",
-		"gr.cyberstream.workflow.engine.persistence", 
-		"gr.cyberstream.workflow.engine.cmis",
-		"gr.cyberstream.workflow.engine.listeners",
-		"gr.cyberstream.workflow.engine.customservicetasks" 
-		}, basePackageClasses = KeycloakSecurityComponents.class)
+@ComponentScan(basePackages = { "gr.cyberstream.workflow.engine.config", 
+		"gr.cyberstream.workflow.engine.controller.v1", "gr.cyberstream.workflow.engine.controller.v2",
+		"gr.cyberstream.workflow.engine.service", "gr.cyberstream.workflow.engine.persistence",
+		"gr.cyberstream.workflow.engine.cmis", "gr.cyberstream.workflow.engine.listeners",
+		"gr.cyberstream.workflow.engine.customservicetasks" }, basePackageClasses = KeycloakSecurityComponents.class)
 @PropertySource("classpath:workflow-engine.properties")
 public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
@@ -97,8 +98,7 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
 		RequestMappingHandlerMapping handlerMapping = super.requestMappingHandlerMapping();
 		handlerMapping.setAlwaysUseFullPath(true);
-		handlerMapping.setRemoveSemicolonContent(false); // In order to enable
-															// matrix variables
+		handlerMapping.setRemoveSemicolonContent(false); // In order to enable matrix variables
 		return handlerMapping;
 	}
 
@@ -194,6 +194,15 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 	}
 
 	@Bean
+	public TwitterConnectionFactory twitterConnectionFactory() {
+		PropertyResourceBundle properties = (PropertyResourceBundle) ResourceBundle.getBundle("workflow-engine");
+		String consumerKey = properties.getString("twitter.consumerKey");
+		String consumerSecret = properties.getString("twitter.consumerSecret");
+
+		return new TwitterConnectionFactory(consumerKey, consumerSecret);
+	}
+
+	@Bean
 	public JavaMailSender mailSender() {
 
 		JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
@@ -206,7 +215,8 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
 		Properties properties = new Properties();
 		properties.setProperty("mail.transport.protocol", "smtp");
-		properties.setProperty("mail.smtp.auth", "true");
+		properties.setProperty("mail.smtp.auth", env.getProperty("mail.auth"));
+		properties.setProperty("mail.debug", "false");
 
 		javaMailSender.setJavaMailProperties(properties);
 
@@ -216,6 +226,11 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 	@Bean
 	public BeanPostProcessor persistenceTranslation() {
 		return new PersistenceExceptionTranslationPostProcessor();
+	}
+	
+	@Bean
+	public ThreadPoolTaskScheduler taskScheduler() {
+		return new ThreadPoolTaskScheduler();
 	}
 
 	// Activiti configuration
