@@ -1,72 +1,94 @@
 module.exports = function (grunt) {
 
-    grunt.initConfig({
-        pkg: grunt.file.readJSON('package.json'),
+	grunt.initConfig({
+		pkg: grunt.file.readJSON("package.json"),
 
-        // clean: {
-        //     doc: ['doc']
-        // },
-        open: {
-            doc: {
-                path: 'http://127.0.0.1:8888/doc',
-                app: 'Google Chrome'
-            }
-        },
-        connect: {
-            server: {
-                options: {
-                    port: '8888',
-                    keepalive: true,
-                    base: '.',
-                    open: 'http://127.0.0.1:8888/doc'
-                }
-            }
-        },
+		requirejs: {
+			compile: {
+				options: {
+					optimize: "uglify2",
+					uglify2: {
+						mangle: false
+					},
+					baseUrl: "app/js",
+					paths: {
+						app: "app",
+						angular: "lib",
+						controllers: "controllers",
+						directives: "directives"
+					},
+					name: "almond",
+					wrap: {
+						startFile: "app/js/start.frag",
+						endFile: "app/js/end.frag"
+					},
+					shim: {
+						"angular": {
+							exports: "angular",
 
-        // bower modules concatenation
-        bower_concat: {
-            all: {
-                options: {separator: ';\n'},
-                dest: "app/js/lib.js",
-                cssDest: "app/css/lib.css",
-                mainFiles: {
-                    bootstrap: [ 'dist/css/bootstrap.min.css', 'dist/js/bootstrap.min.js' ]
-                },
-                callback: function (mainFiles, component) {
-                    return mainFiles.map(function(currentFile, fileIndex, filesArray){
-                        var min = currentFile.replace(/\.js$/, '.min.js');
-                        var newFile = grunt.file.exists(min) ? min : currentFile;
+							init: function () {
+								angular.module("wfManagerServices", []);
+								angular.module("wfManagerControllers", []);
+								angular.module("wfManagerDirectives", []);
+							}
+						},
+						"angular-translate-loader-static-files": {
+							deps: ["angular", "angular-translate.min"]
+						},
+						"angular-translate.min": {
+							deps: ["angular"]
+						},
+						'chart': {
 
-                        console.log("adding file: " + newFile);
-                        return newFile;
-                    });
-                }
-            }
-        },
-		jsdoc: {
-			dist: {
-			  src: [ 'app/js/controllers', 'app/js/services', 'app/directives/*', 'app/js/directives', 'app/js/types.js', 'app/js/app.js' ],
-			  options: {
-				destination: 'dist/docs',
-				configure: 'node_modules/angular-jsdoc/common/conf.json',
-				template: 'node_modules/angular-jsdoc/angular-template',
-				tutorial: 'Workflow-Manager',
-				readme: './README.md'
-			  }
+						},
+						"angular-chart.min": {
+							deps: ["angular", "chart"]
+						},
+						"angular-gridster.min": {
+							deps: ["angular"]
+						},
+						"angular-material-datetimepicker.min": {
+							deps: ["angular"]
+						}
+					},
+					include: ["app", "angular-translate-loader-static-files", 'angular-chart.min', "angular-material-datetimepicker.min", "angular-chart.min"],
+					out: "app/workflow-manager-min.js"
+				}
+			}
+		},
+
+		// bower modules concatenation
+		bower_concat: {
+			all: {
+				dest: {
+					"js": "app/js/lib.js",
+					"css": "app/css/lib.css"
+				},
+				callback: function (mainFiles, component) {
+					return mainFiles.map(function (filepath) {
+						// Use minified files if available
+						var min = filepath.replace(/\.js$/, ".min.js");
+						var cssMin = filepath.replace(/\.css$/, ".min.css");
+
+						var returnFile;
+
+						if (filepath.indexOf(".js") > 0) {
+							returnFile = grunt.file.exists(min) ? min : filepath;
+
+						} else if (filepath.indexOf(".css") > 0) {
+							returnFile = grunt.file.exists(cssMin) ? cssMin : filepath;
+						}
+
+						return returnFile;
+					});
+				}
 			}
 		}
-    });
+	});
 
-    // grunt.loadNpmTasks('grunt-contrib-clean');
-    grunt.loadNpmTasks('grunt-open');
-    grunt.loadNpmTasks('grunt-contrib-connect');
-    grunt.loadNpmTasks('grunt-bower-concat');
-	grunt.loadNpmTasks('grunt-jsdoc');
+	grunt.loadNpmTasks("grunt-contrib-requirejs");
+	grunt.loadNpmTasks("grunt-bower-concat");
 
-    grunt.registerTask('libPrepare', ['bower_concat:all']);
-	
-	grunt.registerTask('doc', 'jsdoc');
-
-
-    // grunt.registerTask('doc', ['clean:doc', 'jsdoc', 'connect']);
+	grunt.registerTask("libPrepare", ["bower_concat:all"]);
+	grunt.registerTask("default", ["libPrepare", "requirejs"]);
 };

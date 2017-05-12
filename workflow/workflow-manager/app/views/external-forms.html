@@ -1,0 +1,90 @@
+<md-toolbar>
+	<div class="md-toolbar-tools">
+
+		<md-button class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
+			<md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+		</md-button>
+
+		<md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
+
+		<div hide-sm layout-padding>
+			<h1 class="md-title application-title">workflow::manager</h1>
+			<h2 class="md-subhead page-title">{{'externalForms' | translate }}</h2>
+		</div>
+
+		<span flex></span>
+
+		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="addNewGroup($event)">
+			<md-icon md-svg-src="img/icons/groups.svg"></md-icon>
+			<md-tooltip direction="bottom">{{ 'addGroup' | translate }}</md-tooltip>
+		</md-button>
+
+		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="createExtForm($event)">
+			<md-icon md-svg-src="img/icons/add.svg"></md-icon>
+			<md-tooltip direction="bottom">{{ 'addExternalForm' | translate }}</md-tooltip>
+		</md-button>
+	</div>
+</md-toolbar>
+
+<section layout="column" flex class="main-section">
+
+	<section ng-if="showProgressBar" layout="row" layout-align="center center" style="height: 100%;">
+		<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
+	</section>
+
+	<md-content ng-if="!showProgressBar" flex class="transparent">
+	
+		<!-- External forms without group -->
+		<md-card ng-if="form.titleTemplate" ng-repeat="form in wrappedGroups['!empty!']">
+			<md-list-item class="md-2-line" ng-click="editForm($event, form)">
+				<img ng-src="{{imagePath + form.icon}}" class="md-avatar" />
+				<div class="md-list-item-text">
+					<span>
+					<p style="display:inline;">{{form.titleTemplate}}</p>
+					<md-icon ng-if="form.mobileEnabled" md-svg-src="img/icons/mobile.svg" aria-label="form.titleTemplate"></md-icon>
+					<md-icon ng-if="!form.enabled" md-svg-src="img/icons/status/powered-off.svg" aria-label="form.titleTemplate"></md-icon>
+				</span>
+				</div>
+			</md-list-item>
+		</md-card>
+
+		<div ng-repeat="group in groups" ng-if="group.name !== '!empty!'" flex>
+
+			<md-subheader class="md-primary subheadToolbar" flex md-whiteframe="2">
+				<div layout flex style="line-height: 40px;">
+					<span flex style="display: inline-block; vertical-align: middle">{{group.name}}</span>
+
+					<md-button class="md-icon-button" aria-label="Delet group" ng-click="deleteGroup($event, group.groupId)" ng-if="!wrappedGroups[group.name][0].titleTemplate">
+						<md-icon md-svg-src="img/icons/delete.svg"></md-icon>
+						<md-tooltip direction="bottom">{{ 'deleteExternalForm' | translate }}</md-tooltip>
+					</md-button>
+
+					<md-button class="md-icon-button" aria-label="Create new form" ng-click="createExtForm($event, group)">
+						<md-icon md-svg-src="img/icons/add.svg"></md-icon>
+						<md-tooltip direction="bottom">{{ 'addExternalForm' | translate }}</md-tooltip>
+					</md-button>
+
+					<md-button class="md-icon-button" aria-label="Edit group" ng-click="editGroup($event, group)">
+						<md-icon md-svg-src="img/icons/pencil.svg"></md-icon>
+						<md-tooltip direction="bottom">{{ 'editGroup' | translate }}</md-tooltip>
+					</md-button>
+				</div>
+			</md-subheader>
+
+			<md-list style="padding-top:0px;padding-bottom:16px">
+				<md-card ng-if="form.titleTemplate" ng-repeat="form in wrappedGroups[group.name]">
+					<md-list-item class="md-2-line" ng-click="editForm($event, form)">
+						<img ng-src="{{imagePath + form.icon}}" class="md-avatar" />
+						<div class="md-list-item-text">
+							<span>
+								<p style="display:inline;">{{form.titleTemplate}}</p>
+								<md-icon ng-if="form.mobileEnabled" md-svg-src="img/icons/mobile.svg" aria-label="form.titleTemplate"></md-icon>
+								<md-icon ng-if="!form.enabled" md-svg-src="img/icons/status/powered-off.svg" aria-label="form.titleTemplate"></md-icon>
+							</span>
+						</div>
+					</md-list-item>
+				</md-card>
+			</md-list>
+		</div>
+	</md-content>
+</section>

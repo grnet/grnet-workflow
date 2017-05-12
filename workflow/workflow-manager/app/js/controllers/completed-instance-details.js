@@ -1,41 +1,38 @@
-(function () {
+define(['angular', 'services/processservice', 'services/authprovider'],
 
-    'use strict';
+	function (angular) {
 
-    angular.module('wfmanagerControllers').controller('CompletedInstanceDetailCtrl', ['$scope', '$location', '$filter', '$routeParams', '$window',
-		'$mdDialog', 'processService', 'CONFIG', 'auth',
-		/**
-		 * @name CompletedInstanceDetailCtrl
-		 * @ngDoc controllers
-		 * @memberof wfmanagerControllers
-		 * @desc Controller used by Completed instances view
-		 * 
-		 */
-		function ($scope, $location, $filter, $routeParams, $window, $mdDialog, processService, config, authProvider) {
+		'use strict';
+
+		function completedInstanceDetailCtrl($scope, $location, $filter, $routeParams, $mdDialog, processService, config, authProvider) {
 
 			$scope.instanceId = $routeParams.instanceId;
 			$scope.tasks = [];
 			$scope.imagePath = config.AVATARS_PATH;
-			$scope.isAdmin = authProvider.getRoles().indexOf("ROLE_Admin") >= 0;
-			$scope.instanceName = "";
+			$scope.showProgressBar = true;
+
+			$scope.isAdmin = authProvider.getRoles().indexOf('ROLE_Admin') >= 0;
+
+			$scope.instanceName = '';
 
 			processService.getTasksByInstanceId($scope.instanceId).then(
-				// success response
+				// success callback
 				function (response) {
 					$scope.tasks = response.data;
 					$scope.instanceName = $scope.tasks[0].processInstance.title;
 				},
-				// error response
+				// error callback
 				function (response) {
 					exceptionModal(response);
-				}
-			);
+
+				}).finally(function () {
+					$scope.showProgressBar = false;
+				});
 
 			/**
-			 * @memberof CompletedInstanceDetailCtrl
-			 * @desc Delete process instance
+			 * Delete process instance
 			 */
-			$scope.deleteProcessInstance = function () {
+			$scope.deleteProcessInstance = function (event) {
 
 				//create the dialog
 				var confirmDialog = $mdDialog.confirm()
@@ -48,36 +45,30 @@
 
 				//show the dialog
 				$mdDialog.show(confirmDialog).then(
-					// agree
 					function () {
 						processService.deleteProcessInstance($scope.instanceId).then(
 							//success callback
+							function () {
+								$location.path('/history');
+							},
+							//error callback
 							function (response) {
-								$location.path("/history");
-
-								//error callback	
-							}, function (response) {
-								exceptionModal(response)
-							});
+								exceptionModal(response);
+							}
+						);
 
 						$mdDialog.cancel();
-						// canceled	
-					}, function () {
+					},
+					// canceled	
+					function () {
 						$mdDialog.cancel();
-					});
+					}
+				);
 			};
 
-			/**
-			 * @memberof CompletedInstanceDetailCtrl
-			 * @desc A helper function that displays modal panel showing the error that occured
-			 * 
-			 * @param {any} response
-			 * @param {event} $event
-			 */
-			function exceptionModal(response, $event) {
+			function exceptionModal(response, event) {
 				$mdDialog.show({
 					controller: function ($scope, $mdDialog) {
-
 						$scope.error = response.data;
 
 						$scope.cancel = function () {
@@ -87,18 +78,14 @@
 
 					templateUrl: 'templates/exception.tmpl.html',
 					parent: angular.element(document.body),
-					targetEvent: $event,
+					targetEvent: event,
 					clickOutsideToClose: false
 				});
-			};
+			}
 
-			/**
-			 * @memberof CompletedInstanceDetailCtrl
-			 * @desc Returns to previous page
-			 */
-			$scope.goBack = function () {
-				$window.history.back()
-			};
+		}
 
-		}]);
-})(angular);
+		angular.module('wfManagerControllers').controller('CompletedInstanceDetailCtrl', ['$scope', '$location', '$filter', '$routeParams', '$mdDialog', 'processService', 'CONFIG', 'auth', completedInstanceDetailCtrl]);
+
+	}
+);

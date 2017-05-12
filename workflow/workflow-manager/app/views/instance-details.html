@@ -1,49 +1,52 @@
 <md-toolbar>
 	<div class="md-toolbar-tools">
-	
-		<md-button id="back-button" class="md-icon-button" aria-label="Back" ng-click="goBack()">
+
+		<md-button id="back-button" class="md-icon-button" aria-label="Back" ng-click="goTo('/history')">
 			<md-icon md-svg-icon="img/icons/back.svg"></md-icon>
 		</md-button>
-		
+
 		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
 			<md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
 		</md-button>
-		
+
 		<md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
-		
+
 		<div hide-sm layout-padding>
 			<h1 class="md-title application-title">workflow::manager</h1>
-			<h2 class="md-subhead page-title">{{'execution'| translate}}/ {{instanceName}}</h2>
+			<h2 class="md-subhead page-title">{{'executionDetails'| translate}}/ {{instanceName}}</h2>
 		</div>
-		
+
 		<span flex></span>
-		
-		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="deleteProcessInstance()" ng-if="isAdmin">
+
+		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="deleteProcessInstance($event)" ng-if="isAdmin">
 			<md-icon md-svg-icon="img/icons/delete.svg"></md-icon>
 		</md-button>
-		
+
 	</div>
 </md-toolbar>
 
 <md-content flex class="transparent">
-	
-	<div layout="row" layout-align="center start" flex class="infoMessage" ng-if="tasks === null || tasks.length==0">
-		<md-card style="width:100%; line-height: 32px; background-color: #d84315">
+
+	<section layout="row" layout-align="center center" class="wait-icon" ng-if="showProgressBar" style="position: relative;top: 50%;">
+		<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
+	</section>
+
+	<div layout="row" layout-align="center start" flex class="warning-message" ng-if="tasks.length == 0 && !showProgressBar">
+		<md-card style="margin-left: 8px;">
 			<md-card-content layout-align="center center">
-				<md-icon md-svg-icon="img/icons/info.svg" style="height: 32px; width: 32px; margin-right: 10px;"></md-icon>
-				<span style="display: inline-block; vertical-align: middle; color:white">{{'noTasksFound' | translate }}</span>
+				<md-icon md-svg-icon="img/icons/info.svg"></md-icon>
+				<span>{{'noTasksFound' | translate }}</span>
 			</md-card-content>
 		</md-card>
 	</div>
-	
-	<md-list flex>
+
+	<md-list flex style="padding-top: 0px;" ng-if="tasks.length > 0 && !showProgressBar">
 		<md-card ng-repeat="task in tasks">
-			<md-list-item class="md-3-line" ng-click="goTo('/task/details/' + task.id)">
-				<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}"/>
+			<md-list-item class="md-2-line" ng-click="goTo('/task/details/' + task.id)">
+				<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
 				<div class="md-list-item-text" layout="column">
-					<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
-					<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
-					<p> 
+					<h3>{{task.name}}</h3>
+					<p>
 						<span ng-if="task.assignee">{{'completedBy' | translate }} : {{task.assignee}}</span>
 						<span ng-if="task.endDate">{{'completedOn' | translate }} : {{task.endDate | date:'d/M/yyyy'}}</span>
 					</p>
@@ -51,5 +54,5 @@
 			</md-list-item>
 		</md-card>
 	</md-list>
-	
-</md-content>       		
+
+</md-content>

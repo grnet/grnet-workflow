@@ -1,4 +1,4 @@
-<md-dialog aria-label="Upload new BPMN file" style="min-width:600px">
+<md-dialog aria-label="Upload new BPMN file" style="max-width:700px; min-width: 500px;">
 	<md-toolbar>
 		<div class="md-toolbar-tools">
 			<h2 ng-if="!process">{{ 'uploadNew' | translate }} BPMN {{ 'fileGeni' | translate }}</h2>
@@ -23,7 +23,7 @@
 		
 				<md-input-container class="md-block" flex>
 					<label for="bpmnFileName">BPMN {{ 'file' | translate }}</label>
-					<input type="text" readonly id="bpmnFileName" name="bpmnFile" ng-model="bpmnFile.name" required/>
+					<input type="text" readonly id="bpmnFileName" name="bpmnFile" ng-model="bpmnFile.name" required style="text-overflow: ellipsis;"/>
 				</md-input-container>
 				
 				<input type="file" id="bpmnFile" name="bpmnFile" nlk-file-input="bpmnFile" required style="display: none"/>
@@ -31,17 +31,12 @@
 				<md-button class="md-icon-button" onclick="(document.querySelector('#bpmnFile')).click()" ng-click="exception = false" ng-disabled="inProgress">
 					<md-icon md-svg-src="img/icons/drive-file.svg" aria-label="Close dialog"></md-icon>
 				</md-button>
-			</section>
-			<section layout="row" layout-align="start center" flex>
-				<md-input-container class="md-block" flex>
-					<label for="justification">{{ 'justification' | translate }}</label>
-					<input type="text" id="justification" name="justification" ng-model="justification" required/>
-				</md-input-container>
+				
 			</section>
 		</form>
 		
 		<div ng-if="exception" role="alert" multiple style="font-size: 13px;color: red;">
-			<div class="exceptionMessage">{{exceptionMessage.message | translate}}</div>
+			<div class="exceptionMessage">{{exceptionMessage.message}}</div>
 		</div>
 		
 	</md-dialog-content>

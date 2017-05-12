@@ -1,0 +1,101 @@
+<div layout="column" style="height: 100%" class="md-whiteframe-z3">
+
+	<md-toolbar class="dashletHandle md-whiteframe-z1">
+	
+		<div class="md-toolbar-tools" style="overflow: hidden;">
+		
+			<span class="dashletLabel">{{ dashlet.label }}</span>
+			
+			<span flex></span>
+			
+			<!-- Show legend switch -->
+			<section>
+				<label ng-show="!hideLegend" class="dashletLabel" style="display: inline; vertical-align: middle;">{{ 'legend' | translate }}</label>
+				<md-switch ng-show="!hideLegend" ng-model="dashlet.legend" aria-label="Chart legend" class="md-primary md-hue-3" style="display: inline; vertical-align: middle;"></md-switch>
+			</section>
+						
+			<md-button aria-label="Refresh data" class="md-icon-button" ng-click="refreshData()">
+				<md-icon md-svg-icon="img/icons/refresh.svg" style="fill: grey;"></md-icon>
+				<md-tooltip direction="bottom">{{ 'refresh' | translate }}</md-tooltip>
+			</md-button>	
+			
+			<!-- Change type menu -->
+			<md-menu md-position-mode="target-right target" ng-if="dashlet.availableTypes.length > 0">
+
+				<md-button aria-label="Change type" class="md-icon-button" ng-click="$mdOpenMenu($event)">
+					<md-icon md-menu-origin md-svg-icon="img/icons/chart_type.svg" style="fill: grey;"></md-icon>
+					<md-tooltip direction="bottom">{{ 'chartTypeSelection' | translate }}</md-tooltip>
+				</md-button>
+				
+				<md-menu-content width="3">
+					<md-menu-item ng-repeat="chartTypeMenuItem in dashlet.availableTypes">
+					
+						<md-button ng-click="changeChartType(chartTypeMenuItem.type)">
+							<div layout="row">
+								<p flex>{{chartTypeMenuItem.title}}</p>
+							</div>
+						</md-button>
+					</md-menu-item>
+				</md-menu-content>
+			</md-menu>
+			
+			<!-- Edit chart menu -->
+			<md-menu md-position-mode="target-right target">
+			
+				<md-button aria-label="Sort-By" class="md-icon-button" ng-click="$mdOpenMenu($event)">
+					<md-icon md-menu-origin md-svg-icon="img/icons/menu_vertical.svg" style="fill: grey;"></md-icon>
+				</md-button>
+				
+				<md-menu-content width="3">
+					<md-menu-item>
+						<md-button aria-label="{{ 'edit' | translate }}" ng-click="editDashlet($event, dashlet.id)">
+							<div layout="row">
+								<p flex>{{ 'edit' | translate }}</p>
+							</div>
+						</md-button>
+					</md-menu-item>
+					
+					<md-menu-item>
+						<md-button aria-label="{{ 'delete' | translate }}" ng-click="deleteDashlet()">
+							<div layout="row">
+								<p flex>{{ 'delete' | translate }}</p>
+							</div>
+						</md-button>
+					</md-menu-item>
+				</md-menu-content>
+			</md-menu>
+		</div>
+	</md-toolbar>
+	
+	<div class="dashletWrapper">
+		
+		<div flex class="dashletContent">
+			<ng-switch on="ngModel.baseType">
+			
+				<div ng-switch-when="singleSeriesChart" class="dashletContainer">
+			  		<wf-single-series-chart ng-model="dashlet" wf-chart-type="dashlet.type" wf-legend="dashlet.legend" class="wfDashlet"></wf-single-series-chart>
+				</div>
+				
+				<div ng-switch-when="multiSeriesChart" class="dashletContainer">
+					<wf-multi-series-chart ng-model="ngModel" wf-chart-type="ngModel.type" wf-legend="dashlet.legend" class="wfDashlet"></wf-multi-series-chart>
+				</div>
+				
+				<div ng-switch-when="singleTimeSeriesChart" class="dashletContainer">
+					<wf-single-time-series-chart ng-model="ngModel" wf-chart-type="ngModel.type" wf-legend="dashlet.legend" class="wfDashlet"></wf-single-time-series-chart>
+				</div>
+				
+				<div ng-switch-when="multiTimeSeriesChart" class="dashletContainer">
+					<wf-multi-series-time-chart ng-model="ngModel" wf-chart-type="ngModel.type" wf-legend="dashlet.legend" class="wfDashlet"></wf-multi-series-time-chart>
+				</div>
+				
+				<div ng-switch-when="taskList" class="dashletContainer">
+					<wf-task-list ng-model="ngModel" class="wfDashlet"></wf-task-list>
+				</div>
+				
+				<div ng-switch-when="list" class="dashletContainer">
+					<wf-list ng-model="ngModel" class="wfDashlet"></wf-list>
+				</div>
+			</ng-switch>
+		</div>
+	</div>
+</div>
