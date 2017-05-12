@@ -1,16 +1,10 @@
-(function (angular) {
+define(['angular', 'services/process-service'],
 
-	'use strict';
+	function (angular) {
 
-    angular.module('wfworkspaceControllers').controller('TaskAssignListCtrl', ['$scope', '$location', '$mdDialog', '$filter', 'processService', 'CONFIG',
-		/**
-		 * @name TaskAssignListCtrl
-		 * @ngDoc controllers
-		 * @memberof wfworkspaceControllers
-		 * 
-		 * @desc Controller used by Task assign list view
-		 */
-		function ($scope, $location, $mdDialog, $filter, processService, config) {
+		'use strict';
+
+		function taskAssignListCtrl($scope, $mdDialog, $filter, processService, config) {
 
 			$scope.imagePath = config.AVATARS_PATH;
 			$scope.status = { selectAll: true };
@@ -27,11 +21,7 @@
 			$scope.showProgressBar = true;
 
 			/**
-			 * @memberOf TaskAssignListCtrl
-			 * @desc Returns the difference between due date(if present) and current date
-			 * 
-			 * @param {Task} task
-			 * @returns {Number} - Difference in days
+			 * Returns the difference between due date and current date
 			 */
 			$scope.taskDelay = function (task) {
 				var diff;
@@ -41,7 +31,6 @@
 
 				if (task.endDate) {
 					diff = task.dueDate - task.endDate;
-
 				} else {
 					var currentDate = new Date();
 					diff = task.dueDate - currentDate.getTime();
@@ -58,15 +47,6 @@
 				//success
 				function (response) {
 					$scope.tasks = response.data;
-
-					if (response.data.length == 0) {
-						$mdDialog.show($mdDialog.alert()
-							.parent(document.body)
-							.title($filter('translate')('noAvailableTasks'))
-							.content($filter('translate')('noAvailableTasks'))
-							.ok($filter('translate')('confirm')))
-						$location.path('/task');
-					}
 
 					//separate assigned tasks from list
 					$scope.assignedTasks = $scope.tasks.filter(function (element) { return element.assignee });
@@ -89,13 +69,17 @@
 					//filter list with selected definitions
 					//in this case all available definitions are selected
 					$scope.updateFilteredTasks();
-				}).finally(function () {
-					$scope.showProgressBar = false;
-				});
+				},
+				//fail
+				function (response) {
+					exceptionModal(response);
+				}
+			).finally(function () {
+				$scope.showProgressBar = false;
+			});
 
 			/**
-			 * @memberOf TaskAssignListCtrl
-			 * @desc Selects/De-selects all process definitions 
+			 * Select/De-select all
 			 */
 			$scope.selectAll = function () {
 
@@ -124,8 +108,7 @@
 			};
 
 			/**
-			 * @memberOf TaskAssignListCtrl
-			 * @desc Filter assigned/unassigned lists by selected definitions 
+			 * Filter assigned/unassigned lists by selected definitions
 			 */
 			$scope.updateFilteredTasks = function () {
 
@@ -142,10 +125,7 @@
 			};
 
 			/**
-			 * @memberOf TaskAssignListCtrl
-			 * @desc Tab change event (each tab has its own sorting options)
-			 * 
-			 * @param {String} tab
+			 * Tab change event
 			 */
 			$scope.onTabSelected = function (tab) {
 				$scope.options = [];
@@ -157,11 +137,6 @@
 					$scope.sortOptions = { title: 'taskName', id: 'name' };
 					$scope.options.push($scope.sortOptions);
 
-                    $scope.sortOptions = { title: 'process', id: 'definitionName' };
-                    $scope.options.push($scope.sortOptions);
-
-                    $scope.sortOptions = { title: 'processInstanceName', id: 'processInstance.title' };
-                    $scope.options.push($scope.sortOptions);
 				} else if (tab == 'assigned') {
 					$scope.sortOptions = { title: 'dueTo', id: 'dueDate' };
 					$scope.options.push($scope.sortOptions);
@@ -171,24 +146,36 @@
 
 					$scope.sortOptions = { title: 'worker', id: 'assignee' };
 					$scope.options.push($scope.sortOptions);
-
-                    $scope.sortOptions = { title: 'process', id: 'definitionName' };
-                    $scope.options.push($scope.sortOptions);
-
-                    $scope.sortOptions = { title: 'processInstanceName', id: 'processInstance.title' };
-                    $scope.options.push($scope.sortOptions);
 				}
+
 			};
 
 			/**
-			 * @memberOf TaskAssignListCtrl
-			 * @desc Sorts tasks by given option
-			 * 
-			 * @param {String} optionId
+			 * Sorting function
 			 */
 			$scope.sortBy = function (optionId) {
 				$scope.orderByOption = optionId;
 			};
 
-		}]);
-})(angular);
+			function exceptionModal(response, $event) {
+				$mdDialog.show({
+					controller: function ($scope, $mdDialog) {
+						$scope.error = response.data;
+
+						$scope.cancel = function () {
+							$mdDialog.hide();
+						};
+					},
+
+					templateUrl: 'templates/exception.tmpl.html',
+					parent: angular.element(document.body),
+					targetEvent: $event,
+					clickOutsideToClose: false
+				});
+			}
+
+		}
+
+		angular.module('wfWorkspaceControllers').controller('TaskAssignListCtrl', ['$scope', '$mdDialog', '$filter', 'processService', 'CONFIG', taskAssignListCtrl]);
+	}
+);

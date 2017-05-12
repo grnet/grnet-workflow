@@ -1,15 +1,10 @@
-(function (angular) {
+define(['angular', 'services/authprovider'],
 
-	'use strict';
+	function (angular) {
 
-    angular.module('wfworkspaceControllers').controller('NavBarCtrl', ['$scope', '$mdSidenav', '$location', '$window', 'auth',
-		/**
-		 * @name NavBarCtrl
-		 * @ngDoc controllers
-		 * @memberof wfworkspaceControllers
-		 *
-		 */
-		function ($scope, $mdSidenav, $location, $window, authProvider) {
+		'use strict';
+
+		function navBarCtrl($scope, $mdSidenav, $location, $window, authProvider) {
 
 			$scope.isPrint = window.location.href.indexOf('/print/') >= 0;
 			$scope.pages = [];
@@ -17,47 +12,18 @@
 
 			$scope.inputFile = null;
 
-			/**
-			 * @memberof NavBarCtrl
-			 * @desc Toggles the side navigation bar
-			 */
 			$scope.toggle = function () {
 				$mdSidenav('navbar').toggle();
 			};
 
-			/**
-			 * @memberof NavBarCtrl
-			 * @desc Event listener on swipe right to open the navigation side bar
-			 */
 			$scope.onSwipeRight = function () {
 				$mdSidenav('navbar').open();
 			};
 
-			/**
-			 * @memberof NavBarCtrl
-			 * @desc Event listener on swipe left to close the navigation side bar
-			 */
 			$scope.onSwipeLeft = function () {
 				$mdSidenav('navbar').close();
 			};
 
-			/**
-			 * @memberof NavBarCtrl
-			 * @desc check if the given path is currently selected
-			 * 
-			 * @param {String} path
-			 * @returns {Boolean} - Wheter the given path is selected
-			 */
-			$scope.isSelected = function (path) {
-				return path === $location.path();
-			};
-
-			/**
-			 * @memberof NavBarCtrl
-			 * @desc Redirects to given path
-			 * 
-			 * @param {String} path
-			 */
 			$scope.goTo = function (path) {
 				$mdSidenav('navbar').close().then(function () {
 
@@ -70,18 +36,14 @@
 				});
 			};
 
-			/**
-			 * @memberof NavBarCtrl
-			 * @desc Logouts the user
-			 */
+			$scope.isSelected = function (path) {
+				return path === $location.path();
+			};
+
 			$scope.logout = function () {
 				authProvider.logout();
 			};
 
-			/**
-			 * @memberof NavBarCtrl
-			 * @desc Initialize all available pages. Also checks for user rights in order to enable or disable any page
-			 */
 			$scope.initializePages = function () {
 
 				var isSupervisor = authProvider.getRoles().indexOf("ROLE_Supervisor") >= 0 ? true : false;
@@ -114,8 +76,13 @@
 					//handle process admin
 				} else if (isProcessAdmin) {
 
-					$scope.page = { title: 'assignTasks', path: '/assign', icon: 'assignTasks.svg', color: 'red', disabled: true };
-					$scope.pages.push($scope.page);
+					if(isSupervisor) {
+						$scope.page = { title: 'assignTasks', path: '/assign', icon: 'assignTasks.svg', color: 'red', disabled: false };
+						$scope.pages.push($scope.page);
+					} else {
+						$scope.page = { title: 'assignTasks', path: '/assign', icon: 'assignTasks.svg', color: 'red', disabled: true };
+						$scope.pages.push($scope.page);
+					}
 
 					$scope.page = { title: 'completedTasks', path: '/completed', icon: 'completedTasks.svg', color: 'green', disabled: false };
 					$scope.pages.push($scope.page);
@@ -166,5 +133,8 @@
 				}
 			};
 
-		}]);
-})(angular);
+		}
+
+		angular.module('wfWorkspaceControllers').controller('NavBarCtrl', ['$scope', '$mdSidenav', '$location', '$window', 'auth', navBarCtrl]);
+	}
+);

@@ -1,20 +1,13 @@
-(function (angular) {
+define(['angular', 'services/process-service'],
 
-    'use strict';
+    function (angular) {
 
-    angular.module('wfworkspaceControllers').controller('TaskAssignCtrl', ['$scope', '$filter', '$routeParams', '$mdDialog', 'processService', 'CONFIG',
-        /**
-         * @name TaskAssignCtrl
-         * @ngDoc controllers
-         * @memberof wfworkspaceControllers
-         * 
-         * @desc Controller used by Task assign view
-         */
-        function ($scope, $filter, $routeParams, $mdDialog, processService, config) {
+        'use strict';
+
+        function taskAssignCtrl($scope, $filter, $routeParams, $mdDialog, processService, config) {
 
             $scope.imagePath = config.AVATARS_PATH;
             $scope.documentPath = config.WORKFLOW_DOCUMENTS_URL;
-            $scope.selectedUser = null;
 
             var taskId = $routeParams['taskId'];
             $scope.task = null;
@@ -23,10 +16,7 @@
             $scope.dueDate = null;
 
             /**
-             * @memberOf TaskAssignCtrl
-             * @desc Returns the difference between due date(if present) and current date 
-             * 
-             * @returns {Number} - Difference in days
+             * Returns the difference between due date and current date
              */
             var getTaskDelay = function () {
                 var diff;
@@ -59,6 +49,7 @@
                     $scope.endDate = $filter('date')($scope.task.endDate, "d/M/yyyy");
 
                     getTaskDelay();
+
                 },
                 // error callback
                 function (response) {
@@ -66,28 +57,30 @@
                 });
 
             /**
-             * @memberof TaskAssignCtrl
-             * @desc Unclaim a task (remove assignee from a task)
+             * Unclaim a task
              */
             $scope.removeAssignee = function () {
                 processService.unclaimTask($scope.task.id).then(
                     //success callback
                     function (response) {
                         $scope.task.assignee = null;
-                    }
-                    // error callback
-                    , function (response) {
-                        exceptionModal(response, $scope.task);
+
+                        //error callback	
+                    }, function (response) {
+                        $mdDialog.show($mdDialog.alert()
+                            .parent(document.body)
+                            .clickOutsideToClose(false)
+                            .title('Error')
+                            .content(response.data)
+                            .ok('Ok'))
                     }
                 );
             };
 
             /**
-             * @memberof TaskAssignCtrl
-             * @desc Displays a modal panel showing available candidates for the task.
-             * If no candidates found, then all users will be available as candidates
+             * Opens a modal to select assignee for the task
              * 
-             * @param {any} event
+             * @param event
              */
             $scope.selectAssignee = function (event) {
                 $mdDialog.show({
@@ -108,18 +101,17 @@
                             $mdDialog.hide();
                         };
 
-                        $scope.hideDialog = function () {
-                            $mdDialog.hide();
-                        };
-
                         function setAssignee() {
                             processService.setAssigneeToTask($scope.task, $scope.task.assignee).then(
                                 function (response) {
-                                    $scope.showProgressBar = false;
+
                                 },
                                 function (response) {
-                                    $scope.showProgressBar = false;
-                                });
+
+                                }
+                            ).finally(function () {
+                                $scope.showProgressBar = false;
+                            });
                         }
 
                         $scope.getAllCandidates = function () {
@@ -130,43 +122,12 @@
                                 function (response) {
                                     $scope.showProgressBar = false;
                                     $scope.candidates = response.data;
-                                });
-                        };
-
-                        $scope.notifyAdmin = function () {
-                            $scope.selectedUser = null;
-                            $mdDialog.show({
-                                controller: function ($scope, $mdDialog, processService, task) {
-                                    $scope.inputCancel = function () {
-                                        $scope.selectedUser = null;
-                                        $mdDialog.hide();
-                                    };
-                                    $scope.inputConfirm = function () {
-                                        $scope.showProgressBar = false;
-
-                                        processService.notifyNoCandidates(task.id, $scope.selectedUser).then(
-                                            //success callback
-                                            function () {
-                                                $scope.showProgressBar = false;
-                                            },
-                                            // error callback
-                                            function (response) {
-                                                $scope.showProgressBar = false;
-                                                exceptionModal(response);
-                                            }
-                                        );
-                                        $mdDialog.hide();
-                                    };
                                 },
-                                templateUrl: 'templates/inputCandidate.tmpl.html',
-                                parent: document.body,
-                                clickOutsideToClose: false,
-                                locals: {
-                                    'processService': processService,
-                                    'task': $scope.task
-                                }
-                            });
-
+                                // error callback
+                                function (response) {
+                                    $scope.showProgressBar = false;
+                                    exceptionModal(response);
+                                });
                         };
 
                         $scope.getCandidatesForTask = function () {
@@ -177,6 +138,11 @@
                                 function (response) {
                                     $scope.showProgressBar = false;
                                     $scope.candidates = response.data;
+
+                                    // error callback
+                                }, function (response) {
+                                    $scope.showProgressBar = false;
+                                    exceptionModal(response);
                                 });
                         };
 
@@ -185,23 +151,22 @@
                     templateUrl: 'templates/assigneeSelection.tmpl.html',
                     parent: document.body,
                     targetEvent: event,
-                    clickOutsideToClose: true,
+                    clickOutsideToClose: false,
                     locals: {
                         'candidates': $scope.task.candidates,
                         'processService': processService,
                         'task': $scope.task
                     }
-                });
+                })
             };
 
             /**
-             * @memberof TaskAssignCtrl
-             * @desc Displays a modal panel showing task's details
-             * 
+             * Open a modal to display task details
              */
             $scope.showTaskDetails = function () {
                 $mdDialog.show({
                     controller: function ($mdDialog) {
+
                         $scope.cancel = function () {
                             $mdDialog.hide();
                         };
@@ -215,15 +180,10 @@
                     locals: {
                         'taskDetails': $scope.task.taskDetails
                     }
-                });
+                })
             };
 
-            /**
-             * @memberof TaskAssignCtrl
-             * @desc Displays a modal panel showing instance's progress diagram
-             * 
-             */
-            $scope.showProgressDiagram = function () {
+            $scope.showProgressDiagram = function (event) {
                 $mdDialog.show({
                     controller: function ($mdDialog) {
 
@@ -242,27 +202,15 @@
                     clickOutsideToClose: true,
                     locals: {
                         'service': $scope.service,
-                        'instance': $scope.instance
+                        'instance': $scope.instance,
                     }
-                });
+                })
             };
 
-            /**
-             * @memberof TaskAssignCtrl
-             * @des Displays a modal panel, showing the exception message
-             * 
-             * @param {any} response
-             * @param {event} $event
-             */
-            function exceptionModal(response, task, $event) {
+            function exceptionModal(response, $event) {
                 $mdDialog.show({
                     controller: function ($scope, $mdDialog) {
                         $scope.error = response.data;
-
-                        $scope.map = {};
-                        $scope.map["supervisor"] = task.processInstance.supervisor;
-                        $scope.map["taskName"] = task.name;
-                        $scope.map["processInstanceName"] = task.processInstance.title;
 
                         $scope.cancel = function () {
                             $mdDialog.hide();
@@ -272,8 +220,12 @@
                     parent: angular.element(document.body),
                     targetEvent: $event,
                     clickOutsideToClose: false
-                });
+                })
             };
 
-        }]);
-})(angular);
+        }
+
+        angular.module('wfWorkspaceControllers').controller('TaskAssignCtrl', ['$scope', '$filter', '$routeParams', '$mdDialog', 'processService', 'CONFIG', taskAssignCtrl]);
+
+    }
+);

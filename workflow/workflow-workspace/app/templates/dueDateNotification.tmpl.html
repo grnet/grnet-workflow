@@ -1,0 +1,48 @@
+<md-dialog aria-label="{{ 'notificationEmail' | translate }}" style="width:400px; min-height: 200px">
+	
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>{{ 'notificationEmail' | translate }}</h2>
+			
+            <span flex></span>
+            
+            <md-button class="md-icon-button" ng-click="cancel()">
+                <md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    
+    <md-dialog-content layout-padding>
+    
+	    <div layout="row" layout-align="center center" ng-if="showProgressBar" style="line-height: 50px;">
+	    	<span ng-if="showProgressBar">{{ 'sendingEmail' | translate }}</span>
+	    	<md-progress-circular flex md-mode="indeterminate" md-diameter="30"></md-progress-circular>
+	    </div>
+    
+   		<md-content layout-align="start start" flex>
+
+   			<span ng-if="success">{{ 'successfullyEmailSent' | translate }}</span>
+   			
+   			<form name="dueDateNotificationForm" ng-show="!showProgressBar && !success">
+   			
+				<md-input-container class="md-block" style="margin-bottom: 0;">
+					<label for="assignee">{{'worker' | translate }}</label>
+					<input id="assignee" ng-model="assignee" readonly required>
+				</md-input-container>
+				
+				<md-input-container class="md-block" style="margin-top: 0;">
+					<label for="content">{{'mailBody' | translate }}</label>
+					<textarea id="content" ng-model="content" required></textarea>
+				</md-input-container>
+				
+			</form>
+		</md-content>
+	</md-dialog-content>
+	
+     <md-dialog-actions layout="row" layout-align="left center" class="dialogActions" ng-if="!showProgressBar">
+     	<md-button class="md-raised md-primary" ng-disabled="!dueDateNotificationForm.$valid" ng-click="sendEmail()" ng-if="!success">{{ 'send' | translate }}</md-button>
+     	<md-button class="md-raised" ng-click="cancel()" ng-if="!success">{{ 'cancel' | translate }}</md-button>
+     	<md-button class="md-raised md-primary" ng-click="cancel()" ng-if="success">{{ 'close' | translate }}</md-button>
+  	</md-dialog-actions>
+  		
+</md-dialog>

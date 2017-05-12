@@ -1,16 +1,10 @@
-(function (angular) {
+define(['angular', 'services/process-service', 'util/core'],
 
-    'use strict';
+    function (angular) {
 
-    angular.module('wfworkspaceControllers').controller('TaskListCtrl', ['$scope', '$location', '$mdDialog', '$filter', 'processService', 'CONFIG',
-        /**
-         * @name TaskListCtrl
-         * @ngDoc controllers
-         * @memberof wfworkspaceControllers
-         * 
-         * @desc Controller for the Task list view
-         */
-        function ($scope, $location, $mdDialog, $filter, processService, config) {
+        'use strict';
+
+        function taskListCtrl($scope, $mdDialog, processService, config) {
 
             $scope.claimTasks = [];
             $scope.tasks = [];
@@ -18,30 +12,10 @@
             $scope.unAssignedTasks = {};
             $scope.taskMapByProcess = [];
 
-            $scope.sortOptions = [];
-            $scope.orderByOption = null;
-
-            $scope.sortOption = { title: 'dueTo', id: 'dueDate' };
-            $scope.sortOptions.push($scope.sortOption);
-            $scope.sortOption = { title: 'taskName', id: 'name' };
-            $scope.sortOptions.push($scope.sortOption);
-            $scope.sortOption = { title: 'process', id: 'definitionName' };
-            $scope.sortOptions.push($scope.sortOption);
-            $scope.sortOption = { title: 'processInstanceName', id: 'processInstance.title' };
-            $scope.sortOptions.push($scope.sortOption);
-
-
             $scope.imagePath = config.AVATARS_PATH;
 
             $scope.showProgress = true;
 
-            /**
-             * @memberOf TaskListCtrl
-             * @desc Returns the difference between due date(if present) and current date 
-             * 
-             * @param {Task} task
-             * @returns {Number} - Difference between dates
-             */
             $scope.taskDelay = function (task) {
                 var diff;
 
@@ -50,7 +24,6 @@
 
                 if (task.endDate) {
                     diff = task.dueDate - task.endDate;
-
                 } else {
                     var currentDate = new Date();
                     diff = task.dueDate - currentDate.getTime();
@@ -76,16 +49,24 @@
                             $scope.unAssignedTasks = response.data;
 
                             $scope.taskMapByProcess = ArrayUtil.extendMapByProperty($scope.claimTasks, $scope.taskMapByProcess, "definitionName", "unassigned");
+                        },
+                        // error callback
+                        function (response) {
+                            exceptionModal(response);
                         });
+
+                },
+                // error callback
+                function (response) {
+                    exceptionModal(response);
+
                 }).finally(function () {
                     $scope.showProgress = false;
                 });
 
+
             /**
-             * @memberof TaskListCtrl
-             * @desc Handles the selected item from the item list
-             * 
-             * @param {String} definitionName
+             * Handles the selected item from the item list
              */
             $scope.selectionChanged = function (definitionName) {
                 $scope.assignedTasks = $scope.taskMapByProcess[definitionName]["assigned"];
@@ -93,22 +74,31 @@
             };
 
             /**
-             * @memberof TaskListCtrl
-             * @desc Shows all tasks
+             * Shows all the tasks
              */
             $scope.selectAllTasks = function () {
                 $scope.assignedTasks = $scope.tasks;
                 $scope.unAssignedTasks = $scope.claimTasks;
             };
 
-            /**
-             * @memberOf TaskListCtrl
-             * @desc Sorts tasks by given option
-             *
-             * @param {String} optionId
-             */
-            $scope.sortBy = function (optionId) {
-                $scope.orderByOption = optionId;
-            };
-        }]);
-})(angular);
+            function exceptionModal(response, $event) {
+                $mdDialog.show({
+                    controller: function ($scope, $mdDialog) {
+                        $scope.error = response.data;
+
+                        $scope.cancel = function () {
+                            $mdDialog.hide();
+                        };
+                    },
+
+                    templateUrl: 'templates/exception.tmpl.html',
+                    parent: angular.element(document.body),
+                    targetEvent: $event,
+                    clickOutsideToClose: false
+                });
+            }
+        }
+
+        angular.module('wfWorkspaceControllers').controller('TaskListCtrl', ['$scope', '$mdDialog', 'processService', 'CONFIG', taskListCtrl]);
+    }
+);
