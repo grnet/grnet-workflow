@@ -18,8 +18,7 @@
                     md-row-height-gt-md="1:1" md-row-height="4:3"
                     md-gutter-gt-md="16px" md-gutter-gt-sm="8px" md-gutter="4px">
                 <md-grid-tile class="md-avatar" ng-repeat="avatar in avatars" md-colspan="1" md-rowspan="1">
-                    <md-icon md-svg-src="img/avatars/{{avatar.filename}}" ng-style="{'width':'50%', 'height':'50%'}"
-                             ng-click="answer(avatar)">
+                    <md-icon md-svg-src="img/avatars/{{avatar.filename}}" ng-style="{'width':'50%', 'height':'50%'}" ng-click="answer(avatar)" aria-label="Avatar">
                     </md-icon>
                     <md-grid-tile-footer style="height: 20px"><h3>{{avatar.name}}</h3></md-grid-tile-footer>
                 </md-grid-tile>

@@ -1,25 +1,23 @@
-(function () {
-    angular.module('wfmanagerServices').service('processService', ['$http', 'CONFIG',
+define(['angular'],
 
-		/**
-		 * @name processService
-		 * @ngDoc services
-		 * @memberof wfmanagerServices
-		 * @desc Implements communication between the API and the client
-		 */
-        function ($http, config) {
+    function (angular) {
+
+        'use strict';
+
+        function ProcessService($http, config) {
 
             /**
-             * @memberOf processService
-             * @desc Creates a new process definition from a BPMN file
+             * Creates a new process definition from a BPMN file
+             * @param {File} file
+             * @return {HttpPromise}
              * 
-             * @function createProcess
-             * @param {File} file - The BPMN file of the process
-             * @returns {HttpPromise}
+                 * V1 API: @name ProcessController#createProcessDefinition
+             * V2 API: @name DefinitionController#createProcessDefinition
+             * 
+             * Note: On v2 api the url should be /api/v2/process
              */
-            this.createProcess = function (file, justification) {
-                var url = config.WORKFLOW_SERVICE_ENTRY + '/processbpmn:'
-                    + justification;
+            this.createProcess = function (file) {
+                var url = config.WORKFLOW_SERVICE_ENTRY + '/processbpmn';
 
                 var fd = new FormData();
                 fd.append('file', file);
@@ -31,35 +29,64 @@
             };
 
             /**
-             * @memberof processService
-             * @desc Returns all groups from realm 
+             * Returns all groups from realm
              * 
-             * @returns {HttpPromise}
+             * V1 API: @name RealmController#getGroups
+             * V2 API: @name RealmController#getGroups
              */
             this.getGroups = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/group');
             };
 
             /**
-             * @memberof processService
-             * @desc Returns user groups from realm
+             * Deletes an owner/group by its name
              * 
-             * @returns {HttpPromise}
+             */
+            this.deleteOwner = function (ownerId) {
+                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/owner/?ownerId=' + ownerId);
+            };
+
+            /**
+             * Creates a new or updates an owner
+             * 
+             * @param owner
+             * 
+             */
+            this.saveOwner = function (owner) {
+                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/owner', owner);
+            };
+
+            /**
+             * Returns user groups from realm
+             * 
+             * V1 API: @name RealmController#getUserGroups
+             * V2 API: @name RealmController#getUserGroups
              */
             this.getUserGroups = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/user/group');
             };
 
             /**
-             * @memberof processService
-             * @desc Creates a user task form element and then saves it
+             * Returns all available roles
              * 
+             */
+            this.getRoles = function () {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/roles');
+            };
+
+            this.saveRole = function (role) {
+                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/role', role);
+            };
+
+            this.deleteRole = function (roleId) {
+                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/role/?roleId=' + roleId);
+            };
+
+            /**
+             * Creates a user task form element and then saves it
              * 
-             * @param {any} formItem
-             * @param {String} taskDefinitionKey
-             * @param {any} definitionVersion
-             * 
-             * @returns {HttpPromise}
+             * V1 API: @name ExecutionController#saveUserTaskFormElement
+             * V2 API: @name TaskController#saveUserTaskFormElement
              */
             this.saveTaskFormElement = function (formItem, taskDefinitionKey, definitionVersion) {
                 return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/process/' + encodeURIComponent(definitionVersion)
@@ -67,17 +94,20 @@
             };
 
             /**
-             * @memberof processService
-             * @desc Create a new version for the given process based on an uploaded BPMN file
+             * Create a new version for the given process based on an uploaded BPMN file
              * 
-             * @param {number} processId - processId The process id
-             * @param {File} file - The BPMN File
-             * @returns {HttpPromise}
+             * @param {number} processId The process id
+             * @param {File} file The BPMN File
+             * @return {HttpPromise}
+             * 
+                     * V1 API: @name ProcessController#createProcessVersion
+             * V2 API: @name DefinitionController#createProcessVersion
+             * 
+             * Note: On v2 api the url should be /api/v2/process/{id}/version
+             *
              */
-            this.createProcessVersion = function (processId, file, justification) {
-                var url = config.WORKFLOW_SERVICE_ENTRY + '/process/'
-                    + processId + ","
-                    + justification;
+            this.createProcessVersion = function (processId, file) {
+                var url = config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId;
 
                 var fd = new FormData();
                 fd.append('file', file);
@@ -89,169 +119,205 @@
             };
 
             /**
-             * @memberof processService
-             * @desc Deletes a process with the given id
+             * Delete the process with the given id
+             * @param {number} processId       - the process (workflow definition) id
+             * @return {HttpPromise}
              * 
-             * @param {String} processId - The process (workflow definition) id
-             * @returns {HttpPromise}
+             * V1 API: @name ProcessController#deleteProcessDefinition
+             * V2 API: @name DefinitionController#deleteProcessDefinition
              */
             this.deleteProcess = function (processId) {
                 return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId);
             };
 
             /**
-             * @memberof processService
-             * @desc Delete the identified process version
+             * Delete the identified process version
+             *
+             * @param {number} processId       - the process (workflow definition) id
+             * @param {string} deploymentId    - the process version deployment id
+             * @return {HttpPromise}
+             *
+             * V1 API: @name ProcessController#deleteProcessDefinitionVersion
+             * V2 API: @name DefinitionController#deleteProcessDefinitionVersion
              * 
-             * @param {String} processId - The process (workflow definition) id
-             * @param {String} deploymentId - The process version deployment id
-             * @returns {HttpPromise}
+             * Note: On v2 api the url should be /api/v2/process/version/{processId}/{deploymentId}
              */
             this.deleteProcessVersion = function (processId, deploymentId) {
                 return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId + '/' + deploymentId);
             };
 
             /**
-             * @memberof processService
-             * @desc Return a promise object for the list of all processes (workflow definition) 
-             * 
-             * @returns {HttpPromise}
+             * Return a promise object for the list of all processes (workflow definition)
+             * @return {HttpPromise}
+             *
+             * V1 API: @name ProcessController#getProcessDefinitions
+             * V2 API: @name DefinitionController#getProcessDefinitions
              */
             this.getProcesses = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process');
             };
 
             /**
-            * @memberof processService
-            * @desc Return a promise object for the list of processes by selected owners (workflow definition)
-            * 
-            * @param {list} selectedOwners
-            * @returns {HttpPromise}
-            */
+             * Return a promise object for the list of processes by selected owners (workflow definition)
+             * @return {HttpPromise}
+             *
+             * V1 API: @name ProcessController#getProcessDefinitionsByOwner
+             * V2 API: @name DefinitionController#getProcessDefinitionsByOwner
+             */
             this.getProcessesByOwners = function (selectedOwners) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/filter?owners=' + encodeURIComponent(selectedOwners));
             };
 
             /**
-             * @memberof processService
-             * @desc Return a promise object for the process (workflow definition) object
-             * 
+             * Return a promise object for the process (workflow definition) object
              * @param {number} processId
-             * @returns {HttpPromise}
+             * @return {HttpPromise}
+             * 
+             * V1 API: @name ProcessController#getProcessDefinition
+             * V2 API: @name DefinitionController#getProcessDefinition
              */
             this.getProcess = function (processId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId);
             };
 
             /**
-             * @memberof processService
-             * @desc Updates the workflow definition 
-             * 
-             * @param {WorkflowDefinition} workflowDefinition - The updated WorkflowDefinition
-             * @returns {HttpPromise}
+             * Updates the workflow definition
+             * @param {WorkflowDefinition} process
+             * @return {HttpPromise}
+             *
+             * V1 API: @name ProcessController#updateProcessDefinition
+             * V2 API: @name DefinitionController#updateProcessDefinition
              */
-            this.updateProcess = function (workflowDefinition) {
-                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/process', workflowDefinition);
+            this.updateProcess = function (process) {
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/process', process);
             };
 
             /**
-             * @memberof processService
-             * @desc Returns a list of wftasks based on instance id 
+             * Returns a list of wftasks based on instance id
              * 
-             * @param {number} instanceId - Instance's id to get tasks
-             * @returns
+             * V1 API: @name ExecutionController#getTaskByInstanceId
+             * V2 API: @name TaskController#getTaskByExecutionId
+             * 
+             * Note: On v2 api the url should be /api/v2/task/execution/{id} 
              */
             this.getTasksByInstanceId = function (instanceId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/instance/' + instanceId)
+            }
+
+
+            /**
+             * NOT USED!!!
+             * 
+             * Updates the process definition version
+             * @param {number} processId
+             * @param {ProcessVersion} version
+             * @return {HttpPromise}
+             * 
+             */
+            this.updateProcessDefinitionVersion = function (processId, version) {
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId + '/version', version);
             };
 
             /**
-             * @memberof processService
-             * @desc Get task by task id
-             * API: @name ExecutionController#getTask
+             * Get task by task id
              * 
-             * @param {String} taskId
-             * @returns {HttpPromise}
+             * @param {string} taskId
+             * @return {HttpPromise}
+             * 
+             * V1 API: @name ExecutionController#getTask
+             * V2 API: @name TaskController#getTask
              */
             this.getTask = function (taskId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/' + taskId);
             };
 
             /**
-             * @memberof processService
-             * @desc Returns a task by task definition key
-             * API: @name ExecutionController#getTask 
+             * Returns a task by task definition key
              * 
              * @param {String} taskDefinitionKey
              * @param {String} processId
-             * @returns {HttpPromise}
+             * 
+             * V1 API: @name ExecutionController#getTask
+             * V2 API: @name TaskController#getTask
              */
             this.getTaskFormProperties = function (taskDefinitionKey, processId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/taskdefinition/' + taskDefinitionKey + '/process/' + processId);
+            }
+
+            /**
+             * Not used. Deprecated by getTaskById
+             * 
+             */
+            this.getCompletedTask = function (taskId) {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/' + taskId + '/completed');
             };
 
             /**
-             * @memberof processService
-             * @desc Sets the active version for the workflow definition
-             * API: @name ProcessController#setActiveVersion 
-             * 
+             * Sets the active version for the workflow definition
              * @param {number} processId
              * @param {number} versionId
-             * @returns {HttpPromise}
+             * @return {HttpPromise}
+             *
+             * V1 API: @name ProcessController#setActiveVersion
+             * V2 API: @name DefinitionController#setActiveVersion
+             * 
+             * Note: On v2 api the url should be /api/v2/process/{processId}/version/{versionId}/active
              */
             this.setActiveVersion = function (processId, versionId) {
                 return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId + '/version/active/' + versionId, null);
             };
 
             /**
-             * @memberof processService
-             * @desc Deactivate the version of the workflow definition
-             * API: @name ProcessController#deactivateVersion 
-             * 
+             * Deactivate the version of the workflow definition
              * @param {number} processId
              * @param {number} versionId
-             * @returns {HttpPromise}
+             * @return {HttpPromise}
+             * 
+             * V1 API: @name ProcessController#deactivateVersion
+             * V2 API: @name DefinitionController#deactivateVersion
+             * 
+             * Note: On v2 api the url should be /api/v2/process/{processId}/version/{versionId}/inactive
              */
             this.deactivateVersion = function (processId, versionId) {
                 return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId + '/version/inactive/' + versionId, null);
             };
 
             /**
-             * @memberof processService
-             * @desc Returns true if the selected version is active 
-             * 
+             * Returns true if the selected version is active
              * @param {WorkflowDefinition} process
-             * @returns {Boolean} If the given Workflow Definition is active
+             *
+             * @name ProcessService#isProcessActive
              */
             this.isProcessActive = function (process) {
                 var versions = process.processVersions;
                 for (var index = 0; index < versions.length; index++) {
-
-                    if (versions[index].deploymentId === process.activeDeploymentId)
+                    if (versions[index].deploymentId === process.activeDeploymentId) {
                         return (versions[index].status === 'active');
+                    }
                 }
                 return false;
             };
 
             /**
-             * @memberof processService
-             * @desc Returns a promise object for the list of the task details of the process specified version
-             * API: @name ProcessController#getVersionsTaskDetails 
+             * Returns a promise object for the list of the task details of the 
+             * process specified version
              * 
-             * @param {Number} versionid
-             * @returns {HttpPromise}
+             * V1 API: @name ProcessController#getVersionsTaskDetails
+             * V2 API: @name TaskController#getVersionsTaskDetails
+             * 
+             * Note: On v2 api the url should be /api/v2/task/process/version/{id}
              */
             this.getVersionTaskDetails = function (versionid) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/version/' + versionid);
             };
 
             /**
-             * @memberof processService
-             * @desc Update a UserTaskDetails object
-             * API: @name ProcessController#updateTaskDetails 
+             * Update a UserTaskDetails object
              * 
-             * @param {Task} task
-             * @returns {HttpPromise}
+             * V1 API: @name ProcessController#updateTaskDetails
+             * V2 API: @name TaskController#updateTaskDetails
+             * 
+             * Note: On v2 api the url should be /api/v2/task
              */
             this.updateTaskDetails = function (task) {
                 return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/process/taskdetails', task);
@@ -270,6 +336,374 @@
             };
 
             /**
+             * Suspend / Resume a running instance.
+             * 
+             * V1 API: @name ProcessController#modifyProcessInstanceStatus
+             * V2 API: @name ExecutionController#modifyProcessInstanceStatus
+             * 
+             * Note: On v2 api the url should be /api/v2/execution/{id}/{action}
+             */
+            this.actOnInstance = function (instanceid, action) {
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/process/instance/' + instanceid + "/" + action);
+            };
+
+            /**
+             * Retrieve all ended instances
+             * 
+             * V1 API: @name ProcessController#getEndedProcessInstancesTasks
+             * V2 API: @name TaskController#getEndedProcessInstancesTasks
+             * 
+             * Note: On v2 api the url should be /api/v2/task/execution/ended/search:{title:.+},{after:\\d+},{before:\\d+},{anonymous:.+}
+             */
+            this.getEndedInstancesTasks = function (title, after, before, anonymous) {
+                var url = config.WORKFLOW_SERVICE_ENTRY + '/process/instance/ended/search:'
+                    + title + ","
+                    + after + ","
+                    + before + ","
+                    + anonymous;
+                return $http.get(url);
+            };
+
+
+            /**
+             * Get user activity, all tasks having the specified user as assignee
+             * 
+             * V1 API: @name ProcessController#getUserActivity
+             * V2 API: @name TaskController#getUserActivity
+             * 
+             * Note: On v2 api the url should be /api/v2/task/search:{after:\\d+},{before:\\d+}/assignee/{userId}
+             */
+            this.getUserActivity = function (after, before, userId) {
+                var url = config.WORKFLOW_SERVICE_ENTRY + '/task/user/search/' + after + "," + before + "," + userId;
+                return $http.get(url);
+            };
+
+            /**
+             * Retrieve all active tasks
+             * 
+             * V1 API: @name ExecutionController#getAllActiveTasks
+             * V2 API: @name TaskController#getAllActiveTasks
+             */
+            this.getActiveTasks = function () {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task');
+            };
+
+            /**
+             * Retrieve all users
+             * 
+             * V1 API: @name RealmController#getUsers
+             * V2 API: @name RealmController#getUsers
+             */
+            this.getUsers = function () {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/user');
+            };
+
+            /**
+             * Get all registries
+             * 
+             * V1 API: @name ProcessController#getRegistries
+             * V2 API: @name PublicFormController#getRegistries
+             */
+            this.getRegistries = function () {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/registry');
+            };
+
+            /**
+             * Get the current settings
+             * 
+             * V1 API: @name ProcessController#getSettings
+             * V2 API: @name DefinitionController#getSettings
+             */
+            this.getSettings = function () {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/settings');
+            };
+
+            /**
+             * Update settings
+             * 
+             * V1 API: @name ProcessController#updateSettings
+             * V2 API: @name DefinitionController#updateSettings
+             */
+            this.updateSettings = function (settings) {
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/settings', settings);
+            };
+
+            /**
+             * Update registry
+             * 
+             * V1 API: @name ProcessController#updateRegistry
+             * V2 API: @name PublicFormController#getSettings
+             */
+            this.updateRegistry = function (registry) {
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/registry', registry);
+            };
+
+            /**
+             * Create a new registry
+             * 
+             * V1 API: @name ProcessController#createRegistry
+             * V2 API: @name PublicFormController#createRegistry
+             * 
+             * Note: On v2 api the method is PUT
+             */
+            this.createRegistry = function (registry) {
+                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/registry', registry);
+            };
+
+            /**
+             * Delete registry
+             * 
+             * V1 API: @name ProcessController#deleteRegistry
+             * V2 API: @name PublicFormController#deleteRegistry
+             */
+            this.deleteRegistry = function (registryId) {
+                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/registry/' + registryId);
+            };
+
+            /**
+             * Get external forms of the process specified by its id
+             * 
+             * V1 API: @name ProcessController#getProcessExternalForms
+             * V2 API: @name PublicFormController#getProcessPublicForms
+             * 
+             * Note: On v2 api the url should be api/v2/form/process/{id}
+             */
+            this.getExternalForms = function (id) {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/' + id + '/externalform');
+            };
+
+            /**
+             * Create new external form
+             * 
+             * V1 API: @name ProcessController#createExternalForm
+             * V2 API: @name PublicFormController#createPublicForm
+             * 
+             * Note: On v2 api the url should be api/v2/form method = POST
+             */
+            this.saveExternalForm = function (externalForm) {
+                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/externalform', externalForm);
+            };
+
+            /**
+             * Update external form
+             * 
+             * V1 API: @name ProcessController#updateExternalForm
+             * V2 API: @name PublicFormController#updatePublicForm
+             * 
+             * Note: On v2 api the url should be api/v2/form with method PUT
+             */
+            this.updateExternalForm = function (externalForm) {
+                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/externalform/update', externalForm);
+            }
+
+            /**
+             * Delete external form
+             * 
+             * V1 API: @name ProcessController#deleteExternalForm
+             * V2 API: @name PublicFormController#deletePublicForm
+             * 
+             * Note: On v2 api the url should be api/v2/form/{id}
+             */
+            this.deleteExternalForm = function (id) {
+                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/externalform/' + id);
+            }
+
+            /**
+             * Suspend / Resume an external form.
+             * 
+             * V1 API: @name ProcessController#modifyExternalFormStatus
+             * V2 API: @name PublicFormController#modifyExternalFormStatus
+             * 
+             * Note: On v2 api the url should be api/v2/form/{id}/{action}
+             */
+            this.actOnExternalForm = function (externalFormId, action) {
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/externalform/' + externalFormId + "/" + action);
+            };
+
+            /**
+             * Post facebook access token to server
+             */
+            this.postAccessToken = function (fbResponse) {
+                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/facebook', fbResponse);
+            };
+
+
+            /**
+             * Check if token exists for page
+             */
+            this.checkTokens = function (pages) {
+                if (pages == null) pages = [];
+                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/facebook/check', pages);
+            };
+
+
+            /**
+             * Delete access to facebook page
+             */
+            this.removeFacebookPageAccess = function (p) {
+                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/facebook/page/' + p.name);
+            }
+
+            /**
+             * Authenticate to twitter
+             */
+            this.authenticateTwitter = function () {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/twitter');
+            }
+
+            /**
+             * Return all authorized twitter accounts
+             */
+            this.getTwitterAccounts = function () {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/twitter/accounts');
+            }
+
+            /**
+             * Delete access to twitter account
+             */
+            this.removeTwitterAccountAccess = function (a) {
+                console.log("Remove twitter account");
+                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/twitter/account/' + a.screenName);
+            }
+
+            /**
+             * Returns instances by process definition
+             * 
+             * 
+             * V1 API: @name ProcessController#getProcessInstances
+             * V2 API: @name ExecutionController#getExecutions
+             * 
+             * Note: On v2 api the url should be api/v2/execution/process/version/{id}
+             */
+            this.getWorkflowInstances = function (workflowId) {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/' + workflowId + '/instance');
+            };
+
+            /**
+             * Delete a process instance by id
+             * 
+             * V1 API: @name ExecutionController#deleteProcessCompletedInstance
+             * V2 API: @name ExecutionController#deleteCompletedExecution
+             * 
+             * Note: On v2 api the url should be api/v2/execution/{id}
+             */
+            this.deleteProcessInstance = function (instanceId) {
+                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/delete/completed/instance/' + instanceId);
+            };
+
+            /**
+             * Get groups/forms wrapped
+             * 
+             * V1 API: @name ExecutionController#getWrappedGroupsForms
+             * V2 API: @name PublicFormController#getWrappedGroupsForms
+             * 
+             * Note: On v2 api the url should be api/v2/form/group/wrapped
+             */
+            this.getGroupsFormsWrapped = function () {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/external/groups/forms/wrapped');
+            };
+
+            /**
+             * Creates new external group
+             * 
+             * V1 API: @name ProcessController#createExternalGroup
+             * V2 API: @name PublicFormController#createPublicGroup
+             * 
+             * Note: On v2 api the url should be api/v2/form/group
+             */
+            this.createExternalGroup = function (externalGroup) {
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/external/group/create', externalGroup);
+            };
+
+            /**
+             * Gets all available groups
+             * 
+             * V1 API: @name ProcessController#getExternalGroups
+             * V2 API: @name PublicFormController#getPublicGroups
+             * 
+             * Note: On v2 api the url should be api/v2/form/group
+             */
+            this.getExternalGroups = function () {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/external/groups');
+            };
+
+            /**
+             * Deletes a public group
+             * 
+             * V1 API: @name ProcessController#deletePublicGroup
+             * V2 API: @name PublicFormController#deletePublicGroup
+             * 
+             * Note: On v2 api the url should be api/v2/form/group/{groupId}
+             */
+            this.deletePublicGroup = function (groupId) {
+                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/form/delete/group/' + groupId);
+            };
+
+            /**
+             * Edits public group
+             * 
+             * V1 API: @name ProcessController#updatePublicGroup
+             * V2 API: @name PublicFormController#updatePublicGroup
+             * 
+             * Note: On v2 api the url should be api/v2/form/group
+             */
+            this.editPublicGroup = function (group) {
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/form/update/group', group);
+            };
+
+            /**
+             * Gets supervisors by process id
+             * 
+             * V1 API: @name ProcessController#getSupervirosByProcess
+             * V2 API: @name RealmController#getSupervisorsByProcess
+             * 
+             * Note: On v2 api the url should be api/v2/user/process/{processId}/supervisor
+             */
+            this.getSupervisorsByProcessId = function (processId) {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/supervisors/process/' + processId);
+            };
+
+            /**
+             * Returns all in progress instances
+             * 
+             * V1 API: @name ExecutionController#getInProgressInstances
+             * V2 API: @name ExecutionController#getInProgressInstances
+             */
+            this.getInProgressInstances = function () {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/inprogress/instances');
+            };
+
+            /**
+             * Returns instance's documents by id
+             * 
+             * V1 API: @name ExecutionController#getDocumentsByInstanceId
+             * V2 API: @name ExecutionController#getDocumentsByInstanceId
+             */
+            this.getDocumentsByInstance = function (instanceId) {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/instance/' + instanceId + '/documents')
+            };
+
+            /**
+             * Returns users having role Supervisor
+             * 
+             * V1 API: @name RealmController#getUsersByRole
+             * V2 API: @name RealmController#getUsersByRole
+             */
+            this.getSupervisors = function () {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/user/role/' + 'ROLE_Supervisor');
+            };
+
+            /**
+             * Change instace's supervisor
+             * 
+             * V1 API: @name ExecutionController#changeInstanceSupervisor
+             * V2 API: @name ExecutionController#changeInstanceSupervisor
+             */
+            this.changeInstanceSupervisor = function (instanceId, supervisor) {
+                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/instance/' + instanceId + '/supervisor?supervisor=' + supervisor);
+            };
+
+            /**
              * @memberof processService
              * @desc Deletes an instance by a given id
              * 
@@ -280,239 +714,28 @@
                 return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/process/instance/' + instanceid);
             };
 
-            /**
-             * @memberof processService
-             * @desc Suspend / Resume a running instance.
-             * API: @name ProcessController#modifyProcessInstanceStatus
-             * 
-             * @param {String} instanceid - Instace's id to be suspened or resusmed
-             * @param {String} action - A string represents the action to be done in the instance (suspend/resume)
-             * @returns {HttpPromise}
-             */
-            this.actOnInstance = function (instanceid, action) {
-                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/process/instance/' + instanceid + "/" + action);
+            this.sendTaskDueDateNotification = function (taskId, content) {
+                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/task/' + taskId + '/notification', content)
             };
 
-            /**
-             * @memberOf processService
-             * @function getActiveProcesses
-             * @desc Gets all active processes
-             *
-             * @returns {HttpPromise}
-             */
-            this.getActiveProcesses = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/active');
+            this.synchRoles = function() {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/syncroles');
             };
 
-            /**
-             * @memberOf processService
-             * @function getEndedInstances
-             * @desc Searches for ended instances based on given criteria
-             *
-             * @param {String} definitionName
-             * @param {String} instanceTitle
-             * @param {Number} dateAfterTime
-             * @param {Number} dateBeforeTime
-             * @returns {HttpPromise}
-             */
-            this.getEndedInstances = function (definitionName, instanceTitle, dateAfterTime, dateBeforeTime) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/instances/ended/search:'
-                    + definitionName + ","
-                    + instanceTitle + ","
-                    + dateAfterTime + ","
-                    + dateBeforeTime
-                );
+            this.synchOwners = function() {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/syncowners');
             };
 
-            /**
-             * @memberof processService
-             * @desc Get user activity, all tasks having the specified user as assignee
-             * API: @name ProcessController#getUserActivity 
-             * 
-             * @param {Number} after
-             * @param {Number} before
-             * @param {String} userId
-             * @returns {HttpPromise}
-             */
-            this.getUserActivity = function (after, before, userId) {
-                var url = config.WORKFLOW_SERVICE_ENTRY + '/task/user/search/' + after + "," + before + "," + userId;
-
-                return $http.get(url);
+            this.importOwners = function(owners) {
+                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/importowners', owners);
             };
 
-            /**
-             * @memberof processService
-             * @desc Retrieve all active tasks
-             * API: @name ExecutionController#getAllActiveTasks
-             *
-             * @returns {HttpPromise}
-             */
-            this.getActiveTasks = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task');
+            this.importRoles = function(roles) {
+                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/importroles', roles);
             };
+        }
 
-            /**
-             * @memberof processService
-             * @desc Retrieve active tasks by given criteria
-             * API: @name ExecutionController#getActiveTasksByCriteria
-             *
-             * @returns {HttpPromise}
-             */
-            this.getActiveTasksByCriteria = function (definitionName, taskName, after, before) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/search:'
-                    + definitionName + ","
-                    + taskName + ","
-                    + after + ","
-                    + before);
-            };
+        angular.module('wfManagerServices').service('processService', ['$http', 'CONFIG', ProcessService]);
 
-            /**
-             * @memberof processService
-             * @desc Retrieve all users
-             * API: @name RealmController#getUsers
-             * 
-             * @returns {HttpPromise}
-             */
-            this.getUsers = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/user');
-            };
-
-            /**
-             * @memberof processService
-             * @desc Get the current settings
-             * API: @name ProcessController#getSettings
-             * 
-             * @returns {HttpPromise}
-             */
-            this.getSettings = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/settings');
-            };
-
-            /**
-             * @memberof processService
-             * @desc Update system
-             * API: @name ProcessController#updateSettings
-             * 
-             * @param {Settings} settings
-             * @returns {HttpPromise}
-             */
-            this.updateSettings = function (settings) {
-                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/settings', settings);
-            };
-
-            /**
-             * @memberof processService
-             * @desc Returns instances by process definition
-             * API: @name ProcessController#getProcessInstances 
-             * 
-             * @param {String} workflowDefinitionId
-             * @returns {HttpPromise}
-             */
-            this.getWorkflowInstances = function (workflowDefinitionId) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/' + workflowDefinitionId + '/instance');
-            };
-
-            /**
-             * @memberof processService
-             * @desc Delete a process instance by id
-             * API: @name ExecutionController#deleteProcessCompletedInstance 
-             * 
-             * @param {String} instanceId - Instance's id to be deleted
-             * @returns {HttpPromise}
-             */
-            this.deleteProcessInstance = function (instanceId) {
-                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/delete/completed/instance/' + instanceId);
-            };
-
-            /**
-             * @memberof processService
-             * @desc Gets supervisors by process id
-             * API: @name ProcessController#getSupervirosByProcess 
-             * 
-             * @param {String} processId
-             * @returns {HttpPromise}
-             */
-            this.getSupervisorsByProcessId = function (processId) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/supervisors/process/' + processId);
-            };
-
-            /**
-             * @memberof processService
-             * @desc Returns all in progress instances
-             * API: @name ExecutionController#getInProgressInstances 
-             * 
-             * @returns {HttpPromise}
-             */
-            this.getInProgressInstances = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/inprogress/instances');
-            };
-
-            /**
-             * @memberOf processService
-             * @function getInProgressInstancesByCriteria
-             * @desc Searches for in progress instances based on given criteria
-             *
-             * @param {String} definitionName
-             * @param {String} instanceTitle
-             * @param {Number} dateAfterTime
-             * @param {Number} dateBeforeTime
-             * @returns {HttpPromise}
-             */
-            this.getInProgressInstancesByCriteria = function (definitionName, instanceTitle, dateAfterTime, dateBeforeTime) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/inprogress/instances/search:'
-                    + definitionName + ","
-                    + instanceTitle + ","
-                    + dateAfterTime + ","
-                    + dateBeforeTime
-                );
-            };
-
-            /**
-             * @memberof processService
-             * @desc Returns instance's documents by id
-             * API: @name ExecutionController#getDocumentsByInstanceId
-             * 
-             * @param {String} instanceId
-             * @returns {HttpPromise}
-             */
-            this.getDocumentsByInstance = function (instanceId) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/instance/' + instanceId + '/documents')
-            };
-
-            /**
-             * @memberof processService
-             * @desc Returns users having role Supervisor
-             * API: @name RealmController#getUsersByRole
-             * 
-             * @returns {HttpPromise}
-             */
-            this.getSupervisors = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/user/role/' + 'ROLE_Supervisor');
-            };
-
-            /**
-             * @memberof processService
-             * @desc Change instace's supervisor
-             * API: @name ExecutionController#changeInstanceSupervisor 
-             * 
-             * @param {String} instanceId
-             * @param {String} supervisor
-             * @returns {HttpPromise}
-             */
-            this.changeInstanceSupervisor = function (instanceId, supervisor) {
-                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/instance/' + instanceId + '/supervisor?supervisor=' + supervisor);
-            };
-
-            /**
-             * @memberof processService
-             * @desc Returns an instnace by its id 
-             * 
-             * @param {String} instanceId
-             * @returns {HttpPromise}
-             */
-            this.getInstanceById = function (instanceId) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/public/instance/' + instanceId);
-            };
-        }]
-    );
-})(angular);
+    }
+);

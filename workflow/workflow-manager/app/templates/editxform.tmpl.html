@@ -1,0 +1,48 @@
+<md-dialog aria-label="{{ 'editExternalForm' | translate }}" ng-style="{'min-width': '400px'}">
+
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>{{ 'editExternalForm' | translate }}</h2>
+			
+			<span flex></span>
+			
+			<md-button class="md-icon-button" ng-click="cancel()">
+				<md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+	
+	<md-dialog-content layout-padding>
+		<section layout="column" flex>
+			<ng-form name="extInputForm">
+			
+				<md-input-container class="md-block">
+					<label for="xFormId">{{ 'exernalFormId' | translate }}</label>
+					<input id="xFormId" ng-model="xform.formId" readonly md-maxlength="150">
+				</md-input-container>
+				
+				<md-input-container class="md-block">
+					<label for="titleTemplate">{{ 'externalFormTitleTemplate' | translate }}</label>
+					<textarea id="titleTemplate" ng-model="xform.titleTemplate" rows="2" md-maxlength="250" ng-required="true"></textarea>
+				</md-input-container>
+				
+				<md-input-container class="md-block">
+					<label for="selectSupervisor">{{ 'supervisor' | translate }}</label>
+					<md-select id="selectSupervisor" ng-model="xform.supervisor" ng-required="true">
+						<md-option ng-repeat="supervisor in supervisors" ng-value="supervisor.email">{{supervisor.lastName}} {{supervisor.firstName}}</md-option>
+					</md-select>
+				</md-input-container>
+			</ng-form>
+		</section>
+		
+		<md-divider></md-divider>
+	</md-dialog-content>
+	
+	<md-dialog-actions layout="row" layout-align="left center" style="padding-left:0px">
+		<md-button ng-disabled="!extInputForm.$valid" class="md-raised md-primary" ng-click="update()">{{ 'confirm' | translate }}</md-button>
+		<md-button class="md-raised md-warn" ng-click="deleteXForm()">{{ 'delete' | translate }}</md-button>
+		
+		<md-button ng-if="xform.enabled" class="md-raised" ng-click="suspendExternalForm()">{{ 'suspend' | translate }}</md-button>
+		<md-button ng-if="!xform.enabled" class="md-raised" ng-click="resumeExternalForm()">{{ 'resume' | translate }}</md-button>
+	</md-dialog-actions>
+</md-dialog>

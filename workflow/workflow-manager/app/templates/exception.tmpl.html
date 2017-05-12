@@ -1,28 +1,23 @@
 <md-dialog aria-label="{{ 'errorOccurred' | translate }}">
-
 	<md-toolbar>
-	    <div class="md-toolbar-tools">
-	        <h2>{{ error.code | translate }}</h2>
-	        
-	        <span flex></span>
-	        
-   			<md-button class="md-icon-button" ng-click="cancel()">
+		<div class="md-toolbar-tools">
+			<h2>{{error.code | translate}}</h2>
+			
+			<span flex></span>
+			
+			<md-button class="md-icon-button" ng-click="cancel()">
 				<md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
 			</md-button>
-			
-	    </div>
+		</div>
 	</md-toolbar>
 	
-	<md-dialog-content>
-	
-		<md-content layout="row" layout-align="center center" layout-padding style="min-height: 55px; padding-left:0px">
-			<span>{{error.message}}</span>
-		</md-content>
-		
+	<md-dialog-content layout-padding>
+		<p>{{error.message}}</p>
 	</md-dialog-content>
 	
 	<md-dialog-actions layout="row" layout-align="left center" class="dialogActions">
-		<md-button class="md-raised" ng-click="cancel()">Ok</md-button>
+		<span flex></span>
+		<md-button ng-click="cancel()">Ok</md-button>
 	</md-dialog-actions>
 	
 </md-dialog>

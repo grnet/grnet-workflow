@@ -1,0 +1,35 @@
+<md-toolbar>
+	<div class="md-toolbar-tools">
+
+		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
+			<md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
+		</md-button>
+
+		<md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
+
+		<div hide-sm layout-padding>
+			<h1 class="md-title application-title">workflow::manager</h1>
+			<h2 class="md-subhead page-title">Dashboard</h2>
+		</div>
+
+		<span flex></span>
+
+		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="addDashlet($event)">
+			<md-icon md-svg-icon="img/icons/add.svg"></md-icon>
+			<md-tooltip direction="bottom">{{ 'addDashlet' | translate }}</md-tooltip>
+		</md-button>
+
+	</div>
+</md-toolbar>
+
+<md-content class="transparent" flex style="padding-right: 5px">
+
+	<div gridster="gridsterOptions" class="ng-cloak">
+		<ul>
+			<li gridster-item="dashlet" ng-repeat="dashlet in dashlets">
+				<wf-dashlet ng-model="dashlet" wf-base-type="dashlet.baseType"></wf-dashlet>
+			</li>
+		</ul>
+	</div>
+
+</md-content>

@@ -1,30 +1,27 @@
 <md-toolbar>
 	<div class="md-toolbar-tools" style="padding-left:0px;">
-	
-		<md-button id="menu-button" class="md-icon-button" aria-label="Menu"ng-click="toggle()" hide-gt-md>
+
+		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
 			<md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
 		</md-button>
-		
+
 		<md-button id="back-button" class="md-icon-button" aria-label="Back" ng-click="back()">
 			<md-icon md-svg-icon="img/icons/back.svg"></md-icon>
 		</md-button>
-		
+
 		<md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
-		
-		<div hide-sm layout-padding>
-			<h1 class="md-title application-title">workflow::manager</h1>
-			<h2 class="md-subhead page-title">{{'documents' | translate}}</h2>
-		</div>
-		
+
+		<span class="md-title" hide-sm layout-padding>workflow::manager</span>
+
 		<span flex></span>
 	</div>
 </md-toolbar>
 
-<div layout="row" layout-align="center start" flex class="infoMessage" ng-if="documents.length == 0">
-	<md-card style="width:100%; line-height: 32px; background-color: #d84315">
+<div layout="row" layout-align="center start" flex class="warning-message" ng-if="documents.length == 0">
+	<md-card style="margin-left: 8px;">
 		<md-card-content layout-align="center center">
-			<md-icon md-svg-icon="img/icons/info.svg" style="height: 32px; width: 32px; margin-right: 10px;"></md-icon>
-			<span style="display: inline-block; vertical-align: middle; color:white">{{'noDocumentsAvailable' | translate }}</span>
+			<md-icon md-svg-icon="img/icons/info.svg"></md-icon>
+			<span>{{'noDocumentsAvailable' | translate }}</span>
 		</md-card-content>
 	</md-card>
 </div>
@@ -36,75 +33,72 @@
 <md-content flex class="transparent" style="padding-top: 8px;position:relative" ng-if="documents.length > 0">
 
 	<md-list flex style="padding-top: 0px;">
-		<md-subheader sticky-state="next" class="md-primary" md-whiteframe="2" style="margin-right: 8px">{{ 'instanceDocuments' | translate }}</md-subheader>
-		
+
+		<md-subheader sticky-state="next" class="md-primary" md-whiteframe="2">{{ 'instanceDocuments' | translate }}</md-subheader>
+
 		<md-card ng-repeat="document in documents">
-			<a ng-href="{{documentPath}}{{document.documentId}}" target="_blank" style="text-decoration: none;">
-				<md-list-item class="md-2-line" style="display: inline;"> 
-					<md-icon md-svg-icon="img/icons/pdf.svg" ng-if="document.title.indexOf('pdf') > 0"></md-icon>
-					<md-icon md-svg-icon="img/icons/excel.svg" ng-if="document.title.indexOf('xls') > 0 || document.title.indexOf('xlsx') > 0"></md-icon>
-					<md-icon md-svg-icon="img/icons/file.svg" ng-if="document.title.indexOf('xls') == -1 && document.title.indexOf('xlsx') == -1 && document.title.indexOf('pdf') == -1"></md-icon>
-					
-					<div class="md-list-item-text" layout="column" style="vertical-align: middle;display: inline-block;">
-						<h3 style="line-height: 2.0em;">{{document.title}}</h3>
-						<p style="line-height: 2.0em;">v {{document.version}}</p>
-						<p style="line-height: 2.0em;">{{getDateString(document.submittedDate)}}</p>
-					</div>
-				</md-list-item>
-			</a>
-			
+
+			<md-list-item class="md-2-line" ng-click="goToDocument(document.documentId)">
+
+				<md-icon md-svg-icon="img/icons/pdf.svg" ng-if="checkFileType(document.title, 'pdf')"></md-icon>
+				<md-icon md-svg-icon="img/icons/excel.svg" ng-if="checkFileType(document.title, 'xls') || checkFileType(document.title, 'xlsx')"></md-icon>
+				<md-icon md-svg-icon="img/icons/doc.svg" ng-if="checkFileType(document.title, 'docx') || checkFileType(document.title, 'doc')"></md-icon>
+				<md-icon md-svg-icon="img/icons/file.svg" ng-if="checkFileType(document.title, 'any')"></md-icon>
+
+				<div class="md-list-item-text" layout="column">
+
+					<span>
+						<h3 style="display: inline">{{document.title}}</h3>
+
+						<md-button id="back-button" class="md-icon-button" aria-label="Back" ng-click="copyLink(document.documentId)" class="md-secondary">
+							<md-tooltip md-direction="right">{{ 'copyLink' | translate }}</md-tooltip>
+							<md-icon md-svg-icon="img/icons/link.svg"></md-icon>
+						</md-button>
+
+					</span>
+
+					<p style="margin-bottom: 8px">{{ 'version' | translate }}: {{document.version}}
+						<span class="cardInline">{{ 'submittedDate' | translate }} {{getDateString(document.submittedDate)}}</span>
+					</p>
+				</div>
+
+				<div ng-if="document.versions.length > 0" layout="row" layout-align="end end" class="md-secondary toggle-collapse-header">
+					<md-button ng-click="toggleVersions(document)" ng-class="document.isExpanded === true ? 'expanded' : 'collapsed'" aria-label="Expand collapse">
+						<md-icon md-svg-icon="img/icons/arrow_down.svg"></md-icon>
+					</md-button>
+				</div>
+
+			</md-list-item>
+
 			<!-- Document's versions -->
-			<div ng-if="document.versions.length > 0" ng-repeat="version in document.versions">
-			
+			<div ng-if="document.versions.length > 0 && document.isExpanded" ng-repeat="version in document.versions">
+
 				<md-divider></md-divider>
-				
-				<a ng-href="{{documentPath}} {{version.documentId}}" target="_blank" style="text-decoration: none;">
-					<md-list-item class="md-2-line" style="display: inline;">
-						<md-icon md-svg-icon="img/icons/file.svg"></md-icon>
-						
-						<div class="md-list-item-text" layout="column" style="vertical-align: middle;display: inline-block;">
-							<h3 style="line-height: 2.0em;">{{version.title}}</h3>
-							<p style="line-height: 2.0em;">v {{version.version}}</p>
-							<p style="line-height: 2.0em;">{{getDateString(version.submittedDate)}}</p>
-						</div>
-					</md-list-item> 
-				</a>
+
+				<md-list-item class="md-2-line" ng-click="goToDocument(version.documentId)">
+
+					<md-icon></md-icon>
+
+					<div class="md-list-item-text" layout="column">
+
+						<span>
+							<h3 style="display: inline">{{version.title}}</h3>
+
+							<md-button id="back-button" class="md-icon-button" aria-label="Back" ng-click="copyLink(document.documentId)" class="md-secondary">
+								<md-tooltip md-direction="right">{{ 'copyLink' | translate }}</md-tooltip>
+								<md-icon md-svg-icon="img/icons/link.svg"></md-icon>
+							</md-button>
+						</span>
+
+						<p style="margin-bottom: 8px;">{{ 'version' | translate }}: {{version.version}}
+							<span class="cardInline">{{ 'submittedDate' | translate }} {{getDateString(version.submittedDate)}}</span>
+						</p>
+					</div>
+
+				</md-list-item>
 			</div>
+
 		</md-card>
+
 	</md-list>
 </md-content>
-
-<!--  
-<section layout="column" style="height: 100%;" ng-if="documents.length > 0">
-
-	<div layout="row" layout-align="center center" flex ng-if="showProgress">
-		<md-progress-circular md-mode="indeterminate"></md-progress-circular>
-	</div>
-	
-	<md-list ng-if="documents.length > 0" flex>
-		<md-list-item class="md-2-line" ng-repeat="document in documents">
-			<div class="md-list-item-text" layout="column">
-			
-				<a ng-href="{{documentPath}}{{document.documentId}}" target="_blank">
-					<h3>{{document.title}} v.{{document.version}}</h3>
-				</a>
-				
-				<p>{{getDateString(document.submittedDate)}}</p>
-				
-				<md-list ng-if="document.versions.length > 0">
-					<md-list-item class="md-2-line" ng-repeat="version in document.versions">
-					
-						<div class="md-list-item-text" layout="column">
-							<a ng-href="{{documentPath}}{{version.documentId}}" target="_blank">
-								<h3>{{version.title}} v.{{version.version}}</h3>
-							</a>
-							
-							<p>{{getDateString(version.submittedDate)}}</p>
-						</div>
-					</md-list-item>
-				</md-list>
-			</div>
-		</md-list-item>
-	</md-list>
-</section>
--->

@@ -1,0 +1,28 @@
+<md-dialog aria-label="Facebook Tokens" ng-style="{'min-width': '600px'}">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+	        <h2>Facebook Tokens</h2>
+	        <span flex></span>
+	        <md-button class="md-icon-button" ng-click="cancel()">
+	            <md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+	        </md-button>
+	    </div>
+	</md-toolbar>
+	
+	<md-dialog-content>
+		<div class="md-dialog-content">		
+					<md-input-container class="md-block">
+                    	<label for="facebookPageName">{{'facebookPageName' | translate }}</label>
+                    	<input id="facebookPageName" ng-model="facebookPage">
+                	</md-input-container>
+	 	</div>
+	</md-dialog-content>
+	
+	<md-dialog-actions layout="row" layout-align="left center">
+	 	<md-button class="md-raised md-primary" ng-click="acquireToken()">
+	 		<md-icon md-svg-icon="img/icons/key.svg"></md-icon>
+	 	</md-button>
+		<md-button class="md-raised md-warn" ng-click="cancel()">{{'cancel' | translate }}</md-button>
+	</md-dialog-actions>
+	
+</md-dialog>

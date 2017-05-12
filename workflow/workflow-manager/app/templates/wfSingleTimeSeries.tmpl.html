@@ -1,0 +1,56 @@
+<div layout="row" style="height: 60px; min-height: 60px; overflow: hidden;">
+
+	<section layout="row" style="display: inline-block;">
+
+		<md-input-container class="md-block" style="display: inline-block">
+			<label>{{"from" | translate}}</label>
+			<md-datepicker ng-model="criteria.from" md-max-date="today" placeholder="Enter Date" ng-change="getChartData(); fromChanged();"></md-datepicker>
+		</md-input-container>
+
+		<md-button aria-label="Refresh data" class="md-icon-button" ng-click="clearFormCriteria()" style="vertical-align: text-bottom;">
+			<md-icon md-svg-icon="img/icons/clear.svg"></md-icon>
+		</md-button>
+		
+	</section>
+	
+	<section layout="row" style="display: inline-block;">
+
+		<md-input-container class="md-block" style="display: inline-block">
+			<label>{{"to" | translate}}</label>
+			<md-datepicker ng-model="criteria.to" md-max-date="nextDay" placeholder="Enter Date" ng-change="getChartData()"></md-datepicker>
+		</md-input-container>
+
+		<md-button aria-label="Refresh data" class="md-icon-button" ng-click="clearToCriteria()" style="vertical-align: text-bottom;">
+			<md-icon md-svg-icon="img/icons/clear.svg"></md-icon>
+		</md-button>
+	</section>
+	
+	<span flex></span>
+	
+	<md-input-container class="md-block" style="width: 15%;">
+		<label>{{"groupBy" | translate }}</label>
+		<md-select ng-model="criteria.dateGroup" style="margin-top: 0;" aria-label="time group" ng-change="getChartData()">
+			<md-option value="week" aria-label="week">{{ "week" | translate }}</md-option>
+			<md-option value="month" aria-label="month">{{ "month" | translate }}</md-option>
+			<md-option value="year" aria-label="year">{{ "year" | translate }}</md-option>
+		</md-select>
+	</md-input-container>
+	
+</div>
+
+<div layout="row" style="height: calc(100% - 60px);">
+	<div ng-show="!showProgressBar && !showNoData" style="width: 100%; height: 100%" class="chartContainer"></div>
+	
+	<div flex class="infoMessage" ng-if="!showProgressBar && showNoData" style="position: relative;">
+		<md-card layout="row" layout-align="center center" style="width:100%; line-height: 32px; background-color: #d84315; margin: 0;">
+			<md-card-content layout-align="center center">
+				<md-icon md-svg-icon="img/icons/info.svg" style="height: 32px; width: 32px; margin-right: 10px;"></md-icon>
+				<span style="display: inline-block; vertical-align: middle; padding-right: 15px; color:white">{{'noDataFound' | translate }}</span>
+			</md-card-content>
+		</md-card>
+	</div>
+	
+	<div layout="row" layout-align="center center" ng-if="showProgressBar" style="height: 100%; width: 100%;">
+		<md-progress-circular md-diameter="25" md-mode="indeterminate"></md-progress-circular>
+	</div>
+</div>

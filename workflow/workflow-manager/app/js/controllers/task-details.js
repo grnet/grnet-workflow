@@ -1,16 +1,10 @@
-(function (angular) {
+define(['angular', 'services/processservice'],
 
-    'use strict';
+    function (angular) {
 
-    angular.module('wfmanagerControllers').controller('TaskDetailsCtrl', ['$scope', '$filter', '$window', '$routeParams', '$mdDialog', 'processService', 'CONFIG',
-		/**
-		 * @name TaskDetailsCtrl
-		 * @ngDoc controllers
-		 * @memberof wfmanagerControllers
-		 * 
-		 * @desc Controller used in Task details view
-		 */
-        function ($scope, $filter, $window, $routeParams, $mdDialog, processService, config) {
+        'use strict';
+        
+        function taskDetailsCtrl($scope, $filter, $window, $routeParams, $mdDialog, processService, config) {
 
             var taskId = $routeParams['taskId'];
             $scope.task = null;
@@ -20,12 +14,6 @@
 
             $scope.documentPath = config.WORKFLOW_DOCUMENTS_URL;
 
-            /**
-             * @memberOf TaskDetailsCtrl
-             * @desc Returns A difference in days between the due date(if present) and the complete task
-             * 
-             * @returns {Number} - The difference between dates
-             */
             var getTaskDelay = function () {
                 var diff;
 
@@ -49,33 +37,34 @@
                 function (response) {
                     $scope.task = response.data;
 
-                    if ($scope.task.dueDate != null)
-                        $scope.dueDate = $filter('date')($scope.task.dueDate, "d/M/yyyy");
+                    if ($scope.task.dueDate != null) {
+                        $scope.dueDate = $filter('date')($scope.task.dueDate, "d/M/yyyy H:mm");
+                    }
 
-                    if ($scope.task.endDate != null)
+                    if ($scope.task.endDate != null) {
                         $scope.endDate = $filter('date')($scope.task.endDate, "d/M/yyyy");
+                    }
 
                     $scope.startDate = $filter('date')($scope.task.startDate, "d/M/yyyy");
 
                     getTaskDelay();
+
+                    $scope.instanceId = $scope.task.processInstance.id;
                 },
                 // error callback
                 function (response) {
-
                 }
             );
 
             /**
-             * @memberOf TaskDetailsCtrl
-             * @desc Redirects to previous page
+             * Redirects to previous page
              */
             $scope.backTo = function () {
                 $window.history.back();
             };
 
             /**
-             * @memberOf TaskDetailsCtrl
-             * @desc Open a modal to display task details
+             * Open a modal to display task details
              */
             $scope.showTaskDetails = function () {
                 $mdDialog.show({
@@ -97,12 +86,45 @@
                 })
             };
 
-            /**
-             * @memberOf TaskDetailsCtrl
-             * @desc Opens a modal panel in order to display the process diagram
-             * 
-             * @param {event} event
-             */
+            $scope.sendNotificationEmail = function () {
+                $mdDialog.show({
+                    controller: function ($scope, $mdDialog, assignee, taskId, processService) {
+
+                        $scope.showProgressBar = false;
+                        $scope.assignee = assignee;
+                        $scope.success = false;
+
+                        $scope.cancel = function () {
+                            $mdDialog.hide();
+                        };
+
+                        $scope.sendEmail = function () {
+                            $scope.showProgressBar = true;
+
+                            processService.sendTaskDueDateNotification(taskId, $scope.content).then(
+                                // sucess callback
+                                function () {
+                                    $scope.content = null;
+                                    $scope.success = true;
+                                }
+                            ).finally(function () {
+                                $scope.showProgressBar = false;
+                            });
+                        };
+
+                    },
+                    templateUrl: 'templates/dueDateNotification.tmpl.html',
+                    parent: document.body,
+                    targetEvent: event,
+                    clickOutsideToClose: true,
+                    locals: {
+                        'assignee': $scope.task.assignee,
+                        'taskId': $scope.task.id,
+                        'processService': processService
+                    }
+                });
+            };
+
             $scope.showProgressDiagram = function (event) {
                 $mdDialog.show({
                     controller: function ($scope, $mdDialog, process, service, task) {
@@ -125,8 +147,12 @@
                         'process': $scope.task.processId,
                         'task': $scope.task
                     }
-                });
+                })
             };
 
-        }]);
-})(angular);
+        }
+
+        angular.module('wfManagerControllers').controller('TaskDetailsCtrl', ['$scope', '$filter', '$window', '$routeParams', '$mdDialog', 'processService', 'CONFIG', taskDetailsCtrl]);
+    }
+
+);
