@@ -16,5 +16,4 @@ public class SettingsStatus {
 	public void setWorkflowSettings(WorkflowSettings workflowSettings) {
 		this.workflowSettings = workflowSettings;
 	}
-
 }

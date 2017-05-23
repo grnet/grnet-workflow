@@ -1,3 +1,6 @@
+/**
+ * @author nlyk
+ */
 package gr.cyberstream.workflow.engine.config;
 
 import javax.servlet.Filter;
@@ -25,7 +28,7 @@ public class ApplicationInitializer extends AbstractAnnotationConfigDispatcherSe
 
 	@Override
 	protected Class<?>[] getRootConfigClasses() {
-		logger.info("warming-up workflow-engine ...");
+		logger.info("warming-up workflow-engine...");
 		return null;
 	}
 

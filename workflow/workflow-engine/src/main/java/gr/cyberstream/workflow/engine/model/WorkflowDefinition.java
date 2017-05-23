@@ -11,11 +11,16 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import gr.cyberstream.workflow.engine.model.api.WfProcess;
 
@@ -27,6 +32,7 @@ import gr.cyberstream.workflow.engine.model.api.WfProcess;
  * @author nlyk
  */
 @Entity
+@Table(name = "WorkflowDefinition")
 public class WorkflowDefinition implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -55,6 +61,11 @@ public class WorkflowDefinition implements Serializable {
 	@Column(name = "folder_id")
 	private String folderId;
 
+	@JsonIgnore
+	@ManyToOne
+	@JoinColumn(name = "registry_id")
+	private Registry registry;
+
 	// TODO: change with selected version id
 	@Column(name = "active_deployment_id")
 	private String activeDeploymentId;
@@ -62,6 +73,9 @@ public class WorkflowDefinition implements Serializable {
 	@OneToMany(mappedBy = "workflowDefinition", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
 	@OrderBy("version ASC")
 	private List<DefinitionVersion> definitionVersions;
+
+	@OneToMany(mappedBy = "workflowDefinition", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<ExternalForm> externalForms;
 
 	@Column(name = "start_form")
 	private boolean startForm;
@@ -167,6 +181,22 @@ public class WorkflowDefinition implements Serializable {
 		this.assignBySupervisor = assignBySupervisor;
 	}
 
+	public Registry getRegistry() {
+		return registry;
+	}
+
+	public void setRegistry(Registry registry) {
+		this.registry = registry;
+	}
+
+	public List<ExternalForm> getExternalForms() {
+		return externalForms;
+	}
+
+	public void setExternalForms(List<ExternalForm> externalForms) {
+		this.externalForms = externalForms;
+	}
+
 	public boolean hasStartForm() {
 		return startForm;
 	}
@@ -242,8 +272,10 @@ public class WorkflowDefinition implements Serializable {
 		builder.append(owner);
 		builder.append(assignBySupervisor);
 		builder.append(folderId);
+		builder.append(registry);
 		builder.append(activeDeploymentId);
 		builder.append(definitionVersions);
+		builder.append(externalForms);
 		builder.append(startForm);
 		return builder.toHashCode();
 	}

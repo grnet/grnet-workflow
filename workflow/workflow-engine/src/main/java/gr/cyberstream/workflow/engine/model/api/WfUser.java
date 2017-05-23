@@ -12,12 +12,14 @@ public class WfUser {
 	private List<String> groups;
 	private List<String> userRoles;
 	private Long pendingTasks;
+
 	public WfUser() {
+
 	}
 
 	public WfUser(String id, String username, String firstName, String lastName, String email, List<String> groups,
 			List<String> userRoles) {
-
+		
 		this.id = id;
 		this.username = username;
 		this.firstName = firstName;
@@ -25,7 +27,6 @@ public class WfUser {
 		this.email = email;
 		this.groups = groups;
 		this.userRoles = userRoles;
-
 	}
 
 	public String getId() {
@@ -91,14 +92,14 @@ public class WfUser {
 	public void setPendingTasks(Long pendingTasks) {
 		this.pendingTasks = pendingTasks;
 	}
-	
-	@Override 
-	 public boolean equals(Object other) {
-	        boolean result = false;
-	        if (other instanceof WfUser) {
-	        	WfUser that = (WfUser) other;
-	            result = (this.getId().equals(that.getId()));
-	        }
-	        return result;
-	    }
+
+	@Override
+	public boolean equals(Object other) {
+		boolean result = false;
+		if (other instanceof WfUser) {
+			WfUser that = (WfUser) other;
+			result = (this.getId().equals(that.getId()));
+		}
+		return result;
+	}
 }

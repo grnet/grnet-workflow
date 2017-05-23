@@ -7,7 +7,7 @@
 		<!-- which gives basically the same effect as removing the subsystem, but 
 			it only affects single deployment <exclude-subsystems> <subsystem name="logging" 
 			/> </exclude-subsystems> -->
-			
+
 		<exclusions>
 			<module name="org.jboss.as.jpa" />
 			<module name="javax.mail.api" />

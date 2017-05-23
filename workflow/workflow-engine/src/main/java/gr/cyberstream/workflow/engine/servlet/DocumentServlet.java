@@ -1,6 +1,7 @@
 package gr.cyberstream.workflow.engine.servlet;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
@@ -13,7 +14,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
-import org.apache.chemistry.opencmis.commons.impl.MimeTypes;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,8 +43,7 @@ public class DocumentServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		String uri = request.getRequestURI();
 		String[] uriParts = uri.split("/document/");
@@ -56,10 +55,8 @@ public class DocumentServlet extends HttpServlet {
 			String parameters = uriParts[1];
 			String[] parts = parameters.split("/");
 
-			if (parts.length == 1) {
-
+			if (parts.length == 1)
 				referenceUID = parts[0];
-			}
 		}
 
 		ServletOutputStream out = response.getOutputStream();
@@ -67,11 +64,9 @@ public class DocumentServlet extends HttpServlet {
 		Document document = null;
 
 		try {
-
 			document = (Document) cmisSession.getSession().getObject(referenceUID);
 
 		} catch (CmisObjectNotFoundException e) {
-
 			logger.error("Document  " + referenceUID + " does not exist.");
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			out.flush();
@@ -86,24 +81,21 @@ public class DocumentServlet extends HttpServlet {
 				String mimeType = document.getContentStreamMimeType();
 
 				response.setContentType(mimeType);
-				response.setHeader("Content-disposition",
-						"inline; filename=\"" + document.getName() + "" + MimeTypes.getExtension(mimeType) + "\"");
+				//response.setHeader("Content-disposition", "inline; filename=\"" + URLEncoder.encode(document.getName(), "UTF-8") + "" + MimeTypes.getExtension(mimeType) + "\"");
+				response.setHeader("Content-disposition", "inline; filename=\"" + URLEncoder.encode(document.getName(), "UTF-8") + "\"");
 
 				IOUtils.copy(document.getContentStream().getStream(), out);
 
 			} else {
-
 				logger.error("Document  " + referenceUID + " does not exist.");
 				response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			}
 
 		} catch (IOException e) {
-
 			logger.error("Unable to write Document. " + e.getMessage());
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 
 		} finally {
-
 			out.flush();
 			out.close();
 		}

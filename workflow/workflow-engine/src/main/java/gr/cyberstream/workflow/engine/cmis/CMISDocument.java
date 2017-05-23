@@ -1,3 +1,6 @@
+/**
+ * @author nlyk
+ */
 package gr.cyberstream.workflow.engine.cmis;
 
 import java.io.InputStream;
@@ -21,16 +24,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/**
- * Implements all business rules related to CMIS document operations
- * 
- * @author nlyk
- *
- */
 @Service
 public class CMISDocument {
 
-	private static final Logger logger = LoggerFactory.getLogger(CMISDocument.class);
+	final static Logger logger = LoggerFactory.getLogger(CMISDocument.class);
 
 	@Autowired
 	private CMISSession cmisSession;
@@ -39,28 +36,18 @@ public class CMISDocument {
 	private CMISFolder cmisFolder;
 
 	/**
-	 * Creates a new document and place it to the given folder
+	 * Creates a new folder in the CMIS repository
 	 * 
-	 * @param folder
-	 *            Folder to save the document to
-	 * 
-	 * @param name
-	 *            The document's name
-	 * 
-	 * @param mimeType
-	 *            The document's mime type
-	 * 
-	 * @param inputStream
-	 *            The document's input stream
-	 * 
-	 * @return The saved {@link Document}
+	 * @param folderName
+	 * @return
 	 */
 	public Document createDocument(Folder folder, String name, String mimeType, InputStream inputStream) {
 
 		Session session = cmisSession.getSession();
 
-		if (folder == null)
+		if (folder == null) {
 			throw new CmisRuntimeException();
+		}
 
 		// prepare document properties
 		Map<String, String> props = new HashMap<String, String>();
@@ -74,21 +61,10 @@ public class CMISDocument {
 	}
 
 	/**
-	 * Creates a new document and place it to the given folder
+	 * Creates a new folder in the CMIS repository
 	 * 
-	 * @param path
-	 *            Path to save the new document
-	 * 
-	 * @param name
-	 *            The document's name
-	 * 
-	 * @param mimeType
-	 *            The document's mime type
-	 * 
-	 * @param inputStream
-	 *            The document's input stream
-	 * 
-	 * @return The saved {@link Document}
+	 * @param folderName
+	 * @return
 	 */
 	public Document createDocument(String path, String name, String mimeType, InputStream inputStream) {
 
@@ -96,24 +72,20 @@ public class CMISDocument {
 
 		return createDocument(folder, name, mimeType, inputStream);
 	}
-	
+
 	/**
-	 * Deletes the given document
+	 * Delete the document
 	 * 
 	 * @param document
-	 *            Document to be deleted
-	 * 
-	 * @return {@link Boolean} if the document was successfully deleted
+	 * @return
 	 */
 	public Boolean deleteDocument(Document document) {
 
 		try {
 			document.delete(true);
 			return true;
-			
 		} catch (CmisObjectNotFoundException e) {
-			logger.error("Deleting document failed. Not found the document");
-			
+			logger.error("document not fount");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -121,12 +93,10 @@ public class CMISDocument {
 	}
 
 	/**
-	 * Deletes a document by the given path
+	 * Delete the document for the given path
 	 * 
 	 * @param path
-	 *            Path for the document to be deleted
-	 * 
-	 * @return {@link Boolean} if the document was successfully deleted
+	 * @return
 	 */
 	public Boolean deleteDocumentByPath(String path) {
 
@@ -137,21 +107,19 @@ public class CMISDocument {
 			return deleteDocument((Document) object);
 
 		} catch (CmisObjectNotFoundException e) {
-			logger.error("Deleting document failed. Not found the document's path " + path);
-			
+			logger.error("Document is not found: " + path);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
 		return false;
 	}
 
 	/**
-	 * Deletes a document by id
+	 * Delete document By Id
 	 * 
 	 * @param id
-	 *            Document's id to be deleted
-	 * 
-	 * @return {@link Boolean} if the document was successfully deleted
+	 * @return
 	 */
 	public Boolean deleteDocumentById(String id) {
 
@@ -162,37 +130,30 @@ public class CMISDocument {
 			return deleteDocument((Document) object);
 
 		} catch (CmisObjectNotFoundException e) {
-			logger.error("Deleting document failed. Not found the document with id " + id);
-			
+			logger.error("Document is not found: id(" + id + ")");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
 		return false;
 	}
 
 	/**
-	 * Creates a new version for the document
+	 * Updates the document creating a new version
 	 * 
-	 * @param document
-	 *            The new document
-	 * 
-	 * @param newName
-	 *            The document's new version name
-	 * 
+	 * @param folder
+	 * @param name
 	 * @param mimeType
-	 *            The document's mime type
-	 * 
 	 * @param inputStream
-	 *            The document's input stream
-	 * 
-	 * @return The updated {@link Document}
+	 * @return
 	 */
 	public Document updateDocument(Document document, String newName, String mimeType, InputStream inputStream) {
 
 		Session session = cmisSession.getSession();
 
-		if (document == null)
+		if (document == null) {
 			throw new CmisRuntimeException();
+		}
 
 		ObjectId nextVersion = document.checkOut();
 		Document newDocument = (Document) session.getObject(nextVersion);
@@ -213,23 +174,14 @@ public class CMISDocument {
 
 		return newDocument;
 	}
-	
+
 	/**
-	 * Update document identified by its path, creates a new version
-	 * 
+	 * Update document identified by its path, creating a new version 
 	 * @param path
-	 *            The document's path to be updated
-	 * 
 	 * @param newName
-	 *            The document's new version name
-	 * 
 	 * @param mimeType
-	 *            The document's mime type
-	 * 
 	 * @param inputStream
-	 *            The document's input stream
-	 * 
-	 * @return The updated {@link Document}
+	 * @return
 	 */
 	public Document updateDocumentByPath(String path, String newName, String mimeType, InputStream inputStream) {
 
@@ -244,23 +196,14 @@ public class CMISDocument {
 			throw e;
 		}
 	}
-	
+ 
 	/**
-	 * Update document identified by its id, creates a new version
-	 * 
-	 * @param id
-	 *            Document's id to be updated
-	 * 
+	 * Update document identified by its id, creating a new version 
+	 * @param path
 	 * @param newName
-	 *            The document's new version name
-	 * 
 	 * @param mimeType
-	 *            The document's mime type
-	 * 
 	 * @param inputStream
-	 *            The document's input stream
-	 * 
-	 * @return The updated {@link Document}
+	 * @return
 	 */
 	public Document updateDocumentById(String id, String newName, String mimeType, InputStream inputStream) {
 
@@ -277,15 +220,12 @@ public class CMISDocument {
 	}
 	
 	/**
-	 * Update document identified by its id, creating a new version
-	 * 
-	 * @param id
-	 *            Document's id to be updated
-	 * 
+	 * Update document identified by its id, creating a new version 
+	 * @param path
 	 * @param newName
-	 *            The document's new name
-	 * 
-	 * @return The updated {@link Document}
+	 * @param mimeType
+	 * @param inputStream
+	 * @return
 	 */
 	public Document updateDocumentById(String id, String newName) {
 
@@ -293,9 +233,10 @@ public class CMISDocument {
 
 		try {
 			Document document = (Document) session.getObject(id);
-
-			if (document == null)
+			
+			if (document == null) {
 				throw new CmisRuntimeException();
+			}
 
 			// prepare document properties - change name
 			Map<String, String> props = null;
@@ -306,36 +247,29 @@ public class CMISDocument {
 			}
 
 			document.updateProperties(props);
-
+			
 			return document;
 
 		} catch (CmisObjectNotFoundException e) {
-
+			
 			logger.error("Document is not found: id(" + id + ")");
 			throw e;
 		}
 	}
-	
+ 
 	/**
-	 * Returns all available versions for the given document
-	 * 
+	 * Return all document versions
 	 * @param document
-	 *            The document to get versions from
-	 * 
-	 * @return A list of {@link Document}
+	 * @return
 	 */
 	public List<Document> getDocumentVersions(Document document) {
-		
 		return document.getAllVersions();
 	}
-
+	
 	/**
-	 * Returns a document by a given path
-	 * 
+	 * Return the document object given its path
 	 * @param path
-	 *            Path to get document from
-	 * 
-	 * @return {@link Document}
+	 * @return
 	 */
 	public Document getDocumentByPath(String path) {
 
@@ -352,12 +286,9 @@ public class CMISDocument {
 	}
 	
 	/**
-	 * Returns a document by a given id
-	 * 
-	 * @param id
-	 *            Document's id
-	 * 
-	 * @return {@link Document}
+	 * Return the document object given its id
+	 * @param path
+	 * @return
 	 */
 	public Document getDocumentById(String id) {
 
@@ -374,34 +305,27 @@ public class CMISDocument {
 	}
 	
 	/**
-	 * Deletes a document's version
-	 * 
+	 * Return the specific document version
 	 * @param document
-	 *            Document to be deleted
-	 * 
-	 * @return {@link Boolean} if the document was successfully deleted
+	 * @return
 	 */
 	public Boolean deleteDocumentVersion(Document document) {
-
 		try {
 			document.delete(false);
-			
-		} catch (CmisObjectNotFoundException e) {
+		}
+		catch (CmisObjectNotFoundException e) {
 			return false;
 		}
+		
 		return true;
 	}
-
+	
 	/**
-	 * Get document's content stream
-	 * 
+	 * Get document content stream
 	 * @param document
-	 *            Document to get stream from
-	 * 
-	 * @return Document's {@link ContentStream}
+	 * @return
 	 */
 	public ContentStream getDocumentContent(Document document) {
-
 		return document.getContentStream();
 	}
 }

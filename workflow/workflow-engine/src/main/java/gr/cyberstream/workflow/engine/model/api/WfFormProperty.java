@@ -24,7 +24,6 @@ public class WfFormProperty {
 	private String device;
 
 	public WfFormProperty() {
-
 	}
 
 	public WfFormProperty(String id, String name, String type, String value, boolean readable, boolean writable,
