@@ -1,15 +1,11 @@
 package gr.cyberstream.workflow.engine.service.test;
 
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
+import gr.cyberstream.workflow.engine.config.test.ApplicationConfiguration;
+import gr.cyberstream.workflow.engine.config.test.MockKeycloakAccount;
+import gr.cyberstream.workflow.engine.config.test.MockKeycloakAuthenticationToken;
+import gr.cyberstream.workflow.engine.model.api.WfProcess;
+import gr.cyberstream.workflow.engine.model.api.WfProcessVersion;
+import gr.cyberstream.workflow.engine.service.DefinitionService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,12 +24,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
-import gr.cyberstream.workflow.engine.config.test.ApplicationConfiguration;
-import gr.cyberstream.workflow.engine.config.test.MockKeycloakAccount;
-import gr.cyberstream.workflow.engine.config.test.MockKeycloakAuthenticationToken;
-import gr.cyberstream.workflow.engine.model.api.WfProcess;
-import gr.cyberstream.workflow.engine.model.api.WfProcessVersion;
-import gr.cyberstream.workflow.engine.service.DefinitionService;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.assertTrue;
 
 @ContextConfiguration(classes = ApplicationConfiguration.class)
 @WebAppConfiguration
@@ -171,8 +170,8 @@ public class DefinitionServiceTest {
 		try {
 			byte[] content = Files.readAllBytes(Paths.get("C:/temp/bpmn/integrationTest.bpmn"));
 			MockMultipartFile file = new MockMultipartFile("file", "", MediaType.TEXT_XML_VALUE, content);
-			
-			WfProcess wfProcess = definitionService.createNewProcessDefinition(file.getInputStream(), file.getOriginalFilename());
+			String justification = "Test justification";
+			WfProcess wfProcess = definitionService.createNewProcessDefinition(file.getInputStream(), file.getOriginalFilename(), justification);
 			assertTrue(wfProcess != null);
 			
 		} catch (Exception e) {
@@ -219,8 +218,10 @@ public class DefinitionServiceTest {
 		try {
 			byte[] content = Files.readAllBytes(Paths.get("C:/temp/bpmn/WaterSupplyDamageReport-Localhost.bpmn"));
 			MockMultipartFile file = new MockMultipartFile("file", "", MediaType.TEXT_XML_VALUE, content);
-			
-			WfProcessVersion wfProcessVersion = definitionService.createNewProcessVersion(definitionId, file.getInputStream(), file.getOriginalFilename());
+			String justification = "Test justification";
+
+			WfProcessVersion wfProcessVersion = definitionService.createNewProcessVersion(definitionId, file.getInputStream(), file.getOriginalFilename(),
+					justification);
 			assertTrue(wfProcessVersion != null);
 			
 		} catch (Exception e) {
