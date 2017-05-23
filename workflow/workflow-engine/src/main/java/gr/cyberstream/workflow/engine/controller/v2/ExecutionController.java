@@ -260,7 +260,7 @@ public class ExecutionController {
 	 * 
 	 * @param id
 	 *            external form id
-	 * @param formData
+	 * @param instanceData
 	 *            the form data in key-value pairs
 	 * @throws InvalidRequestException
 	 * @throws InternalException
@@ -483,6 +483,56 @@ public class ExecutionController {
 	public List<WfProcessInstance> getInProgressInstances() throws InvalidRequestException {
 
 		return processService.getInProgressInstances();
+	}
+
+	/**
+	 * <code>GET: /api/v2/inprogress/instances/search:{definitionName},{instanceTitle},{dateAfter},{dateBefore}</code>
+	 *
+	 * Returns a list of all in progress instances by criteria
+	 *
+	 * @param definitionName
+	 *            The definition's name to get its ended instances
+	 * @param instanceTitle
+	 *            The process instance title
+	 * @param dateAfter
+	 *            The date after which to get the ended instances
+	 * @param dateBefore
+	 *            The date before which to get the ended instances
+	 *
+	 * @return List of {@link WfProcessInstance}
+	 * @throws InvalidRequestException
+	 */
+	@RequestMapping(value = "/inprogress/instances/search:{definitionName},{instanceTitle},{dateAfter},{dateBefore}", method = RequestMethod.GET)
+	@ResponseBody
+	public List<WfProcessInstance> getInProgressInstances(@PathVariable String definitionName, @PathVariable String instanceTitle,
+														  @PathVariable long dateAfter, @PathVariable long dateBefore) throws InvalidRequestException {
+
+		return processService.getInProgressInstances(definitionName, instanceTitle, dateAfter, dateBefore);
+	}
+
+	/**
+	 * <code>GET: /api/v2/instances/ended/search:{definitionName},{instanceTitle},{dateAfter},{dateBefore}</code>
+	 *
+	 * Returns a list of all ended instances
+	 *
+	 * @param definitionName
+	 *            The definition's name to get its ended instances
+	 * @param instanceTitle
+	 *            The process instance title
+	 * @param dateAfter
+	 *            The date after which to get the ended instances
+	 * @param dateBefore
+	 *            The date before which to get the ended instances
+	 *
+	 * @return List of {@link WfProcessInstance}
+	 * @throws InvalidRequestException
+	 */
+	@RequestMapping(value = "/instances/ended/search:{definitionName},{instanceTitle},{dateAfter},{dateBefore}", method = RequestMethod.GET)
+	@ResponseBody
+	public List<WfProcessInstance> getEndedProcessInstances(@PathVariable String definitionName, @PathVariable String instanceTitle,
+															@PathVariable long dateAfter, @PathVariable long dateBefore) throws InvalidRequestException {
+
+		return processService.getEndedProcessInstances(definitionName, instanceTitle, dateAfter, dateBefore);
 	}
 
 	/**

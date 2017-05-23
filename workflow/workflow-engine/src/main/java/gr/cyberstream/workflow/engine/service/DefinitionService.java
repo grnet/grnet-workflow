@@ -1,22 +1,21 @@
 package gr.cyberstream.workflow.engine.service;
 
-import java.io.InputStream;
-import java.util.List;
-
-import org.springframework.core.io.InputStreamResource;
-
 import gr.cyberstream.workflow.engine.model.FBLoginResponse;
 import gr.cyberstream.workflow.engine.model.WorkflowSettings;
 import gr.cyberstream.workflow.engine.model.api.WfProcess;
 import gr.cyberstream.workflow.engine.model.api.WfProcessVersion;
 import gr.cyberstream.workflow.engine.model.api.WfSettings;
+import org.springframework.core.io.InputStreamResource;
+
+import java.io.InputStream;
+import java.util.List;
 
 public interface DefinitionService {
 
 	/**
 	 * Returns a {@link WfProcess} by its id
 	 * 
-	 * @param definitionId
+	 * @param processId
 	 *            The process's id to be returned
 	 * 
 	 * @return {@link WfProcess}
@@ -84,10 +83,11 @@ public interface DefinitionService {
 	 * @param inputStream
 	 *            the input BPMN XML definition
 	 * @param filename
+	 * @param justification
 	 * @return the newly created process definition
 	 * @throws InvalidRequestException
 	 */
-	public WfProcess createNewProcessDefinition(InputStream inputStream, String filename)
+	public WfProcess createNewProcessDefinition(InputStream inputStream, String filename, String justification)
 			throws InvalidRequestException;
 
 	/**
@@ -98,8 +98,8 @@ public interface DefinitionService {
 	 * @return
 	 * @throws InvalidRequestException
 	 */
-	public WfProcessVersion createNewProcessVersion(int id, InputStream inputStream, String filename)
-			throws InvalidRequestException;
+	public WfProcessVersion createNewProcessVersion(int id, InputStream inputStream, String filename,
+													String justification) throws InvalidRequestException;
 
 	/**
 	 * Updates version of a definition
@@ -185,7 +185,7 @@ public interface DefinitionService {
 	/**
 	 * Update the system settings using the settings
 	 * 
-	 * @param settings
+	 * @param wfSettings
 	 * @return
 	 */
 	public WorkflowSettings updateSettings(WfSettings wfSettings);

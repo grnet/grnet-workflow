@@ -637,6 +637,15 @@ public class JPAProcesses implements Processes {
 	}
 
 	@Override
+	public List<WorkflowInstance> getEndedProgressInstances() {
+
+		TypedQuery<WorkflowInstance> query = entityManager.createQuery(
+				"select inst from WorkflowInstance inst where inst.status='ended' or inst.status='deleted'", WorkflowInstance.class);
+
+		return query.getResultList();
+	}
+
+	@Override
 	public void saveExternalUser(ExternalUser mobileUser) {
 
 		if (entityManager.contains(mobileUser))

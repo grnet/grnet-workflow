@@ -208,7 +208,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 	}
 
 	@Override
-	public WfProcess createNewProcessDefinition(InputStream inputStream, String filename)
+	public WfProcess createNewProcessDefinition(InputStream inputStream, String filename, String justification)
 			throws InvalidRequestException {
 		Deployment deployment;
 		String defaultIcon = environment.getProperty("defaultIcon");
@@ -300,6 +300,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 		definitionVersion.setVersion(processDef.getVersion());
 		definitionVersion.setDeploymentdate(deployment.getDeploymentTime());
 		definitionVersion.setProcessDefinitionId(processDef.getKey());
+		definitionVersion.setJustification(justification);
 
 		workflow.addDefinitionVersion(definitionVersion);
 
@@ -319,7 +320,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 
 	@Override
 	@Transactional
-	public WfProcessVersion createNewProcessVersion(int id, InputStream inputStream, String filename)
+	public WfProcessVersion createNewProcessVersion(int id, InputStream inputStream, String filename, String justification)
 			throws InvalidRequestException {
 		Deployment deployment;
 		ProcessDefinition processDef;
@@ -379,6 +380,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 			definitionVersion.setDeploymentdate(deployment.getDeploymentTime());
 			definitionVersion.setProcessDefinitionId(ActivitiHelper
 					.getProcessDefinitionByDeploymentId(activitiRepositoryService, deployment.getId()).getId());
+			definitionVersion.setJustification(justification);
 
 			workflow.addDefinitionVersion(definitionVersion);
 

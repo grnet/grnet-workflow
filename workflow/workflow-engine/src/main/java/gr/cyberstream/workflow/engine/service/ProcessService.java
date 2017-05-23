@@ -1,59 +1,29 @@
 package gr.cyberstream.workflow.engine.service;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.SecretKeySpec;
-import javax.imageio.ImageIO;
-import javax.json.Json;
-import javax.json.stream.JsonParser;
-import javax.json.stream.JsonParser.Event;
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
-import javax.ws.rs.core.UriBuilder;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gr.cyberstream.workflow.engine.cmis.CMISDocument;
+import gr.cyberstream.workflow.engine.cmis.CMISFolder;
+import gr.cyberstream.workflow.engine.config.SettingsStatus;
+import gr.cyberstream.workflow.engine.customtypes.ApproveFormType;
+import gr.cyberstream.workflow.engine.customtypes.ConversationType;
+import gr.cyberstream.workflow.engine.customtypes.DocumentType;
+import gr.cyberstream.workflow.engine.customtypes.MessageType;
+import gr.cyberstream.workflow.engine.listeners.CustomTaskFormFields;
+import gr.cyberstream.workflow.engine.model.*;
+import gr.cyberstream.workflow.engine.model.api.*;
+import gr.cyberstream.workflow.engine.persistence.Processes;
+import gr.cyberstream.workflow.engine.util.string.StringUtil;
+import nl.captcha.Captcha;
+import nl.captcha.text.producer.DefaultTextProducer;
 import org.activiti.bpmn.BpmnAutoLayout;
 import org.activiti.bpmn.exceptions.XMLException;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.FormValue;
 import org.activiti.bpmn.model.StartEvent;
 import org.activiti.bpmn.model.UserTask;
-import org.activiti.engine.ActivitiException;
-import org.activiti.engine.ActivitiIllegalArgumentException;
-import org.activiti.engine.FormService;
-import org.activiti.engine.HistoryService;
-import org.activiti.engine.ManagementService;
-import org.activiti.engine.RepositoryService;
-import org.activiti.engine.RuntimeService;
+import org.activiti.engine.*;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.StartFormData;
@@ -113,54 +83,32 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gr.cyberstream.workflow.engine.cmis.CMISDocument;
-import gr.cyberstream.workflow.engine.cmis.CMISFolder;
-import gr.cyberstream.workflow.engine.config.SettingsStatus;
-import gr.cyberstream.workflow.engine.customtypes.ApproveFormType;
-import gr.cyberstream.workflow.engine.customtypes.ConversationType;
-import gr.cyberstream.workflow.engine.customtypes.DocumentType;
-import gr.cyberstream.workflow.engine.customtypes.MessageType;
-import gr.cyberstream.workflow.engine.listeners.CustomTaskFormFields;
-import gr.cyberstream.workflow.engine.model.DefinitionVersion;
-import gr.cyberstream.workflow.engine.model.ExternalForm;
-import gr.cyberstream.workflow.engine.model.ExternalGroup;
-import gr.cyberstream.workflow.engine.model.ExternalUser;
-import gr.cyberstream.workflow.engine.model.ExternalWrapper;
-import gr.cyberstream.workflow.engine.model.FBLoginResponse;
-import gr.cyberstream.workflow.engine.model.Registry;
-import gr.cyberstream.workflow.engine.model.TaskPath;
-import gr.cyberstream.workflow.engine.model.TwitterAuthorization;
-import gr.cyberstream.workflow.engine.model.UserTaskDetails;
-import gr.cyberstream.workflow.engine.model.UserTaskFormElement;
-import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
-import gr.cyberstream.workflow.engine.model.WorkflowDefinitionStatus;
-import gr.cyberstream.workflow.engine.model.WorkflowInstance;
-import gr.cyberstream.workflow.engine.model.WorkflowSettings;
-import gr.cyberstream.workflow.engine.model.api.ApiFacebookPage;
-import gr.cyberstream.workflow.engine.model.api.ApiTwitterAccount;
-import gr.cyberstream.workflow.engine.model.api.WfDocument;
-import gr.cyberstream.workflow.engine.model.api.WfExternalUser;
-import gr.cyberstream.workflow.engine.model.api.WfFormProperty;
-import gr.cyberstream.workflow.engine.model.api.WfProcess;
-import gr.cyberstream.workflow.engine.model.api.WfProcessInstance;
-import gr.cyberstream.workflow.engine.model.api.WfProcessMetadata;
-import gr.cyberstream.workflow.engine.model.api.WfProcessStatus;
-import gr.cyberstream.workflow.engine.model.api.WfProcessVersion;
-import gr.cyberstream.workflow.engine.model.api.WfPublicForm;
-import gr.cyberstream.workflow.engine.model.api.WfPublicGroup;
-import gr.cyberstream.workflow.engine.model.api.WfPublicService;
-import gr.cyberstream.workflow.engine.model.api.WfSettings;
-import gr.cyberstream.workflow.engine.model.api.WfTask;
-import gr.cyberstream.workflow.engine.model.api.WfTaskDetails;
-import gr.cyberstream.workflow.engine.model.api.WfUser;
-import gr.cyberstream.workflow.engine.persistence.Processes;
-import gr.cyberstream.workflow.engine.util.string.StringUtil;
-import nl.captcha.Captcha;
-import nl.captcha.text.producer.DefaultTextProducer;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
+import javax.imageio.ImageIO;
+import javax.json.Json;
+import javax.json.stream.JsonParser;
+import javax.json.stream.JsonParser.Event;
+import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
+import javax.ws.rs.core.UriBuilder;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Implements all the business rules related to process definitions and process
@@ -191,6 +139,9 @@ public class ProcessService {
 
 	@Autowired
 	private HistoryService activitiHistorySrv;
+
+	@Autowired
+	private DefinitionService definitionService;
 
 	@Autowired
 	private FormService activitiFormSrv;
@@ -234,7 +185,7 @@ public class ProcessService {
 	/**
 	 * Returns a a process by its id
 	 * 
-	 * @param id
+	 * @param processId
 	 *            Process id
 	 * 
 	 * @return {@link WfProcess}
@@ -361,7 +312,7 @@ public class ProcessService {
 	/**
 	 * Delete process instance
 	 * 
-	 * @param id
+	 * @param instanceId
 	 *            Instance's id to be deleted
 	 * 
 	 * @throws InvalidRequestException
@@ -563,7 +514,7 @@ public class ProcessService {
 	/**
 	 * Returns as list workflow definition API models by selected owners
 	 * 
-	 * @param ownerName
+	 * @param owner
 	 * @return as list workflow definition API models by owner
 	 */
 	@Deprecated
@@ -918,7 +869,8 @@ public class ProcessService {
 	 * Generates a diagram based on given task.
 	 * Shows the task's position in diagram
 	 * 
-	 * @param wfTask
+	 * @param definitionId
+	 * @param taskDefinition
 	 * @return
 	 */
 	public InputStreamResource getTaskProcessDiagram(int definitionId, String taskDefinition) {
@@ -1230,8 +1182,9 @@ public class ProcessService {
 	/**
 	 * Return the full metadata set for the workflow definition
 	 * 
-	 * @param id
+	 * @param formId
 	 *            the id of the workflow definition
+	 * @param device
 	 * @return
 	 */
 	public WfProcessMetadata getPublicProcessMetadata(String formId, String device) throws InvalidRequestException {
@@ -1943,7 +1896,7 @@ public class ProcessService {
 	 * @param instanceId
 	 *            is the process instance id the document will be added to
 	 *            
-	 * @param document
+	 * @param wfDocument
 	 *            is the document metadata
 	 *            
 	 * @param inputStream
@@ -1985,7 +1938,7 @@ public class ProcessService {
 	 * 
 	 * @param instanceId
 	 *            is the process instance id the document will be added to
-	 * @param document
+	 * @param wfDocument
 	 *            is the document metadata
 	 * @return
 	 * @throws InvalidRequestException
@@ -3191,7 +3144,7 @@ public class ProcessService {
 	/**
 	 * Set assignee to a task
 	 * 
-	 * @param taskId
+	 * @param wfTask
 	 * @param assigneeId
 	 * @throws InvalidRequestException
 	 */
@@ -3234,7 +3187,7 @@ public class ProcessService {
 				// }
 
 				activitiTaskSrv.claim(wfTask.getId(), assigneeId);
-				mailService.sendTaskAssignedMail(assigneeId, wfTask.getId(), wfTask.getName(), wfTask.getDueDate());
+				mailService.sendTaskAssignedMail(assigneeId, wfTask);
 
 			} catch (ActivitiException e) {
 
@@ -3341,7 +3294,7 @@ public class ProcessService {
 				// }
 
 				activitiTaskSrv.claim(wfTask.getId(), assigneeId);
-				mailService.sendTaskAssignedMail(assigneeId, wfTask.getId(), wfTask.getName(), wfTask.getDueDate());
+				mailService.sendTaskAssignedMail(assigneeId, wfTask);
 
 			} catch (ActivitiException e) {
 
@@ -3610,7 +3563,7 @@ public class ProcessService {
 				unAssigned = true;
 			}
 
-			mailService.sendDueTaskMail(recipient, task.getId(), task.getName(), task.getDueDate(), unAssigned);
+			mailService.sendDueTaskMail(recipient, task, unAssigned);
 		}
 
 		List<Task> expiredTasks = activitiTaskSrv.createTaskQuery().active().taskDueBefore(today).list();
@@ -3627,7 +3580,7 @@ public class ProcessService {
 				unAssigned = true;
 			}
 
-			mailService.sendTaskExpiredMail(recipient, task.getId(), task.getName(), task.getDueDate(), unAssigned);
+			mailService.sendTaskExpiredMail(recipient, task, unAssigned);
 		}
 	}
 
@@ -3682,7 +3635,7 @@ public class ProcessService {
 		instance.setEndDate(new Date());
 		processRepository.save(instance);
 	}
-	
+
 	/**
 	 * Used to start any instance with or wo documents.<br>
 	 * Creates a record in workflowinstance's table by getting the variable
@@ -3896,21 +3849,18 @@ public class ProcessService {
 	/**
 	 * Apply current workflow settings
 	 * 
-	 * @param executionId
+	 * @param task
 	 */
 	public void applyTaskSettings(Task task) {
-		WorkflowSettings settings = getSettings();
-		List<WfUser> users = getCandidatesByTaskId(task.getId());
-		String adminEmail = environment.getProperty("mail.admin");
-		
-		for(String variableName : task.getProcessVariables().keySet()) {
-			logger.debug("Variable : " + variableName + " VALUE " + task.getProcessVariables().get(variableName) );
-		}
-		
-		if (users == null || users.isEmpty()) {
-			WorkflowDefinition workflowDef = processRepository.getProcessByDefinitionId(task.getProcessDefinitionId());
+		WorkflowSettings settings = definitionService.getSettings();
 
-			mailService.sendBpmnErrorEmail(adminEmail, workflowDef, task.getName());
+		List<WfUser> users = this.getCandidatesByTaskId(task.getId());
+
+		if (users == null || users.isEmpty()) {
+			String adminEmail = environment.getProperty("mail.admin");
+			WorkflowDefinition workflowDef = processRepository.getProcessByDefinitionId(task.getProcessDefinitionId());
+			WorkflowInstance instance = processRepository.getInstanceById(task.getProcessInstanceId());
+			mailService.sendBpmnErrorEmail(adminEmail, workflowDef, task, instance);
 			return;
 		}
 
@@ -3922,7 +3872,7 @@ public class ProcessService {
 		activitiTaskSrv.claim(task.getId(), userEmail);
 
 		if (settings.isAssignmentNotification())
-			mailService.sendTaskAssignedMail(userEmail, task.getId(), task.getName(), task.getDueDate());
+			mailService.sendTaskAssignedMail(userEmail, new WfTask(task));
 	}
 
 	/**
@@ -3945,7 +3895,7 @@ public class ProcessService {
 	/**
 	 * Update the system settings using the settings (api model)
 	 * 
-	 * @param settings
+	 * @param wfSettings
 	 * @return
 	 */
 	@Transactional(rollbackFor = Exception.class)
@@ -4120,7 +4070,7 @@ public class ProcessService {
 	/**
 	 * Delete an external form
 	 * 
-	 * @param id
+	 * @param externalFormId
 	 * @throws InvalidRequestException
 	 */
 	@Transactional(rollbackFor = Exception.class)
@@ -4143,7 +4093,7 @@ public class ProcessService {
 	/**
 	 * Suspend / Resume an external form
 	 * 
-	 * @param id
+	 * @param externalFormId
 	 *            External form's id
 	 * 
 	 * @param enabled
@@ -4517,7 +4467,7 @@ public class ProcessService {
 	/**
 	 * Removes access to the specified facebook page
 	 * 
-	 * @param pagename
+	 * @param pageName
 	 * @return
 	 */
 	@Transactional(rollbackFor = Exception.class)
@@ -4814,7 +4764,7 @@ public class ProcessService {
 	/**
 	 * Creates a new mobile user or update the existing one
 	 * 
-	 * @param wfMobileUser
+	 * @param wfExternalUser
 	 */
 	@Transactional
 	public void saveExternalUser(WfExternalUser wfExternalUser) {
@@ -4873,7 +4823,7 @@ public class ProcessService {
 
 	/**
 	 * Returns all in progress instances
-	 * 
+	 *
 	 * @return a list of in progress instances
 	 * @throws InvalidRequestException
 	 */
@@ -4882,6 +4832,97 @@ public class ProcessService {
 
 		returnList.addAll(WfProcessInstance.fromWorkflowInstances(processRepository.getInProgressInstances()));
 
+		return returnList;
+	}
+
+	/**
+	 * Returns all in progress instances by given criteria
+	 *
+	 * @return a list of in progress instances
+	 */
+	public List<WfProcessInstance> getInProgressInstances(String definitionName, String instanceTitle, long after,
+														  long before) {
+		ArrayList<WfProcessInstance> returnList = new ArrayList<>();
+		Date dateAfter = new Date(after);
+		Date dateBefore = new Date(before);
+
+		if(definitionName.isEmpty() || definitionName.equals("all"))
+			definitionName = null;
+		else
+			definitionName = processRepository.getDefinitionByKey(definitionName).getName();
+
+		if(instanceTitle.isEmpty() || instanceTitle.equals(" "))
+			instanceTitle = null;
+
+
+		for(WfProcessInstance instance : WfProcessInstance.fromWorkflowInstances(processRepository.getInProgressInstances())) {
+			if (instance != null) {
+				String title = instance.getTitle().toLowerCase();
+				String name = instance.getDefinitionName().toLowerCase();
+
+				if (dateBefore.getTime() == 0) {
+					dateBefore = new Date();
+				}
+
+				if ((instanceTitle == null || instanceTitle.toLowerCase().equals(title))
+						&& (definitionName == null || definitionName.toLowerCase().equals(name))
+						&& instance.getStartDate() != null && instance.getStartDate().after(dateAfter)
+						&& instance.getStartDate() != null && instance.getStartDate().before(dateBefore)) {
+
+					returnList.add(instance);
+				}
+			}
+		}
+		return returnList;
+	}
+
+	/**
+	 * Returns all ended instances by given criteria
+	 *
+	 * @param definitionName
+	 *            The definition's name to get its ended instances
+	 * @param instanceTitle
+	 *            The process instance title
+	 * @param after
+	 *            The date after which to get the ended instances
+	 * @param before
+	 *            The date before which to get the ended instances
+	 *
+	 * @return A list of {@link WfProcessInstance}
+	 */
+	public List<WfProcessInstance> getEndedProcessInstances(String definitionName, String instanceTitle, long after,
+															long before) {
+		ArrayList<WfProcessInstance> returnList = new ArrayList<>();
+		Date dateAfter = new Date(after);
+		Date dateBefore = new Date(before);
+
+		if(definitionName.isEmpty() || definitionName.equals("all"))
+			definitionName = null;
+		else
+			definitionName = processRepository.getDefinitionByKey(definitionName).getName();
+
+		if(instanceTitle.isEmpty() || instanceTitle.equals(" "))
+			instanceTitle = null;
+
+
+		for(WfProcessInstance instance : WfProcessInstance.fromWorkflowInstances(processRepository.getEndedProgressInstances())) {
+			if (instance != null) {
+				String title = instance.getTitle().toLowerCase();
+				String name = instance.getDefinitionName().toLowerCase();
+
+				if (dateBefore.getTime() == 0) {
+					dateBefore = new Date();
+				}
+
+				if ((instanceTitle == null || instanceTitle.toLowerCase().equals(title))
+						&& (definitionName == null || definitionName.toLowerCase().equals(name))
+						&& instance.getEndDate() != null && instance.getEndDate().after(dateAfter)
+						&& instance.getEndDate() != null && instance.getEndDate().before(dateBefore)) {
+
+					returnList.add(instance);
+				}
+			}
+		}
 		return returnList;
 	}
 
@@ -5394,7 +5435,7 @@ public class ProcessService {
 	 * 
 	 * Parses the bpmn file to retrieve the id of the process.
 	 * 
-	 * @param inputStream
+	 * @param bpmn
 	 * @return
 	 * @throws InvalidRequestException
 	 */

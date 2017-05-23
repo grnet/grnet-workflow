@@ -1,16 +1,11 @@
 package gr.cyberstream.workflow.engine.service;
 
-import java.util.List;
-
+import gr.cyberstream.workflow.engine.model.UserTaskFormElement;
+import gr.cyberstream.workflow.engine.model.api.*;
 import org.activiti.engine.task.Task;
 import org.springframework.web.multipart.MultipartFile;
 
-import gr.cyberstream.workflow.engine.model.UserTaskFormElement;
-import gr.cyberstream.workflow.engine.model.api.WfDocument;
-import gr.cyberstream.workflow.engine.model.api.WfFormProperty;
-import gr.cyberstream.workflow.engine.model.api.WfTask;
-import gr.cyberstream.workflow.engine.model.api.WfTaskDetails;
-import gr.cyberstream.workflow.engine.model.api.WfUser;
+import java.util.List;
 
 public interface TaskService {
 
@@ -260,6 +255,18 @@ public interface TaskService {
 	public List<WfTask> getAllActiveTasks();
 
 	/**
+	 * Returns active tasks by given criteria
+	 *
+	 * @param definitionName
+	 * @param taskName
+	 * @param after
+	 * @param before
+	 *
+	 * @return
+	 */
+	public List<WfTask> getActiveTasks(String definitionName, String taskName, long after, long before);
+
+	/**
 	 * Returns tasks of ended processes based on given criteria.
 	 * 
 	 * @param title
@@ -315,4 +322,13 @@ public interface TaskService {
 	 * @throws InvalidRequestException
 	 */
 	public List<WfDocument> getProcessInstanceDocumentsByTask(int id) throws InvalidRequestException;
+
+
+	/**
+	 * This function is called when there is no candidate for a specific task.
+	 *
+	 * @param taskId
+	 *            The ID of the task that has no candidates
+	 */
+	public void notifyAdminForTask(String taskId, String username) throws InvalidRequestException;
 }

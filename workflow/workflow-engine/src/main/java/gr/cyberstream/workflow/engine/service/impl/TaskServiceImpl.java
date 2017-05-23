@@ -1,23 +1,21 @@
 package gr.cyberstream.workflow.engine.service.impl;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gr.cyberstream.workflow.engine.cmis.CMISDocument;
+import gr.cyberstream.workflow.engine.cmis.CMISFolder;
+import gr.cyberstream.workflow.engine.customtypes.ConversationType;
+import gr.cyberstream.workflow.engine.customtypes.DocumentType;
+import gr.cyberstream.workflow.engine.customtypes.MessageType;
+import gr.cyberstream.workflow.engine.listeners.CustomTaskFormFields;
+import gr.cyberstream.workflow.engine.model.*;
+import gr.cyberstream.workflow.engine.model.api.*;
+import gr.cyberstream.workflow.engine.persistence.Processes;
+import gr.cyberstream.workflow.engine.service.*;
+import gr.cyberstream.workflow.engine.service.TaskService;
 import org.activiti.bpmn.model.FormValue;
-import org.activiti.engine.ActivitiException;
-import org.activiti.engine.ActivitiObjectNotFoundException;
-import org.activiti.engine.FormService;
-import org.activiti.engine.HistoryService;
-import org.activiti.engine.RepositoryService;
+import org.activiti.engine.*;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.TaskFormData;
 import org.activiti.engine.history.HistoricDetail;
@@ -45,36 +43,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gr.cyberstream.workflow.engine.cmis.CMISDocument;
-import gr.cyberstream.workflow.engine.cmis.CMISFolder;
-import gr.cyberstream.workflow.engine.customtypes.ConversationType;
-import gr.cyberstream.workflow.engine.customtypes.DocumentType;
-import gr.cyberstream.workflow.engine.customtypes.MessageType;
-import gr.cyberstream.workflow.engine.listeners.CustomTaskFormFields;
-import gr.cyberstream.workflow.engine.model.DefinitionVersion;
-import gr.cyberstream.workflow.engine.model.TaskPath;
-import gr.cyberstream.workflow.engine.model.UserTaskDetails;
-import gr.cyberstream.workflow.engine.model.UserTaskFormElement;
-import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
-import gr.cyberstream.workflow.engine.model.WorkflowInstance;
-import gr.cyberstream.workflow.engine.model.WorkflowSettings;
-import gr.cyberstream.workflow.engine.model.api.WfDocument;
-import gr.cyberstream.workflow.engine.model.api.WfFormProperty;
-import gr.cyberstream.workflow.engine.model.api.WfProcessInstance;
-import gr.cyberstream.workflow.engine.model.api.WfTask;
-import gr.cyberstream.workflow.engine.model.api.WfTaskDetails;
-import gr.cyberstream.workflow.engine.model.api.WfUser;
-import gr.cyberstream.workflow.engine.persistence.Processes;
-import gr.cyberstream.workflow.engine.service.ActivitiHelper;
-import gr.cyberstream.workflow.engine.service.DefinitionService;
-import gr.cyberstream.workflow.engine.service.InvalidRequestException;
-import gr.cyberstream.workflow.engine.service.MailService;
-import gr.cyberstream.workflow.engine.service.RealmService;
-import gr.cyberstream.workflow.engine.service.TaskService;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 @Service
 public class TaskServiceImpl implements TaskService {
@@ -261,6 +232,7 @@ public class TaskServiceImpl implements TaskService {
 
 						WfTask wfTask = new WfTask(task);
 						wfTask.setProcessInstance(new WfProcessInstance(instance));
+						wfTask.setDefinitionName(instance.getDefinitionVersion().getWorkflowDefinition().getName());
 						wfTask.setIcon(instance.getDefinitionVersion().getWorkflowDefinition().getIcon());
 						returnList.add(wfTask);
 					}
@@ -322,6 +294,7 @@ public class TaskServiceImpl implements TaskService {
 
 							WfTask wfTask = new WfTask(task);
 							wfTask.setProcessInstance(new WfProcessInstance(instance));
+							wfTask.setDefinitionName(instance.getDefinitionVersion().getWorkflowDefinition().getName());
 							wfTask.setIcon(instance.getDefinitionVersion().getWorkflowDefinition().getIcon());
 							returnList.add(wfTask);
 						}
@@ -334,6 +307,7 @@ public class TaskServiceImpl implements TaskService {
 
 							WfTask wfTask = new WfTask(task);
 							wfTask.setProcessInstance(new WfProcessInstance(instance));
+							wfTask.setDefinitionName(instance.getDefinitionVersion().getWorkflowDefinition().getName());
 							wfTask.setIcon(instance.getDefinitionVersion().getWorkflowDefinition().getIcon());
 							returnList.add(wfTask);
 						}
@@ -834,7 +808,7 @@ public class TaskServiceImpl implements TaskService {
 					}
 				}
 				activitiTaskService.claim(wfTask.getId(), assigneeId);
-				mailService.sendTaskAssignedMail(assigneeId, wfTask.getId(), wfTask.getName(), wfTask.getDueDate());
+				mailService.sendTaskAssignedMail(assigneeId, wfTask);
 
 			} catch (ActivitiException e) {
 				logger.error(e.getMessage());
@@ -902,7 +876,7 @@ public class TaskServiceImpl implements TaskService {
 					}
 				}
 				activitiTaskService.claim(wfTask.getId(), assigneeId);
-				mailService.sendTaskAssignedMail(assigneeId, wfTask.getId(), wfTask.getName(), wfTask.getDueDate());
+				mailService.sendTaskAssignedMail(assigneeId, wfTask);
 
 			} catch (ActivitiException e) {
 				logger.error(e.getMessage());
@@ -917,29 +891,55 @@ public class TaskServiceImpl implements TaskService {
 	@Override
 	public void unClaimTask(String taskId) throws InvalidRequestException {
 		String user = retrieveToken().getEmail();
-		Task task = activitiTaskService.createTaskQuery().taskId(taskId).singleResult();
-		WorkflowInstance instance = processRepository.getInstanceById(task.getProcessInstanceId());
+		try {
+			Task task = activitiTaskService.createTaskQuery().taskId(taskId).singleResult();
+			WorkflowInstance instance = processRepository.getInstanceById(task.getProcessInstanceId());
 
-		if (instance.getSupervisor().equals(user) || task.getAssignee().equals(user) || hasRole(ROLE_ADMIN)) {
-			try {
-				activitiTaskService.unclaim(taskId);
+			if (instance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
+				throw new InvalidRequestException("claimTaskInstanceSuspended");
 
-			} catch (Exception e) {
-				logger.error(e.getMessage());
+			if (instance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
+				throw new InvalidRequestException("claimTaskInstanceDeleted");
+
+			if (instance.getStatus().equals(WorkflowInstance.STATUS_ENDED))
+				throw new InvalidRequestException("claimTaskInstanceEnded");
+
+			if (instance.getSupervisor().equals(user) || task.getAssignee().equals(user) || hasRole(ROLE_ADMIN)) {
+					activitiTaskService.unclaim(taskId);
+			} else
+				throw new InvalidRequestException("noAuthorizedToUnclaim");
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			if(!(e instanceof InvalidRequestException)){
+				throw new InvalidRequestException("claimTaskInstanceNotActive");
+			} else
 				throw new InvalidRequestException(e.getMessage());
-			}
-		} else
-			throw new InvalidRequestException("Seems you are not authorized to unclaim the task");
+		}
 	}
 
 	@Override
 	public void claimTask(String taskId) throws InvalidRequestException {
 		try {
+			Task task = activitiTaskService.createTaskQuery().taskId(taskId).singleResult();
+			WorkflowInstance instance = processRepository.getInstanceById(task.getProcessInstanceId());
+
+			if (instance.getStatus().equals(WorkflowInstance.STATUS_SUSPENDED))
+				throw new InvalidRequestException("claimTaskInstanceSuspended");
+
+			if (instance.getStatus().equals(WorkflowInstance.STATUS_DELETED))
+				throw new InvalidRequestException("claimTaskInstanceDeleted");
+
+			if (instance.getStatus().equals(WorkflowInstance.STATUS_ENDED))
+				throw new InvalidRequestException("claimTaskInstanceEnded");
+
 			String assignee = retrieveToken().getEmail();
 			activitiTaskService.claim(taskId, assignee);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
-			throw new InvalidRequestException(e.getMessage());
+			if(!(e instanceof InvalidRequestException)){
+				throw new InvalidRequestException("claimTaskInstanceNotActive");
+			} else
+				throw new InvalidRequestException(e.getMessage());
 		}
 	}
 
@@ -1066,6 +1066,59 @@ public class TaskServiceImpl implements TaskService {
 		return wfTasks;
 	}
 
+	/**
+	 * Returns active tasks by given criteria
+	 *
+	 * @param definitionName
+	 * @param taskName
+	 * @param after
+	 * @param before
+	 *
+	 * @return
+	 */
+	@Transactional
+	public List<WfTask> getActiveTasks(String definitionName, String taskName, long after, long before) {
+		List<WfTask> wfTasks = new ArrayList<>();
+
+		// get all active tasks
+		List<Task> tasks = activitiTaskService.createTaskQuery().active().list();
+
+		Date dateAfter = new Date(after);
+		Date dateBefore = new Date(before);
+
+		if(definitionName.isEmpty() || definitionName.equals("all"))
+			definitionName = null;
+		else
+			definitionName = processRepository.getDefinitionByKey(definitionName).getName();
+
+		if(taskName.isEmpty() || taskName.equals(" "))
+			taskName = null;
+
+		for (Task task : tasks) {
+			if(dateBefore.getTime() == 0)
+				dateBefore = new Date();
+
+			if((taskName != null && !taskName.toLowerCase().equals(task.getName().toLowerCase()))||
+					!task.getCreateTime().after(dateAfter) ||
+					!task.getCreateTime().before(dateBefore))
+				continue;
+
+			WorkflowInstance instance = processRepository.getInstanceById(task.getProcessInstanceId());
+			if(definitionName == null ||
+					definitionName.toLowerCase().equals(instance.getDefinitionVersion().getWorkflowDefinition().
+							getName().toLowerCase())){
+				WfTask wfTask = new WfTask(task);
+				wfTask.setIcon(instance.getDefinitionVersion().getWorkflowDefinition().getIcon());
+				wfTask.setDefinitionName(instance.getDefinitionVersion().getWorkflowDefinition().getName());
+				wfTask.setProcessInstance(new WfProcessInstance(instance));
+
+				wfTasks.add(wfTask);
+			}
+		}
+
+		return wfTasks;
+	}
+
 	@Override
 	public List<WfTask> getEndedProcessInstancesTasks(String title, long after, long before, boolean anonymous) {
 		List<WfTask> wfTasks = new ArrayList<WfTask>();
@@ -1152,7 +1205,8 @@ public class TaskServiceImpl implements TaskService {
 		if (users == null || users.isEmpty()) {
 			String adminEmail = environment.getProperty("mail.admin");
 			WorkflowDefinition workflowDef = processRepository.getProcessByDefinitionId(task.getProcessDefinitionId());
-			mailService.sendBpmnErrorEmail(adminEmail, workflowDef, task.getName());
+			WorkflowInstance instance = processRepository.getInstanceById(task.getProcessInstanceId());
+			mailService.sendBpmnErrorEmail(adminEmail, workflowDef, task, instance);
 			return;
 		}
 
@@ -1164,7 +1218,7 @@ public class TaskServiceImpl implements TaskService {
 		activitiTaskService.claim(task.getId(), userEmail);
 
 		if (settings.isAssignmentNotification())
-			mailService.sendTaskAssignedMail(userEmail, task.getId(), task.getName(), task.getDueDate());
+			mailService.sendTaskAssignedMail(userEmail, new WfTask(task));
 	}
 
 	@Override
@@ -1526,5 +1580,22 @@ public class TaskServiceImpl implements TaskService {
 		List<String> userGroups = realmService.getUserGroups();
 
 		return userGroups.contains(group) ? true : false;
+	}
+
+	/**
+	 * This function is called when there is no candidate for a specific task.
+	 *
+	 * @param taskId
+	 *            The ID of the task that has no candidates
+	 */
+	public void notifyAdminForTask(String taskId, String username) throws InvalidRequestException {
+		String adminEmail = environment.getProperty("mail.admin");
+		Task workflowTask = activitiTaskService.createTaskQuery().taskId(taskId).singleResult();
+
+		try {
+			mailService.sendNoCandidatesErrorEmail(adminEmail, workflowTask, username);
+		} catch (InternalException e) {
+			throw new InvalidRequestException("emailNotSentContactAdmin");
+		}
 	}
 }

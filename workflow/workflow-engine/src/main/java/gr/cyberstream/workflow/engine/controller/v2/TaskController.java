@@ -78,6 +78,28 @@ public class TaskController {
 	}
 
 	/**
+	 * Returns active tasks by given criteria
+	 *
+	 * @param definitionName
+	 *            The definition's name of the active tasks
+	 * @param taskName
+	 *            The task name
+	 * @param dateAfter
+	 *            The date after which the task was created
+	 * @param dateBefore
+	 *            The date before which the task was created
+
+	 * @return List of {@link WfTask}
+	 */
+	@RequestMapping(value = "/tasks/search:{definitionName},{taskName},{dateAfter},{dateBefore}", method = RequestMethod.GET)
+	@ResponseBody
+	public List<WfTask> getAllActiveTasks(@PathVariable String definitionName, @PathVariable String taskName,
+										  @PathVariable long dateAfter, @PathVariable long dateBefore) {
+
+		return taskService.getActiveTasks(definitionName, taskName, dateAfter, dateBefore);
+	}
+
+	/**
 	 * <code>GET: /api/v2/task/execution/{id}</code>
 	 * 
 	 * Returns all tasks of the specified execution.
@@ -541,6 +563,21 @@ public class TaskController {
 	public List<WfDocument> getDocumentsByTask(@PathVariable int id) throws InvalidRequestException {
 
 		return taskService.getProcessInstanceDocumentsByTask(id);
+	}
+
+	/**
+	 * <code>PUT: /api/v2/task/{id}/candidates/nocandidates/{username}</code>
+	 *
+	 * Sends an e-mail to administrator because no candidates
+	 * were found for the assignment of the task
+	 *
+	 * @param id
+	 *            Task's id
+	 */
+	@RequestMapping(value = "/task/{id}/candidates/nocandidates/{username}", method = RequestMethod.PUT)
+	public void notifyAdminForTask(@PathVariable String id, @PathVariable String username) throws InvalidRequestException {
+
+		taskService.notifyAdminForTask(id, username);
 	}
 
 	/**

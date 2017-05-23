@@ -133,14 +133,15 @@ public class DefinitionController {
 	 * @throws InternalException
 	 * @throws InvalidRequestException
 	 */
-	@RequestMapping(value = "/process", method = RequestMethod.POST)
+	@RequestMapping(value = "/process:{justification}", method = RequestMethod.POST)
 	@ResponseBody
-	public WfProcess createProcessDefinition(@RequestPart("file") MultipartFile uploadedFile)
+	public WfProcess createProcessDefinition(@RequestPart("file") MultipartFile uploadedFile,
+											 @PathVariable String justification)
 			throws InternalException, InvalidRequestException {
 
 		try {
 			return definitionService.createNewProcessDefinition(uploadedFile.getInputStream(),
-					uploadedFile.getOriginalFilename());
+					uploadedFile.getOriginalFilename(), justification);
 
 		} catch (IOException e) {
 			logger.error("Unable to read the BPMN input file " + uploadedFile.getOriginalFilename());
@@ -223,15 +224,16 @@ public class DefinitionController {
 	 * @return {@link WfProcessVersion} The new process version
 	 * @throws InvalidRequestException
 	 */
-	@RequestMapping(value = "/process/{id}/version", method = RequestMethod.POST)
+	@RequestMapping(value = "/process/{id}/version:{justification}", method = RequestMethod.POST)
 	@ResponseBody
 	@PreAuthorize("hasAnyRole('ProcessAdmin','Admin')")
 	public WfProcessVersion createProcessVersion(@PathVariable int id,
-			@RequestPart("file") MultipartFile uploadedFileRef) throws InternalException, InvalidRequestException {
+			@RequestPart("file") MultipartFile uploadedFileRef, @PathVariable String justification)
+			throws InternalException, InvalidRequestException {
 
 		try {
 			return definitionService.createNewProcessVersion(id, uploadedFileRef.getInputStream(),
-					uploadedFileRef.getOriginalFilename());
+					uploadedFileRef.getOriginalFilename(), justification);
 		} catch (IOException e) {
 			logger.error("Unable to read the BPMN input file " + uploadedFileRef.getOriginalFilename());
 			logger.error(e.getMessage());

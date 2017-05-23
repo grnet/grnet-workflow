@@ -3,22 +3,9 @@
  */
 package gr.cyberstream.workflow.engine.persistence;
 
-import java.util.List;
+import gr.cyberstream.workflow.engine.model.*;
 
-import gr.cyberstream.workflow.engine.model.DefinitionVersion;
-import gr.cyberstream.workflow.engine.model.ExternalForm;
-import gr.cyberstream.workflow.engine.model.ExternalGroup;
-import gr.cyberstream.workflow.engine.model.ExternalUser;
-import gr.cyberstream.workflow.engine.model.ExternalWrapper;
-import gr.cyberstream.workflow.engine.model.Owner;
-import gr.cyberstream.workflow.engine.model.Registry;
-import gr.cyberstream.workflow.engine.model.Role;
-import gr.cyberstream.workflow.engine.model.TaskPath;
-import gr.cyberstream.workflow.engine.model.UserTaskDetails;
-import gr.cyberstream.workflow.engine.model.UserTaskFormElement;
-import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
-import gr.cyberstream.workflow.engine.model.WorkflowInstance;
-import gr.cyberstream.workflow.engine.model.WorkflowSettings;
+import java.util.List;
 
 /**
  * Process repository interface. Access to process entities.
@@ -473,7 +460,7 @@ public interface Processes {
 	/**
 	 * Deletes external form by id
 	 * 
-	 * @param xform
+	 * @param externalFormId
 	 *            The external form to be deleted
 	 */
 	public void deleteExternalForm(String externalFormId);
@@ -653,6 +640,14 @@ public interface Processes {
 	public List<WorkflowInstance> getInProgressInstances();
 
 	/**
+	 * Returns a list of ended progress instances
+	 *
+	 * @return A list of {@link WorkflowInstance} containing ended
+	 *         instances
+	 */
+	public List<WorkflowInstance> getEndedProgressInstances();
+
+	/**
 	 * Save or update an external user
 	 * 
 	 * @param externalUser
@@ -682,7 +677,7 @@ public interface Processes {
 
 	/**
 	 * 
-	 * @param groupId
+	 * @param ownerId
 	 * @return
 	 */
 	public Owner getOwnerById(String ownerId);
