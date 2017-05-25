@@ -16,8 +16,9 @@ define(['angular'],
              * 
              * Note: On v2 api the url should be /api/v2/process
              */
-            this.createProcess = function (file) {
-                var url = config.WORKFLOW_SERVICE_ENTRY + '/processbpmn';
+            this.createProcess = function (file, justification) {
+                var url = config.WORKFLOW_SERVICE_ENTRY + '/processbpmn:'
+                    + justification;
 
                 var fd = new FormData();
                 fd.append('file', file);
@@ -106,8 +107,10 @@ define(['angular'],
              * Note: On v2 api the url should be /api/v2/process/{id}/version
              *
              */
-            this.createProcessVersion = function (processId, file) {
-                var url = config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId;
+            this.createProcessVersion = function (processId, file, justification) {
+                var url = config.WORKFLOW_SERVICE_ENTRY + '/process/'
+                    + processId + ","
+                    + justification;
 
                 var fd = new FormData();
                 fd.append('file', file);
@@ -348,11 +351,42 @@ define(['angular'],
             };
 
             /**
+             * @memberOf processService
+             * @function getActiveProcesses
+             * @desc Gets all active processes
+             *
+             * @returns {HttpPromise}
+             */
+            this.getActiveProcesses = function () {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/active');
+            };
+
+            /**
+             * @memberOf processService
+             * @function getEndedInstances
+             * @desc Searches for ended instances based on given criteria
+             *
+             * @param {String} definitionName
+             * @param {String} instanceTitle
+             * @param {Number} dateAfterTime
+             * @param {Number} dateBeforeTime
+             * @returns {HttpPromise}
+             */
+            this.getEndedInstances = function (definitionName, instanceTitle, dateAfterTime, dateBeforeTime) {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/instances/ended/search:'
+                    + definitionName + ","
+                    + instanceTitle + ","
+                    + dateAfterTime + ","
+                    + dateBeforeTime
+                );
+            };
+
+            /**
              * Retrieve all ended instances
-             * 
+             *
              * V1 API: @name ProcessController#getEndedProcessInstancesTasks
              * V2 API: @name TaskController#getEndedProcessInstancesTasks
-             * 
+             *
              * Note: On v2 api the url should be /api/v2/task/execution/ended/search:{title:.+},{after:\\d+},{before:\\d+},{anonymous:.+}
              */
             this.getEndedInstancesTasks = function (title, after, before, anonymous) {
@@ -386,6 +420,21 @@ define(['angular'],
              */
             this.getActiveTasks = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task');
+            };
+
+            /**
+             * @memberof processService
+             * @desc Retrieve active tasks by given criteria
+             * API: @name ExecutionController#getActiveTasksByCriteria
+             *
+             * @returns {HttpPromise}
+             */
+            this.getActiveTasksByCriteria = function (definitionName, taskName, after, before) {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/search:'
+                    + definitionName + ","
+                    + taskName + ","
+                    + after + ","
+                    + before);
             };
 
             /**
@@ -671,6 +720,26 @@ define(['angular'],
              */
             this.getInProgressInstances = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/inprogress/instances');
+            };
+
+            /**
+             * @memberOf processService
+             * @function getInProgressInstancesByCriteria
+             * @desc Searches for in progress instances based on given criteria
+             *
+             * @param {String} definitionName
+             * @param {String} instanceTitle
+             * @param {Number} dateAfterTime
+             * @param {Number} dateBeforeTime
+             * @returns {HttpPromise}
+             */
+            this.getInProgressInstancesByCriteria = function (definitionName, instanceTitle, dateAfterTime, dateBeforeTime) {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/inprogress/instances/search:'
+                    + definitionName + ","
+                    + instanceTitle + ","
+                    + dateAfterTime + ","
+                    + dateBeforeTime
+                );
             };
 
             /**

@@ -69,7 +69,13 @@
 						<p ng-if="g.group.name">{{g.group.name}}</p>
 						<p ng-if="!g.group.name">{{g.group.ownerId}}</p>
 					</md-list-item>
-					
+
+
+					<md-divider style="margin-top: 20px;"></md-divider>
+
+					<md-button class="md-raised" aria-label="Clear" ng-click="clearAllSelections()" style="margin-left: 0; margin-top: 15px;">
+						{{ 'clearSelections' | translate }}
+					</md-button>
 				</md-list>
 			</md-card-content>
 		</md-card>

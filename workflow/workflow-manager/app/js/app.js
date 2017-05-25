@@ -53,11 +53,11 @@ define(['angular',
 		var initialize = function () {
 
 			/* localhost */
-			var WORKFLOW_SERVICE_ENTRY = 'http://10.0.0.150:8080/workflow-engine/api';
-			var DASHBOARD_SERVICE_ENTRY = 'http://10.0.0.150:8080/workflow-engine/api/v2';
-			var HOME_URL = 'http://localhost/workflow-manager/index.html';
-			var WORKFLOW_DOCUMENTS_URL = 'http://10.0.0.150:8080/workflow-engine/document/';
-			var WORKFLOW_WORKSPACE_URL = 'http://10.0.0.150/workflow-workspace';
+			var WORKFLOW_SERVICE_ENTRY = 'http://localhost:8080/workflow-engine/api';
+			var DASHBOARD_SERVICE_ENTRY = 'http://localhost:8080/workflow-engine/api/v2';
+			var HOME_URL = 'http://localhost:80/workflow-manager/index.html';
+			var WORKFLOW_DOCUMENTS_URL = 'http://localhost:8080/workflow-engine/document/';
+			var WORKFLOW_WORKSPACE_URL = 'http://localhost:8080/workflow-workspace';
 			
 			var AVATARS_PATH = 'img/avatars/';
 			var DEFAULT_AVATAR = 'like.svg';
@@ -71,6 +71,7 @@ define(['angular',
 				'ngAria',
 				'ngAnimate',
 				'ngSanitize',
+				'angularTrix',
 				'wfManagerControllers',
 				'wfManagerServices',
 				'wfManagerDirectives',
@@ -166,10 +167,6 @@ define(['angular',
 								templateUrl: 'views/process-detail.html',
 								controller: 'ProcessDetailCtrl'
 							}).
-							when('/inprogress', {
-								templateUrl: 'views/inprogress.html',
-								controller: 'InProgressCtrl'
-							}).
 							when('/history', {
 								templateUrl: 'views/history.html',
 								controller: 'HistoryCtrl'
@@ -184,20 +181,23 @@ define(['angular',
 							}).
 							when('/pending', {
 								templateUrl: 'views/pending.html',
-								controller: 'PendingCtrl'
+								controller: 'PendingCtrl',
+	                            reloadOnSearch: false
 							}).
 							when('/inprogress', {
 								templateUrl: 'views/in-progress.html',
-								controller: 'InProgressCtrl'
+								controller: 'InProgressCtrl',
+	                            reloadOnSearch: false
 							}).
 							when('/activity', {
 								templateUrl: 'views/activity.html',
-								controller: 'ActivityCtrl'
+								controller: 'ActivityCtrl',
+                            	reloadOnSearch: false
 							}).
 							when('/settings', {
 								templateUrl: 'views/settings.html',
 								controller: 'SettingsCtrl'
-							}).
+                        	}).
 							when('/externalForms', {
 								templateUrl: 'views/external-forms.html',
 								controller: 'ExternalFormsCtrl'

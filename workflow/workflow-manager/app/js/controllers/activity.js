@@ -18,7 +18,7 @@ define(['angular', 'services/processservice'],
 			$scope.nextDay.setDate($scope.nextDay.getDate() + 1);
 
 			// search filter object
-			$scope.searchFilter = { dateAfter: null, dateBefore: null };
+            $scope.searchFilter = { dateAfter: null, dateBefore: null, user: null };
 
 			// initialize search criteria
 			initializeCriteria();
@@ -26,17 +26,24 @@ define(['angular', 'services/processservice'],
 			$scope.options = [];
 			$scope.orderByOption = null;
 
-			$scope.sortOptions = { title: 'taskName', id: 'name' };
-			$scope.options.push($scope.sortOptions);
-			$scope.sortOptions = { title: 'endDate', id: 'endDate' };
-			$scope.options.push($scope.sortOptions);
+            $scope.sortOption = { title: 'taskName', id: 'name' };
+            $scope.options.push($scope.sortOption);
+            $scope.sortOption = { title: 'processDetail', id: 'definitionName' };
+            $scope.options.push($scope.sortOption);
+            $scope.sortOption = { title: 'processInstanceName', id: 'processInstance.title' };
+            $scope.options.push($scope.sortOption);
+            $scope.sortOption = { title: 'startDate', id: 'startDate' };
+            $scope.options.push($scope.sortOption);
+            $scope.sortOption = { title: 'endDate', id: 'endDate' };
+            $scope.options.push($scope.sortOption);
 
-			// get users in order to fill autocomplete
+            // get users in order to fill autocomplete
 			processService.getUsers().then(
 				// success callback
 				function (response) {
 					$scope.users = response.data;
-				}
+                    $scope.usersLoaded = true;
+                }
 			);
 
 			/**
@@ -52,20 +59,32 @@ define(['angular', 'services/processservice'],
 				$scope.definitions = {};
 			};
 
-			/**
-        	 * Used to filter the users
-        	 * 
-        	 * Check if any of user's properties match the user's search
-        	 * 
-        	 * @param user
-        	 */
-			var userFiltering = function (user) {
-				return (
-					user.email.toLowerCase().search($scope.text) > -1 ||
-					user.lastName.toLowerCase().search($scope.text) > -1 ||
-					user.username.toLowerCase().search($scope.text) > -1
-				);
-			};
+            /**
+             * @memberof ActivityCtrl
+             *
+             * @desc Returns any users that matched the user's input
+             *
+             * @param {User} user
+             * @returns Any matched users on given criteria
+             */
+            var userFiltering = function (user) {
+                var curEmail = "";
+                var curLastName = "";
+                var curUsername = "";
+
+                if(user.email)
+                    curEmail = user.email.toLowerCase();
+                if(user.lastName)
+                    curLastName = user.lastName.toLowerCase();
+                if(user.username)
+                    curUsername = user.username.toLowerCase();
+
+                return (
+                    curEmail.toLowerCase().search($scope.text) > -1 ||
+                    curLastName.toLowerCase().search($scope.text) > -1 ||
+                    curUsername.toLowerCase().search($scope.text) > -1
+                );
+            };
 
 			$scope.searchTasks = function () {
 				var dateAfterTime;
@@ -84,54 +103,56 @@ define(['angular', 'services/processservice'],
 				if (!$scope.selectedUser)
 					return;
 
-				// enable process filter since we got tasks therefore process definitions
+                // enable process filter since we got tasks therefore process definitions
 				// also select the "showAll" option
 				$scope.enableProcessFilter = true;
 				$scope.groupFilter.definitionId = 'showAll';
 
-				processService.getUserActivity(dateAfterTime, dateBeforeTime, $scope.selectedUser.id).then(
-					// success callback
-					function (response) {
-						$scope.userTasks = response.data;
-						$scope.definitions = {};
+                processService.getUserActivity(dateAfterTime, dateBeforeTime, $scope.selectedUser.id).then(
+                    // success callback
+                    function (response) {
+                        $scope.userTasks = response.data;
+                        $scope.definitions = {};
 
-						$scope.definitions['showAll'] = $scope.definitions['showAll'] || {
-							id: 'showAll',
-							title: 'showAll'
-						};
+                        $scope.definitions["showAll"] = $scope.definitions["showAll"] || {
+                                id: "showAll",
+                                title: "showAll"
+                            };
 
-						$scope.userTasks.forEach(function (element) {
+                        $scope.userTasks.forEach(function (element) {
 
-							if (element.dueDate != null)
-								$scope.dueDate = $filter('date')(element.dueDate, 'd/M/yyyy H:mm');
+                            if (element.dueDate != null)
+                                $scope.dueDate = $filter('date')(element.dueDate, "d/M/yyyy");
 
-							if (element.endDate != null)
-								$scope.endDate = $filter('date')(element.endDate, 'd/M/yyyy');
+                            if (element.endDate != null)
+                                $scope.endDate = $filter('date')(element.endDate, "d/M/yyyy");
 
-							$scope.startDate = $filter('date')(element.startDate, 'd/M/yyyy');
+                            $scope.startDate = $filter('date')(element.startDate, "d/M/yyyy");
 
-							// get the definitions from tasks
-							var group = (element.processId || '_empty_').toString();
+                            // get the definitions from tasks
+                            var group = (element.processId || "_empty_").toString();
 
-							if (!$scope.definitions.hasOwnProperty(group)) {
-								$scope.definitions[group] = $scope.definitions[group] || {
-									id: element.processId,
-									title: element.definitionName
-								};
-							}
-						});
+                            if (!$scope.definitions.hasOwnProperty(group)) {
+                                $scope.definitions[group] = $scope.definitions[group] || {
+                                        id: element.processId,
+                                        title: element.definitionName
+                                    }
+                            }
+                        });
 
-						$scope.filteredTasks = $scope.userTasks;
 
-						// save criteria properties into the service
-						cacheService.saveCriteria('activity', $scope.searchFilter);
-					}
+                        $scope.filteredTasks = $scope.userTasks;
+                    },
+                    // error callback
+                    function (response) {
+
+                    }
 				);
 			};
 
 			$scope.print = function () {
 				window.print();
-			}
+			};
 
 			$scope.filterTasksByDefinition = function () {
 				var selectedDefinition = '' + $scope.groupFilter.definitionId;
@@ -162,7 +183,7 @@ define(['angular', 'services/processservice'],
 				$scope.searchFilter.dateAfter = null;
 				$scope.searchFilter.dateBefore = null;
 
-				$scope.selectedUser = null;
+                $scope.selectedUser = null;
 				$scope.searchText = null;
 
 				$scope.searchTasks();
@@ -213,7 +234,7 @@ define(['angular', 'services/processservice'],
 			  * Sorting function
 			  */
 			$scope.sortBy = function (optionId) {
-				$scope.orderByOption = '-' + optionId;
+                $scope.orderByOption = "-" + optionId;
 			};
 
 			function initializeCriteria() {

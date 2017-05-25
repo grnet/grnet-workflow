@@ -6,6 +6,14 @@ define(['angular', 'services/processservice', 'services/authprovider'],
 
         function processDetailCtrl($scope, $http, $routeParams, $location, $mdDialog, $filter, processService, authProvider, config) {
 
+            document.addEventListener("trix-focus", function(event) {
+                event.target.toolbarElement.style.display = "block";
+            });
+
+            document.addEventListener("trix-blur", function(event) {
+                event.target.toolbarElement.style.display = "none";
+            });
+
             // get the definition's id from the url
             $scope.processId = $routeParams.processId;
 
@@ -275,6 +283,15 @@ define(['angular', 'services/processservice', 'services/authprovider'],
                         return 'deActivate';
                 }
             };
+
+            /**
+             *
+             */
+            $scope.getVersionJustification = function () {
+                var version = $scope.findActiveVersion() || {};
+
+                return version.justification;
+            }
 
             /**
              * Changes the status of the selected version

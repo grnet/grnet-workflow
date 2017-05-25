@@ -12,7 +12,12 @@
 		"angular-route": "~1.6.4",
 		"angular-aria": "^1.6.4",
 		"angular-sanitize": "^1.6.4",
-		"keycloak": "2.1.0"
+		"keycloak": "2.1.0",
+		"ngWig": "ng-wig#^3.0.14",
+		"angular-summernote": "^0.8.1",
+		"angular-trix": "^1.0.2",
+		"textAngular": "^1.5.16",
+		"ngQuill": "ngquill#^2.2.2"
 	},
 	"authors": [
 		"CyberStream LTD"

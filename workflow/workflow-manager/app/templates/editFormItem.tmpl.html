@@ -14,33 +14,28 @@
 	
 	<md-dialog-content layout-padding>
 		<section layout="row" flex>
-			<ng-form name="formItemForm">
-			
-				<md-input-container style="min-width: 400px;" class="md-block">
-					<label for="titleTemplate">{{ 'description' | translate }}</label>
-					<textarea id="titleTemplate" md-maxlength="150" ng-model="formItem.description"></textarea>
-				</md-input-container>
+			<md-input-container flex class="md-block">
+				<trix-editor angular-trix id="titleTemplate" ng-model="formItem.description"></trix-editor>
+			</md-input-container>
 				
-				<md-input-container style="min-width: 400px;" class="md-block">
-					<label for="clientEnabled">{{ 'clientAvailable' | translate }}</label>
-					<md-select id="clientEnabled" ng-model="formItem.device" ng-disabled="formItem.required">
-						<md-option value="ALL">{{'allNeutrl' | translate}}</md-option>
-						<md-option value="MOBILE">{{'mobile' | translate}}</md-option>
-						<md-option value="BROWSER">{{'browser' | translate}}</md-option>
-					</md-select>
-					
-					<div role="alert" style="max-width: 400px;">
-						<div ng-if="formItem.required">{{ 'editNonReqFields' | translate }}</div>
-       				</div>
-   				</md-input-container>
-   				
-			</ng-form>
-			
+			<md-input-container style="min-width: 400px;" class="md-block">
+				<label for="clientEnabled">{{ 'clientAvailable' | translate }}</label>
+				<md-select id="clientEnabled" ng-model="formItem.device" ng-disabled="formItem.required">
+					<md-option value="ALL">{{'allNeutrl' | translate}}</md-option>
+					<md-option value="MOBILE">{{'mobile' | translate}}</md-option>
+					<md-option value="BROWSER">{{'browser' | translate}}</md-option>
+				</md-select>
+
+				<div role="alert" style="max-width: 400px;">
+					<div ng-if="formItem.required">{{ 'editNonReqFields' | translate }}</div>
+				</div>
+			</md-input-container>
+
 		</section>
 	</md-dialog-content>
 	
 	<md-dialog-actions layout="row" layout-align="start center" class="dialogActions">
-		<md-button class="md-raised md-primary" ng-click="save()" ng-disabled="!formItemForm.$valid">{{ 'confirm' | translate }}</md-button>
+		<md-button class="md-raised md-primary" ng-click="save()">{{ 'confirm' | translate }}</md-button>
 		<md-button class="md-raised md-warn" ng-click="clear()" ng-disabled="!formItem.description">{{ 'clear' | translate }}</md-button>
 	</md-dialog-actions>
         

@@ -63,19 +63,43 @@ define(['angular', 'services/processservice'],
 			/**
 			 * Toggle all/none all owners
 			 */
-			$scope.updateOwnerSelection = function () {
-				$scope.groups.forEach(function (elm) { elm.selected = $scope.status.allSelected; return; });
-				$scope.showProcessByOwners();
-			};
+            $scope.updateOwnerSelection = function () {
+                $scope.groups.forEach(function (elm) {
+                    if($scope.status.allSelected)
+                        elm.selected = $scope.status.allSelected;
+                    return;
+                });
+                $scope.showProcessByOwners();
+            };
 
-			/**
+            /**
+             * @memberof ProcessListCtrl
+             * @desc Clears any selection
+             *
+             */
+            $scope.clearAllSelections = function () {
+                $scope.groups.forEach(function (elm) {
+                    elm.selected = false;
+                });
+                $scope.status.allSelected = false;
+                $scope.showProcessByOwners();
+            };
+
+            /**
 			 * Return processes definitions by selected owners
 			 */
 			$scope.showProcessByOwners = function () {
 				$scope.showProgressBar = true;
 
-				var selectedOwners = $scope.groups.filter(function (element) { return element.selected === true; })
-					.map(function (element) { return element.group.ownerId; });
+                if($scope.status.allSelected)
+                    var selectedOwners = "";
+                else {
+                    var selectedOwners = $scope.groups.filter(function (element) {
+                        return element.selected === true;
+                    }).map(function (element) {
+						return element.group.ownerId;
+					});
+                }
 
 				processService.getProcessesByOwners(selectedOwners).then(
 					// success callback

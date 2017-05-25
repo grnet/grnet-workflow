@@ -36,8 +36,8 @@
 			<div class="card-header">
 				<md-icon ng-if="task.icon" md-svg-src="img/avatars/{{task.icon}}" class="md-avatar" style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
 				<div class="after-icon">
-					<h2 class="md-title">{{task.processInstance.title}}</h2>
-					<p class="md-subhead" style="display:block">{{task.name}}</p>
+					<h2 class="md-title">[{{task.processInstance.title}}] {{task.name}}</h2>
+					<p class="md-subhead">{{ 'process' | translate}}: {{task.definitionName}}</p>
 				</div>
 			</div>
 
@@ -71,12 +71,12 @@
 
 			</section>
 
-			<section layout="row" layout-align="start center">
-				<md-input-container flex class="md-block" ng-if="task.description" style="margin-top: 0;">
-					<label for="taskDescription">{{ 'description' | translate }}</label>
-					<input id="taskDescription" ng-model="task.description" readonly disabled>
-				</md-input-container>
+			<section ng-if="task.description">
+				<label for="processDescription">{{ 'description' | translate }}</label>
+				<div id="processDescription" ng-bind-html="task.description" class="disabledLabel" disabled>{{task.description}}</div>
 			</section>
+
+			<md-input-container class="md-block" ng-if="task.description" flex></md-input-container>
 
 			<md-input-container class="md-block" ng-if="task.assignee && !task.endDate" flex="30" style="margin-top: 0;">
 				<label for="taskAssignee">{{ 'assignedTo' | translate }}</label>
@@ -84,10 +84,11 @@
 			</md-input-container>
 
 			<md-input-container class="md-block" ng-if="task.assignee && task.endDate" flex="30" style="margin-top: 0;">
-				<label for="taskAssignee">{{ 'completedBy' | translate }}</label>
-				<input id="taskAssignee" ng-model="task.assignee" readonly disabled>
+				<label for="taskAssigneeCompleted" class="disabledLabel">{{ 'completedBy' | translate }}</label>
+				<input id="taskAssigneeCompleted" ng-model="task.assignee" readonly disabled>
 			</md-input-container>
 		</md-card-content>
+
 	</md-card>
 
 	<md-card ng-if="task.taskForm != null && task.taskForm.length > 0">
