@@ -1,42 +1,37 @@
-(function (angular) {
-	'use strict';
+define(['angular', 'services/process-service'],
 
-	angular.module('wfworkspaceControllers').controller('PrintStartFormCtrl', ['$scope', '$routeParams', '$mdDialog', 'processService', 'CONFIG',
-		/**
-		 * @name PrintStartFormCtrl
-		 * @ngDoc controllers
-		 * @memberof wfworkspaceControllers
-		 * 
-		 * @desc Controller used by Print start form view
-		 */
-		function ($scope, $routeParams, $mdDialog, processService, config) {
+	function (angular) {
+
+		'use strict';
+
+		function printStartFormCtrl($scope, $routeParams, $mdDialog, processService, config) {
 
 			var instanceId = $routeParams['instanceId'];
 			var taskId = $routeParams['taskId'];
 			$scope.taskForm = {};
 			$scope.documentPath = config.WORKFLOW_DOCUMENTS_URL;
 
+			/**
+			 * Get the start from
+			 */
 			processService.getStartEventForm(instanceId).then(
 				//success callback
 				function (response) {
 					$scope.taskForm = response.data;
-					checkTask();
+
+					//error callback	
+				}, function (response) {
+					exceptionModal(response);
 				});
 
 			processService.getInstanceById(instanceId).then(
 				function (response) {
 					$scope.instance = response.data;
-                },
-                //error callback
-                function (response) {
-                    exceptionModal(response);
-                }
+				}
 			);
 
-			/**
-			 * @memberof PrintStartFormCtrl
-			 * @desc Check if task is present in order to print the specified task along with the start form
-			 */
+			checkTask();
+
 			function checkTask() {
 				if (typeof taskId != 'undefined' && taskId != null && taskId != "") {
 
@@ -59,39 +54,35 @@
 						}
 					);
 				}
-			};
+			}
 
-			/**
-			 * @memberof PrintStartFormCtrl
-			 * @desc Change browser's layout to print mode
-			 */
 			$scope.print = function () {
 				document.title = $scope.instance.title;
 				window.print();
-			};
+			}
 
-            /**
-             * @memberof TaskDetailCtrl
-             * @desc Displays a modal panel, showing the exception message
-             *
-             * @param {any} response
-             * @param {event} event
-             */
-            function exceptionModal(response, event) {
-                $mdDialog.show({
-                    controller: function ($scope, $mdDialog) {
-                        $scope.error = response.data;
+			/**
+			 * Exception modal
+			 */
+			function exceptionModal(response, $event) {
+				$mdDialog.show({
+					controller: function ($scope, $mdDialog) {
+						$scope.error = response.data;
 
-                        $scope.cancel = function () {
-                            $mdDialog.hide();
-                        };
-                    },
+						$scope.cancel = function () {
+							$mdDialog.hide();
+						};
+					},
+					templateUrl: 'templates/exception.tmpl.html',
+					parent: angular.element(document.body),
+					targetEvent: $event,
+					clickOutsideToClose: false
+				})
+			}
 
-                    templateUrl: 'templates/exception.tmpl.html',
-                    parent: angular.element(document.body),
-                    targetEvent: event,
-                    clickOutsideToClose: false
-                })
-            };
-		}]);
-})(angular);
+		}
+
+		angular.module('wfWorkspaceControllers').controller('PrintStartFormCtrl', ['$scope', '$routeParams', '$mdDialog', 'processService', 'CONFIG', printStartFormCtrl]);
+
+	}
+);

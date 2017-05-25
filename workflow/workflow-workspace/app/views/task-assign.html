@@ -1,35 +1,35 @@
 <md-toolbar>
 	<div class="md-toolbar-tools" style="padding-left: 0px;">
-	
+
 		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
 			<md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
 		</md-button>
-		
+
 		<md-button id="back-button" class="md-icon-button" aria-label="Back" ng-click="goTo('/assign')">
 			<md-icon md-svg-icon="img/icons/back.svg"></md-icon>
 		</md-button>
-		
+
 		<md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
-		
+
 		<div hide-sm layout-padding>
 			<h1 class="md-title application-title">workflow::workspace</h1>
 			<h2 class="md-subhead page-title">{{ 'assignTask' | translate }}</h2>
 		</div>
-		
+
 		<span flex></span>
-		
-		<md-button class="md-icon-button" aria-label="Show Progress Diagram" ng-click="showProgressDiagram()">
+
+		<md-button class="md-icon-button" aria-label="Show Progress Diagram" ng-click="showProgressDiagram($event)">
 			<md-icon md-svg-icon="img/icons/bpmn.svg"></md-icon>
 		</md-button>
-		
+
 		<md-button id="menu-button" ng-if="task.taskDetails.description" class="md-icon-button" aria-label="task details" ng-click="showTaskDetails()">
 			<md-icon md-svg-icon="img/icons/info.svg"></md-icon>
 		</md-button>
-		
+
 		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="goTo('/documents/assign/' + task.id)">
 			<md-icon md-svg-icon="img/icons/folder.svg"></md-icon>
 		</md-button>
-		
+
 		<md-button id="menu-button" class="md-icon-button" aria-label="print start form" ng-if="task.startForm" ng-click="goTo('/startform/print/' + task.processInstance.id)">
 			<md-icon md-svg-icon="img/icons/print.svg"></md-icon>
 		</md-button>
@@ -40,67 +40,64 @@
 
 	<md-card>
 		<md-card-content style="position: relative;">
-		 
+
 			<div class="card-header">
-				<md-icon md-svg-src="img/avatars/{{task.icon}}" class="md-avatar" style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
+				<md-icon ng-if="task.icon" md-svg-src="img/avatars/{{task.icon}}" class="md-avatar" style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
 				<div class="after-icon">
-					<h2 class="md-title">[{{task.processInstance.title}}] {{task.name}}</h2>
-					<p class="md-subhead">{{ 'process' | translate}}: {{task.definitionName}}</p>
+					<h2 class="md-title">{{task.processInstance.title}}</h2>
+					<p class="md-subhead" style="display:block">{{task.name}}</p>
 				</div>
 			</div>
-			
+
 			<section layout="row" layout-sm="column" layout-align="start center">
-			
+
 				<md-input-container class="md-block" flex="15" style="padding-right:15px">
-					<label for="startDate" class="disabledLabel">{{ 'startDate' | translate }}</label>
+					<label for="startDate">{{ 'startDate' | translate }}</label>
 					<input id="startDate" ng-model="startDate" readonly disabled>
 				</md-input-container>
-				
+
 				<div ng-if="diffInDays < 1" layout="row" layout-align="start start" style="margin-right:15px">
-					<md-icon ng-class="diffInDays < 1 ? (diffInDays < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'" 
-						style="position: relative; top: -12px" md-svg-icon="img/icons/delayed-notification.svg">
+					<md-icon ng-class="diffInDays < 1 ? (diffInDays < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'" style="position: relative; top: -12px" md-svg-icon="img/icons/delayed-notification.svg">
 					</md-icon>
 				</div>
-				
-				<md-input-container class="md-block" flex="15" ng-if="task.dueDate" style="padding-right:15px">
-					<label for="dueDate" class="disabledLabel">{{ 'dueTo' | translate }}</label>
+
+				<md-input-container class="md-block" flex="15" ng-if="task.dueDate">
+					<label for="dueDate">{{ 'dueTo' | translate }}</label>
 					<input id="dueDate" ng-model="dueDate" readonly disabled>
 				</md-input-container>
-				
-				<md-button class="md-fab md-primary" aria-label="Select assignee" ng-click="selectAssignee()" ng-if="!task.assignee"
-					style="margin-top:18px;position: absolute;right: 5%;bottom: -28px;">
+
+				<md-button class="md-fab md-primary" aria-label="Select assignee" ng-click="selectAssignee()" ng-if="!task.assignee" style="margin-top:18px;position: absolute;right: 3%;bottom: 3%;">
 					<md-icon md-svg-src="img/icons/addPerson.svg"></md-icon>
 				</md-button>
-				
-				<md-button class="md-fab md-primary" aria-label="Remove assignee" ng-click="removeAssignee()" ng-if="task.assignee"
-					style="margin-top:18px;position: absolute;right: 5%;bottom: -28px;">
+
+				<md-button class="md-fab md-primary" aria-label="Remove assignee" ng-click="removeAssignee()" ng-if="task.assignee" style="margin-top:18px;position: absolute;right: 3%;bottom: 3%;">
 					<md-icon md-svg-src="img/icons/removePerson.svg"></md-icon>
 				</md-button>
-				
+
 			</section>
-			
+
 			<section layout="row" layout-align="start center">
-			
-				<md-input-container class="md-block" flex="30" style="margin-top:0">
-					<label for="taskAssignee" class="disabledLabel">{{ 'processingBy' | translate }}</label>
-					<input type="email" id="taskAssignee" ng-model="task.assignee" readonly style="width:99%;text-overflow: ellipsis;" disabled></input>
+				<md-input-container flex class="md-block" ng-if="task.description" style="margin-top: 0;">
+					<label for="taskDescription">{{ 'description' | translate }}</label>
+					<input id="taskDescription" ng-model="task.description" readonly disabled>
 				</md-input-container>
-			
 			</section>
-			
+
+			<section layout="row" layout-align="start center">
+
+				<md-input-container class="md-block" flex="30" style="margin-top:0">
+					<label for="taskAssignee">{{ 'processingBy' | translate }}</label>
+					<input type="email" id="taskAssignee" ng-model="task.assignee" readonly style="width:99%;text-overflow: ellipsis;" disabled>
+				</md-input-container>
+
+			</section>
 		</md-card-content>
 	</md-card>
-	
-	<md-card>
+
+	<md-card ng-if="task.taskForm.length > 0">
 		<md-card-content>
-
-			<section ng-if="task.description">
-				<label for="processDescription">{{ 'description' | translate }}</label>
-				<div id="processDescription" ng-bind-html="task.description" class="disabledLabel" disabled>{{task.description}}</div>
-			</section>
-
 			<nlk-process-form-item ng-repeat="item in task.taskForm" ng-model="item" wf-document-path="{{documentPath}}" wf-preview="true"></nlk-process-form-item>
 		</md-card-content>
 	</md-card>
-	
+
 </md-content>

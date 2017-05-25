@@ -1,11 +1,19 @@
-html, body {
-	font-family: "Open Sans", sans-serif;
+* {
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+html {
 	width: 100%;
 	height: 100%;
 }
 
 body {
-	background-color: #e0e0e0;
+	font-family: Roboto, sans-serif;
+	background-color: #f5f5f5;
+	width: 100%;
+	height: 100%;
 }
 
 p, h3 {
@@ -16,8 +24,12 @@ md-icon:focus {
 	outline: 0;
 }
 
+md-radio-button:focus {
+    outline: none;
+}
+
 md-content.page {
-	background-color: #e0e0e0;
+	background-color: #fafafa;
 }
 
 .layout-content {
@@ -25,9 +37,9 @@ md-content.page {
 	margin: auto;
 }
 
-.mainList {
-	/*height: 600px; */
-	
+.main-section {
+	overflow: hidden;
+	height:100%
 }
 
 .noselect {
@@ -37,6 +49,10 @@ md-content.page {
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+}
+
+.nav-bar {
+	min-width: 265px;
 }
 
 .avatar {
@@ -64,11 +80,13 @@ div.card-header {
 	top: 40%;
 }
 
+/*
 .wait-icon md-progress-circular {
 	position: relative;
 	left: -50%;
 	top: -50%;
 }
+*/
 
 /* Loading Spinner ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 .spinner {
@@ -83,24 +101,6 @@ div.card-header {
 	z-index: 1000;
 }
 
-@-webkit-keyframes sk-rotate-plane {
-    0% { -webkit-transform: perspective(120px) }
-    50% { -webkit-transform: perspective(120px) rotateY(180deg) }
-    100% { -webkit-transform: perspective(120px) rotateY(180deg)  rotateX(180deg) }
-}
-
-@keyframes sk-rotate-plane {
-    0% {
-        transform: perspective(120px) rotateX(0deg) rotateY(0deg);
-        -webkit-transform: perspective(120px) rotateX(0deg) rotateY(0deg)
-    } 50% {
-          transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg);
-          -webkit-transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg)
-      } 100% {
-            transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
-            -webkit-transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
-        }
-}
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* Start new process selected item */
@@ -123,7 +123,7 @@ div.card-header {
 
 .cardInline {
 	display: inline-block;
-	margin-left: 10px;
+	margin-left: 20px;
 	padding-left: 10px;
 	border-left: 1px solid #e0e0e0;
 }
@@ -219,32 +219,6 @@ nlk-process-form-item {
 	color: black !important;
 }
 
-@media print {
-	* {
-		color: black !important;
-	}
-	
-	.printBtnSection {
-		display: none;
-	}
-	
-	.docInputRef {
-		margin-top: 0
-	}
-	
-	.docInputDoc {
-		margin-top: 0
-	}
-	
-	.documentActions{
-		display: none;
-	}
-	
-	.printWrapper {
-		padding-top: 0px;
-	}
-}
-
 .printWrapper .documentActions {
 	display: none;
 }
@@ -312,20 +286,11 @@ nlk-process-form-item {
 }
 
 .wf-tabs md-tab-content {
-	background-color: #e9e9e9;
+	background-color: #fff;
 }
 
 .infoMessage {
 	font-size: 16px;
-}
-
-.enabledLabel {
-	opacity: 0.8;
-	color: #9c27b0;
-}
-
-.disabledLabel {
-	color: rgba(0,0,0,0.26) !important;
 }
 
 .dialogActions {
@@ -338,4 +303,97 @@ nlk-process-form-item {
 
 .navItemSelected {
     background-color: rgba(158,158,158,0.2);
+}
+
+.formItem-info {
+	top: 16px;
+	padding: 0px;
+	margin: 0px;
+}
+
+.filter-list .md-list-item-inner {
+	padding: 0px;
+}
+
+.searchFilter-date {
+	margin-right: 0px;
+}
+
+.document-versions {
+	padding-left: 16px;
+}
+
+.document-versions-no-padding {
+	padding-left: 0px;
+}
+
+/** Warning message md-card **/
+
+.warning-message md-card {
+	width:100%;
+	line-height: 32px;
+	background-color: #d84315;
+	margin-left: 0;
+	margin-left: 8px;
+}
+
+.warning-message md-icon {
+	height: 32px;
+	width: 32px;
+	margin-right: 10px;
+}
+
+.warning-message span {
+	display: inline-block;
+	vertical-align: middle;
+	color: #fff;
+	font-size: 16px;
+}
+
+/****************************************************** Printing styling *******************************************************/
+
+@media print {
+	.printBtnSection {
+		display: none;
+	}
+	
+	.docInputRef {
+		margin-top: 0
+	}
+	
+	.docInputDoc {
+		margin-top: 0
+	}
+	
+	.documentActions{
+		display: none;
+	}
+	
+	.printWrapper {
+		padding-top: 0px;
+	}
+	
+	textarea {
+		min-height: 800px
+	}
+}
+
+.print-heading {
+	display: none !important;
+}
+
+.non-printing-heading {
+	display: block;
+}
+
+.criteria-printing-container {
+	display: none;
+}
+
+.printing-divider {
+	display: none;
+}
+
+.criteria-options {
+	display: block;
 }

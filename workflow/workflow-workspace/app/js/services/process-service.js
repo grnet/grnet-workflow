@@ -1,144 +1,140 @@
-(function () {
-    angular.module('wfworkspaceServices').service('processService', ['$http', 'CONFIG',
-        /**
-         * @name processService
-         * @ngDoc services
-         * @memberof wfworkspaceServices
-         * @desc Implements communication between the API and the client
-         */
-        function ($http, config) {
+define(['angular'],
+
+    function (angular) {
+
+        'use strict';
+        
+        function ProcessService($http, config) {
 
             /**
-             * @memberOf processService
-             * @function getSupervisors
-             * @desc Returns all available supervisors
-             * 
-             * @returns {HttpPromise}
+             * Creates a new process definition from a BPMN file
+             * @param {File} file
+             * @return {HttpPromise}
+             *
+             * @name ProcessService#createProcess
              */
+            this.createProcess = function (file) {
+                var url = config.WORKFLOW_SERVICE_ENTRY + '/processbpmn';
+
+                var fd = new FormData();
+                fd.append('file', file);
+
+                return $http.post(url, fd, {
+                    transformRequest: angular.identity,
+                    headers: { 'Content-Type': undefined }
+                });
+            };
+
             this.getSupervisors = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/user/role/' + 'ROLE_Supervisor');
             };
 
             /**
-             * @memberOf processService
-             * @function getInstanceById
-             * @desc Returns an instnace by its id
+             * Returns an instnace by its id
              * 
-             * @param {String} instanceId
-             * @returns {HttpPromise}
              */
             this.getInstanceById = function (instanceId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/public/instance/' + instanceId);
             };
 
             /**
-             * @memberOf processService
-             * @function isProcessActive
-             * @desc Returns true if the selected version is active
-             * 
+             * Creates a new process version
+             * @param {number} processId
+             * @param {File} file
+             * @return {HttpPromise}
+             *
+             * @name ProcessService#createProcessVersion
+             */
+            this.createProcessVersion = function (processId, file) {
+                var url = config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId;
+
+                var fd = new FormData();
+                fd.append('file', file);
+
+                return $http.post(url, fd, {
+                    transformRequest: angular.identity,
+                    headers: { 'Content-Type': undefined }
+                });
+            };
+
+
+            /**
+             * Returns true if the selected version is active
              * @param {WorkflowDefinition} process
-             * @returns {Boolean}
+             * @return {HttpPromise}
+             * @name ProcessService#isProcessActive
              */
             this.isProcessActive = function (process) {
                 var versions = process.processVersions;
 
                 for (var index = 0; index < versions.length; index++) {
-
-                    if (versions[index].deploymentId === process.activeDeploymentId)
+                    if (versions[index].deploymentId === process.activeDeploymentId) {
                         return (versions[index].status === 'active');
+                    }
                 }
                 return false;
             };
 
             /**
-             * @memberOf processService
-             * @function getCandidatesForTask
-             * @desc Returns all available candidates for the given task
-             * 
-             * @param {String} taskId - Task's id to get candidates
-             * @returns {HttpPromise}
+             * Get Candidates for task
              */
             this.getCandidatesForTask = function (taskId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/' + taskId + '/candidates');
             };
 
+
             /**
-             * @memberOf processService
-             * @function getAllCandidates
-             * @desc Returns all users as candidates
-             *
-             * @returns {HttpPromise}
+             * Get all Candidates
              */
             this.getAllCandidates = function (taskId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/candidates/all');
             };
 
             /**
-             * @memberOf processService
-             * @function notifyNoCandidates
-             * @desc Notifies administrator for no available candidates
+             * Delete the process with the given id
+             * @param {number} processId       - the process (workflow definition) id
+             * @return {HttpPromise}
              *
-             * @returns {HttpPromise}
+             * @name ProcessService#deleteProcess
              */
-            this.notifyNoCandidates = function (taskId, user) {
-                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/task/'+ taskId + '/candidates/nocandidates/'+ user);
+            this.deleteProcess = function (processId) {
+                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId
+                );
             };
 
             /**
-             * @memberOf processService
-             * @function getActiveProcessDefinitions
-             * @desc Returns all active process definitions
-             * 
-             * @returns {HttpPromise}
+             * Returns all active process definitions
              */
             this.getActiveProcessDefinitions = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/active');
             };
 
             /**
-             * @memberOf processService
-             * @function getCompletedTasks
-             * @desc Get all completed tasks (used by supervisor)
-             * 
-             * @returns {HttpPromise}
+             * Get completed tasks for user for supervisor
              */
             this.getCompletedTasks = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/completed');
             };
 
             /**
-             * @memberOf processService
-             * @function getCompletedInstances
-             * @desc Get completed instances for user
-             * 
-             * @returns {HttpPromise}
+             * Get completed instances for user
              */
             this.getCompletedInstances = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/instances/completed');
-            };
+            }
 
             /**
-             * 
-             * @memberOf processService
-             * @function getCompletedTasksByInstanceIds
-             * @desc Get user's completed tasks by instance ids
-             * 
-             * @param {String} [instancesId]
-             * @returns {HttpPromise}
+             * Get user's completed tasks by instance ids
              */
             this.getCompletedTasksByInstanceIds = function (instancesId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/completed/instances?i=' + instancesId);
             };
 
             /**
-             * @memberOf processService
-             * @function temporarySave
-             * @desc Temporary saves a task 
-             * 
-             * @param {Task} taskData
-             * @returns {HttpPromise}
+             * Temporary saves task's form data
              */
             this.temporarySave = function (taskData) {
+
                 var containsDocuments = false;
                 var filesMap = new Map();
 
@@ -164,9 +160,17 @@
 
                             formData.append('json', angular.toJson(data.data));
 
+                            /*
                             for (var key of data.file.keys()) {
+                                console.log()
                                 formData.append('file', data.file.get(key), key);
                             }
+                            */
+
+                            data.file.forEach(function (v, k) {
+                                formData.append('file', v, k);
+                            });
+
                             return formData;
                         }
                     });
@@ -177,53 +181,29 @@
             };
 
             /**
-             * @memberOf processService
-             * @function getCompletedTasksByInstances
-             * @desc Get completed tasks by instance id
-             * 
-             * @param {any} instanceIds
-             * @returns {HttpPromise}
+             * Get completed tasks by instance id
              */
             this.getCompletedTasksByInstances = function (instanceIds) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/instances?i=' + instanceIds);
-            };
+
+            }
 
             /**
-             * @memberOf processService
-             * @function getTasksByInstanceId
-             * @desc Get tasks by instance id
-             * 
-             * @param {String} instanceId
-             * @returns {HttpPromise}
+             * Get tasks by instance id
              */
             this.getTasksByInstanceId = function (instanceId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/instance/' + instanceId);
-            };
+            }
 
             /**
-             * @memberOf processService
-             * @function getUserCompletedTasks
-             * @desc Get user's completed tasks
-             * 
-             * @returns {HttpPromise}
+             * Get user's completed tasks
              */
             this.getUserCompletedTasks = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/completed/user');
             };
 
-            /**
-             * @memberOf processService
-             * @function getSearchedUserTasks
-             * @desc Searches for completed tasks based on given criteria
-             * 
-             * @param {String} definitionKey
-             * @param {String} instanceTitle
-             * @param {Number} after
-             * @param {Number} before
-             * @param {Boolean} isSupervisor
-             * @returns {HttpPromise}
-             */
             this.getSearchedUserTasks = function (definitionKey, instanceTitle, after, before, isSupervisor) {
+
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/completed/search:'
                     + definitionKey + ","
                     + instanceTitle + ","
@@ -233,93 +213,96 @@
                 );
             };
 
+
             /**
-             * @memberOf processService
-             * @function getProcesses
-             * @desc Return all processes
-             * 
-             * @returns {HttpPromise}
+             * Delete the identified process version
+             *
+             * @param {number} processId       - the process (workflow definition) id
+             * @param {string} deploymentId    - the process version deployment id
+             * @return {HttpPromise}
+             *
+             * @name ProcessService#deleteProcessVersion
+             */
+            this.deleteProcessVersion = function (processId, deploymentId) {
+                return $http.delete(config.WORKFLOW_SERVICE_ENTRY
+                    + '/process/'
+                    + processId
+                    + '/'
+                    + deploymentId
+                );
+            };
+
+            /**
+             * Return a promise object for the list of all processes (workflow definition)
+             * @return {HttpPromise}
+             *
+             * @name ProcessService#getProcesses
              */
             this.getProcesses = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process');
             };
 
             /**
-             * @memberOf processService
-             * @function getTasksByDefinitionsId
-             * @desc Return a promise object for the tasks by an array of instances id
-             * 
-             * @param {any} instancesId
-             * @returns {HttpPromise}
+             * Return a promise object for the tasks by an array of instances id
+             * @param {array} definitionsId - array of selected instances id
+             * @return {HttpPromise}
+             *
              */
             this.getTasksByDefinitionsId = function (instancesId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/unassigned?i=' + instancesId);
+
             };
 
+
             /**
-             * @memberOf processService
-             * @function getSupervisedTasks
-             * @desc Returns list of tasks that belong to instances supervised by the user in context
-             * 
-             * @returns {HttpPromise}
+             * Returns a list of assigned tasks based on instances
+             */
+            this.getAssignedTasksByInstances = function (instancesId) {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/assigned?i=' + instancesId);
+            };
+
+
+            /**
+             * Returns list of tasks that belong to instances supervised by the user in context
              */
             this.getSupervisedTasks = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/supervised');
-            };
+            }
+
 
             /**
-             * @memberOf processService
-             * @function getClaimTasks
-             * @desc Get tasks to be claimed by user according to user role
-             * 
-             * @returns {HttpPromise}
+             * Get tasks to be claimed by user according to user role
              */
             this.getClaimTasks = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/claim');
-            };
+            }
 
             /**
-             * @memberOf processService
-             * @function unclaimTask
-             * @desc User unclaims himself from a task
-             * 
-             * @param {String} taskId
-             * @returns {HttpPromise}
+             * Unclaims a task 
              */
             this.unclaimTask = function (taskId) {
                 return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/task/' + taskId + '/unclaim');
-            };
+            }
 
             /**
-             * @memberOf processService
-             * @function claimTask
-             * @desc User claims an unassigned task
-             * 
-             * @param {String} taskId
-             * @returns {HttpPromise}
+             * Claims a task
              */
             this.claimTask = function (taskId) {
                 return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/task/' + taskId + '/claim');
-            };
+            }
 
             /**
-             * @memberOf processService
-             * @function setAssigneeToTask
-             * @desc Assign a user as assignee to a task
-             * 
-             * @param {Task} taskData
-             * @param {String} assignee - Assignee's email
-             * @returns {HttpPromise}
+             * Assign to a task assignee
              */
             this.setAssigneeToTask = function (taskData, assignee) {
 
                 var containsDocuments = false;
                 var filesMap = new Map();
-                var vars = taskData.taskForm;
 
+                var vars = taskData.taskForm;
                 for (var i = 0; i < vars.length; i++) {
 
-                    if (vars[i].type == 'document' && vars[i].value.file) {
+                    if (vars[i].type == 'document' && vars[i].value && vars[i].value.file) {
                         containsDocuments = true;
 
                         var blob = new Blob([vars[i].value.file], { type: vars[i].value.file.type });
@@ -340,69 +323,129 @@
 
                             formData.append('json', angular.toJson(data.data));
 
+                            /*
                             for (var key of data.file.keys()) {
                                 formData.append('file', data.file.get(key), key);
                             }
+                            */
+
+                            data.file.forEach(function (v, k) {
+                                formData.append('file', v, k);
+                            });
 
                             return formData;
                         }
                     });
 
-                } else
-                    return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/task/assignee/' + assignee + '/', taskData);
+                } else {
+
+                    return $http.post(config.WORKFLOW_SERVICE_ENTRY
+                        + '/task/assignee/' + assignee + '/', taskData);
+                }
             };
 
             /**
-             * @memberOf processService
-             * @function getProcess
-             * @desc Returns a workflow definition by its id
-             * 
-             * @param {String} processId
-             * @returns {HttpPromise}
+             * Return a promise object for the process (workflow definition) object
+             * @param {number} processId
+             * @return {HttpPromise}
+             *
+             * @name ProcessService#getProcess
              */
             this.getProcess = function (processId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId);
             };
 
             /**
-             * @memberOf processService
-             * @function getProcessMetadata
-             * @desc Returns a definition's form data
-             * 
-             * 
-             * @param {String} processId
-             * @returns {HttpPromise}
+             * Return a promise object for the process metadata
+             * @param {number} processId
+             * @return {HttpPromise}
+             *
+             * @name ProcessService#getProcessMetadata
              */
             this.getProcessMetadata = function (processId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId + '/form');
             };
 
-            /**
-             * @memberOf processService
-             * @function getTasksInProgress
-             * @desc Returns all available in progress tasks
-             * 
-             * @returns {HttpPromise}
-             */
             this.getTasksInProgress = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/inprogress/user');
+            }
+
+            /**
+             * Updates the workflow definition
+             * @param {WorkflowDefinition} process
+             * @return {HttpPromise}
+             *
+             * @name ProcessService#updateProcess
+             */
+            this.updateProcess = function (process) {
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/process', process);
             };
 
             /**
-             * @memberOf processService
-             * @function startProcess
-             * @desc Creates a new process instance using the form data
-             * 
-             * @param {String} processId
-             * @param {ProcessInstance} instanceData
-             * @returns {HttpPromise}
+             * Updates the process definition version
+             * @param {number} processId
+             * @param {DefinitionVersion} version
+             * @return {HttpPromise}
+             *
+             * @name ProcessService#updateProcessDefinitionVersion
+             */
+            this.updateProcessDefinitionVersion = function (processId, version) {
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY
+                    + '/process/'
+                    + processId
+                    + '/version',
+                    version
+                );
+            };
+
+            /**
+             * Sets the active version for the workflow definition
+             * @param {number} processId
+             * @param {number} versionId
+             * @return {HttpPromise}
+             *
+             * @name ProcessService#setActiveVersion
+             */
+            this.setActiveVersion = function (processId, versionId) {
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY
+                    + '/process/'
+                    + processId
+                    + '/version/active/'
+                    + versionId,
+                    null
+                );
+            };
+
+            /**
+             * Deactivate the version of the workflow definition
+             * @param {number} processId
+             * @param {number} versionId
+             * @return {HttpPromise}
+             *
+             * @name ProcessService#deactivateVersion
+             */
+            this.deactivateVersion = function (processId, versionId) {
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY
+                    + '/process/'
+                    + processId
+                    + '/version/inactive/'
+                    + versionId,
+                    null
+                );
+            };
+
+            /**
+             * creates a new process instance using the form data
+             * @param {number} processId
+             * @param {FormProperty[]} processForm
+             * @return {HttpPromise}
+             * @name ProcessService#startProcess
              */
             this.startProcess = function (processId, instanceData) {
-
                 var containsDocuments = false;
                 var filesMap = new Map();
-
                 var vars = instanceData.processForm;
+
                 for (var i = 0; i < vars.length; i++) {
 
                     if (vars[i].type == 'document') {
@@ -431,10 +474,16 @@
                             var formData = new FormData();
 
                             formData.append('json', angular.toJson(data.data));
-
+                            
+                            /*
                             for (var key of data.file.keys()) {
                                 formData.append('file', data.file.get(key), key);
                             }
+                            */
+
+                            data.file.forEach(function (v, k) {
+                                formData.append('file', v, k);
+                            });
 
                             return formData;
                         }
@@ -452,48 +501,63 @@
             };
 
             /**
-             * @memberOf processService
-             * @function getUnassignedTasks
-             * @desc Get all unassigned tasks by given processes
-             * 
-             * @param {WorkflowDefinition} [processes]
-             * @returns {HttpPromise}
+             * Return a list of the processes, supervised by the authenticated user
+             * @return {HttpPromise}
+             * @name ProcessService#getSupervisedProcesses
+             */
+            this.getSupervisedProcesses = function () {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/supervised');
+            };
+
+            /**
+             * Gets all unassigned tasks that belong to the list of supplied processes
+             * @name ProcessService#getUnassignedTasks
+             *
+             * @param {number[]} processes
+             * @return {HttpPromise}
              */
             this.getUnassignedTasks = function (processes) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/unassigned', { params: { 'p': processes } });
             };
 
             /**
-             * @memberOf processService
-             * @function getTask
-             * @desc Returns a task by given id
-             * 
-             * @param {String} taskId
-             * @returns {HttpPromise}
+             * Get the task
+             * @name ProcessService#getTask
+             *
+             * @param {string} taskId
+             * @return {HttpPromise}
              */
             this.getTask = function (taskId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/' + taskId);
             };
 
             /**
-             * @memberOf processService
-             * @function getStartEventForm
-             * @desc Returns instance's start form by a given instance id
-             * 
-             * @param {String} instanceId
-             * @returns {HttpPromise}
+             * Get the task
+             * @name ProcessService#getTask
+             *
+             * @param {string} taskId
+             * @return {HttpPromise}
+             */
+            this.getCompletedTask = function (taskId) {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/' + taskId + '/completed');
+            };
+
+            /**
+             * Returns the start event form by selected instance
              */
             this.getStartEventForm = function (instanceId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/instance/' + instanceId + '/startform');
             };
 
             /**
-             * @memberOf processService
-             * @function completeTask
-             * @desc Completes a given task
-             * 
-             * @param {Task} taskData
-             * @returns {HttpPromise}
+             * Retrieve all active tasks
+             */
+            this.getActiveTasks = function () {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task');
+            };
+
+            /**
+             * Completes a task and setting formdata to it
              */
             this.completeTask = function (taskData) {
                 var containsDocuments = false;
@@ -520,9 +584,15 @@
 
                             formData.append('json', angular.toJson(data.data));
 
+                            /*
                             for (var key of data.file.keys()) {
                                 formData.append('file', data.file.get(key), key);
                             }
+                            */
+
+                            data.file.forEach(function (v, k) {
+                                formData.append('file', v, k);
+                            });
 
                             return formData;
                         }
@@ -534,20 +604,15 @@
             };
 
             /**
-             * @memberOf processService
-             * @function saveDocument
-             * @desc Save or update a document in the repository
+             * Save or update a document in the repository
              * 
-             * @param {String} instanceId
              * @param {Document} wfDocument
              * @param {File} file
-             * @returns {HttpPromise}
+             *
+             * @name ProcessService#saveDocument
              */
             this.saveDocument = function (instanceId, wfDocument, file) {
-                var url = config.WORKFLOW_SERVICE_ENTRY
-                    + '/process/exec/'
-                    + instanceId
-                    + '/file';
+                var url = config.WORKFLOW_SERVICE_ENTRY + '/process/exec/' + instanceId + '/file';
 
                 if (file !== null) {
 
@@ -574,45 +639,38 @@
             };
 
             /**
-             * @memberOf processService
-             * @function getProcessInstanceDocuments
-             * @desc Get a list of documents for the process instance specified by the task id
+             * Get a list of documents for the process instance specified by the task id
              * 
-             * @param {String} taskId
-             * @returns {HttpPromise}
+             * @param {number} taskId
+             *
+             * @name ProcessService#getProcessInstanceDocuments
              */
             this.getProcessInstanceDocuments = function (taskId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/' + taskId + '/document');
             };
 
             /**
-             * @memberOf processService
-             * @function getInProgressInstances
-             * @desc Returns in progress instances by given criteria
-             * 
-             * @returns {HttpPromise}
+             * Returns all in progress instances
              */
-            this.getInProgressInstances = function (definitionName, instanceTitle, after, before) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/inprogress/instances/search:'
-                    + definitionName + ","
-                    + instanceTitle + ","
-                    + after + ","
-                    + before
-                );
+            this.getInProgressInstances = function () {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/inprogress/instances');
             };
 
             /**
-             * @memberOf processService
-             * @function getDocumentsByInstance
-             * @desc Returns instance's documents by id
+             * Returns instance's documents by id
              * 
              * @param {String} instanceId
-             * @returns {HttpPromise}
              */
             this.getDocumentsByInstance = function (instanceId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/instance/' + instanceId + '/documents')
             };
 
-        }]
-    );
-})(angular);
+            this.sendTaskDueDateNotification = function (taskId, content) {
+                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/task/' + taskId + '/notification', content)
+            };
+
+        }
+
+        angular.module('wfWorkspaceServices').service('processService', ['$http', 'CONFIG', ProcessService]);
+    }
+);
