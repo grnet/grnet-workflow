@@ -45,8 +45,8 @@
 			<div class="card-header">
 				<md-icon md-svg-src="img/avatars/{{task.icon}}" class="md-avatar" style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
 				<div class="after-icon">
-					<h2 class="md-title">{{task.processInstance.title}}</h2>
-					<p class="md-subhead" style="display:block">{{task.name}}</p>
+					<h2 class="md-title">[{{task.processInstance.title}}] {{task.name}}</h2>
+					<p class="md-subhead">{{ 'process' | translate}}: {{task.definitionName}}</p>
 				</div>
 			</div>
 			
@@ -75,13 +75,13 @@
 				
 			</section>
 
-			<section layout="row" layout-align="start center">
-				<md-input-container flex class="md-block" ng-if="task.description">
-					<label for="processDescription">{{ 'description' | translate }}</label>
-					<textarea id="processDescription" ng-model="task.description" readonly disabled></textarea>
-				</md-input-container>
+			<section layout-align="start center" ng-if="task.description">
+				<label for="processDescription">{{ 'description' | translate }}</label>
+				<div id="processDescription" ng-bind-html="task.description" class="disabledLabel" disabled>{{task.description}}</div>
 			</section>
-						
+
+			<md-input-container class="md-block"></md-input-container>
+
 			<section layout="row" layout-align="start center">
 				<md-input-container flex="30" class="md-block" style="margin-top:0">
 					<label for="taskAssignee">{{ 'processingBy' | translate }}</label>
@@ -94,9 +94,7 @@
 	
 	<md-card ng-if="task.taskForm != null && task.taskForm.length > 0 && !showProgress">
 		<md-card-content>
-		
 			<nlk-process-form-item ng-repeat="item in task.taskForm" ng-model="item" wf-document-path="{{documentPath}}" wf-preview="true"></nlk-process-form-item>
-			
 		</md-card-content>
 	</md-card>
 </md-content>

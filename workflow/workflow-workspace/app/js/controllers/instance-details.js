@@ -19,10 +19,9 @@ define(['angular', 'services/process-service'],
 				//success callback
 				function (response) {
 					$scope.tasks = response.data;
-
 					//error callback	
 				}, function (response) {
-
+                    exceptionModal(response, $scope.task);
 				});
 
 			/**
@@ -130,12 +129,7 @@ define(['angular', 'services/process-service'],
 
 						//error callback	
 					}, function (response) {
-						$mdDialog.show($mdDialog.alert()
-							.parent(document.body)
-							.clickOutsideToClose(true)
-							.title('Error')
-							.content(response.data)
-							.ok('Ok'))
+                        exceptionModal(response, $scope.task);
 					}
 				);
 			};
@@ -187,7 +181,7 @@ define(['angular', 'services/process-service'],
 								// error callback
 								function (response) {
 									$scope.showProgressBar = false;
-									exceptionModal(response);
+                                    exceptionModal(response, $scope.task);
 								});
 						};
 
@@ -203,7 +197,7 @@ define(['angular', 'services/process-service'],
 									// error callback
 								}, function (response) {
 									$scope.showProgressBar = false;
-									exceptionModal(response);
+                                    exceptionModal(response, $scope.task);
 								});
 						};
 
@@ -271,7 +265,7 @@ define(['angular', 'services/process-service'],
 							$scope.showBack = true;
 						},
 						function (response) {
-
+                            exceptionModal(response, $scope.task);
 						});
 				} else {
 					$scope.activeView = "taskList";
@@ -292,6 +286,34 @@ define(['angular', 'services/process-service'],
 					$location.path("/inprogress");
 			};
 
+            /**
+             * @memberof InstanceDetailsCtrl
+             * @desc Displays a modal panel, showing the exception message
+             *
+             * @param {any} response
+             * @param {event} event
+             */
+            function exceptionModal(response, task, event) {
+                $mdDialog.show({
+                    controller: function ($scope, $mdDialog) {
+                        $scope.error = response.data;
+
+                        $scope.map = {};
+                        $scope.map["supervisor"] = task.processInstance.supervisor;
+                        $scope.map["taskName"] = task.name;
+                        $scope.map["processInstanceName"] = task.processInstance.title;
+
+                        $scope.cancel = function () {
+                            $mdDialog.hide();
+                        };
+                    },
+
+                    templateUrl: 'templates/exception.tmpl.html',
+                    parent: angular.element(document.body),
+                    targetEvent: event,
+                    clickOutsideToClose: false
+                })
+            };
 		}
 
 		angular.module('wfWorkspaceControllers').controller('InstanceDetailsCtrl', ['$scope', '$mdDialog', '$routeParams', '$filter', '$location', 'processService', 'CONFIG', instanceDetailsCtrl]);

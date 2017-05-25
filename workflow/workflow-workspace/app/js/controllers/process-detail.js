@@ -39,10 +39,7 @@ define(['angular', 'services/process-service'],
 
                     if (response.data.length > 0)
                         $scope.processSelectionChanged(response.data[0].id);
-                },
-                // error callback
-                function (response) { }
-
+                }
             ).finally(function() {
                 $scope.showProgress = false;
             });
@@ -66,9 +63,7 @@ define(['angular', 'services/process-service'],
                             }
                         }
 
-                    },
-                    // error callback
-                    function (response) { }
+                    }
                 );
             };
 

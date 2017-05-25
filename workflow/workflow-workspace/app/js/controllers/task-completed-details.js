@@ -34,7 +34,7 @@ define(['angular', 'services/process-service'],
                 },
                 // error callback
                 function (response) {
-                    exceptionModal(respose);
+                    exceptionModal(response);
                 }
 
             ).finally(function () {
@@ -117,9 +117,13 @@ define(['angular', 'services/process-service'],
             };
 
             /**
-             * Exception modal
+             * @memberof TaskCompletedDetailsCtrl
+             * @desc Displays a modal panel, showing the exception message
+             *
+             * @param {any} response
+             * @param {event} event
              */
-            function exceptionModal(response, $event) {
+            function exceptionModal(response, event) {
                 $mdDialog.show({
                     controller: function ($scope, $mdDialog) {
                         $scope.error = response.data;
@@ -127,13 +131,13 @@ define(['angular', 'services/process-service'],
                         $scope.cancel = function () {
                             $mdDialog.hide();
                         };
-
                     },
+
                     templateUrl: 'templates/exception.tmpl.html',
                     parent: angular.element(document.body),
-                    targetEvent: $event,
+                    targetEvent: event,
                     clickOutsideToClose: false
-                });
+                })
             }
 
         }

@@ -103,6 +103,17 @@ define(['angular'],
             };
 
             /**
+             * @memberOf processService
+             * @function notifyNoCandidates
+             * @desc Notifies administrator for no available candidates
+             *
+             * @returns {HttpPromise}
+             */
+            this.notifyNoCandidates = function (taskId, user) {
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/task/'+ taskId + '/candidates/nocandidates/'+ user);
+            };
+
+            /**
              * Returns all active process definitions
              */
             this.getActiveProcessDefinitions = function () {
@@ -650,10 +661,19 @@ define(['angular'],
             };
 
             /**
-             * Returns all in progress instances
+             * @memberOf processService
+             * @function getInProgressInstances
+             * @desc Returns in progress instances by given criteria
+             *
+             * @returns {HttpPromise}
              */
-            this.getInProgressInstances = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/inprogress/instances');
+            this.getInProgressInstances = function (definitionName, instanceTitle, after, before) {
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/inprogress/instances/search:'
+                    + definitionName + ","
+                    + instanceTitle + ","
+                    + after + ","
+                    + before
+                );
             };
 
             /**

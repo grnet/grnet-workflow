@@ -8,6 +8,7 @@ define(['angular', 'services/process-service'],
 
             $scope.imagePath = config.AVATARS_PATH;
             $scope.documentPath = config.WORKFLOW_DOCUMENTS_URL;
+            $scope.selectedUser = null;
 
             var taskId = $routeParams['taskId'];
             $scope.task = null;
@@ -67,12 +68,7 @@ define(['angular', 'services/process-service'],
 
                         //error callback	
                     }, function (response) {
-                        $mdDialog.show($mdDialog.alert()
-                            .parent(document.body)
-                            .clickOutsideToClose(false)
-                            .title('Error')
-                            .content(response.data)
-                            .ok('Ok'))
+                        exceptionModal(response, $scope.task);
                     }
                 );
             };
@@ -101,6 +97,10 @@ define(['angular', 'services/process-service'],
                             $mdDialog.hide();
                         };
 
+                        $scope.hideDialog = function () {
+                            $mdDialog.hide();
+                        };
+
                         function setAssignee() {
                             processService.setAssigneeToTask($scope.task, $scope.task.assignee).then(
                                 function (response) {
@@ -122,12 +122,43 @@ define(['angular', 'services/process-service'],
                                 function (response) {
                                     $scope.showProgressBar = false;
                                     $scope.candidates = response.data;
-                                },
-                                // error callback
-                                function (response) {
-                                    $scope.showProgressBar = false;
-                                    exceptionModal(response);
                                 });
+                        };
+
+                        $scope.notifyAdmin = function () {
+                            $scope.selectedUser = null;
+                            $mdDialog.show({
+                                controller: function ($scope, $mdDialog, processService, task) {
+                                    $scope.inputCancel = function () {
+                                        $scope.selectedUser = null;
+                                        $mdDialog.hide();
+                                    };
+                                    $scope.inputConfirm = function () {
+                                        $scope.showProgressBar = false;
+
+                                        processService.notifyNoCandidates(task.id, $scope.selectedUser).then(
+                                            //success callback
+                                            function () {
+                                                $scope.showProgressBar = false;
+                                            },
+                                            // error callback
+                                            function (response) {
+                                                $scope.showProgressBar = false;
+                                                exceptionModal(response);
+                                            }
+                                        );
+                                        $mdDialog.hide();
+                                    };
+                                },
+                                templateUrl: 'templates/inputCandidate.tmpl.html',
+                                parent: document.body,
+                                clickOutsideToClose: false,
+                                locals: {
+                                    'processService': processService,
+                                    'task': $scope.task
+                                }
+                            });
+
                         };
 
                         $scope.getCandidatesForTask = function () {
@@ -138,11 +169,6 @@ define(['angular', 'services/process-service'],
                                 function (response) {
                                     $scope.showProgressBar = false;
                                     $scope.candidates = response.data;
-
-                                    // error callback
-                                }, function (response) {
-                                    $scope.showProgressBar = false;
-                                    exceptionModal(response);
                                 });
                         };
 
@@ -166,7 +192,6 @@ define(['angular', 'services/process-service'],
             $scope.showTaskDetails = function () {
                 $mdDialog.show({
                     controller: function ($mdDialog) {
-
                         $scope.cancel = function () {
                             $mdDialog.hide();
                         };
@@ -207,10 +232,15 @@ define(['angular', 'services/process-service'],
                 })
             };
 
-            function exceptionModal(response, $event) {
+            function exceptionModal(response, task, $event) {
                 $mdDialog.show({
                     controller: function ($scope, $mdDialog) {
                         $scope.error = response.data;
+
+                        $scope.map = {};
+                        $scope.map["supervisor"] = task.processInstance.supervisor;
+                        $scope.map["taskName"] = task.name;
+                        $scope.map["processInstanceName"] = task.processInstance.title;
 
                         $scope.cancel = function () {
                             $mdDialog.hide();

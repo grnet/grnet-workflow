@@ -35,14 +35,10 @@ define(['angular', 'services/process-service'],
 
             processService.getSupervisors()
                 .then(
-                // success callback
-                function (response) {
-                    $scope.supervisors = response.data;
-                },
-                // error callback
-                function (response) {
-                    exceptionModal(response);
-                }
+                    // success callback
+                    function (response) {
+                        $scope.supervisors = response.data;
+                    }
                 );
 
             /**

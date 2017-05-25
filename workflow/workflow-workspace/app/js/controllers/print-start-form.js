@@ -20,14 +20,21 @@ define(['angular', 'services/process-service'],
 					$scope.taskForm = response.data;
 
 					//error callback	
-				}, function (response) {
-					exceptionModal(response);
-				});
+                },
+                //error callback
+                function (response) {
+                    exceptionModal(response);
+                }
+			);
 
 			processService.getInstanceById(instanceId).then(
 				function (response) {
 					$scope.instance = response.data;
-				}
+                },
+                //error callback
+                function (response) {
+                    exceptionModal(response);
+                }
 			);
 
 			checkTask();
@@ -59,26 +66,31 @@ define(['angular', 'services/process-service'],
 			$scope.print = function () {
 				document.title = $scope.instance.title;
 				window.print();
-			}
+			};
 
-			/**
-			 * Exception modal
-			 */
-			function exceptionModal(response, $event) {
-				$mdDialog.show({
-					controller: function ($scope, $mdDialog) {
-						$scope.error = response.data;
+            /**
+             * @memberof TaskDetailCtrl
+             * @desc Displays a modal panel, showing the exception message
+             *
+             * @param {any} response
+             * @param {event} event
+             */
+            function exceptionModal(response, event) {
+                $mdDialog.show({
+                    controller: function ($scope, $mdDialog) {
+                        $scope.error = response.data;
 
-						$scope.cancel = function () {
-							$mdDialog.hide();
-						};
-					},
-					templateUrl: 'templates/exception.tmpl.html',
-					parent: angular.element(document.body),
-					targetEvent: $event,
-					clickOutsideToClose: false
-				})
-			}
+                        $scope.cancel = function () {
+                            $mdDialog.hide();
+                        };
+                    },
+
+                    templateUrl: 'templates/exception.tmpl.html',
+                    parent: angular.element(document.body),
+                    targetEvent: event,
+                    clickOutsideToClose: false
+                })
+            }
 
 		}
 

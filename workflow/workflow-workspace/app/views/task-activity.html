@@ -95,6 +95,13 @@
 					</md-button>
 					<input id="instanceTitle" ng-model="searchFilter.instanceTitle">
 				</md-input-container>
+
+				<md-divider style="margin-top: 20px;"></md-divider>
+
+				<md-button class="md-raised" aria-label="Clear" ng-click="clearAllFilters()" style="margin-left: 0; margin-top: 15px;">
+					{{ 'clearFilters' | translate }}
+				</md-button>
+
 			</md-card-content>
 		</md-card>
 	</div>
@@ -126,13 +133,12 @@
 			<div class="printing-divider"></div>
 
 			<md-card ng-repeat="task in tasks | orderBy:orderByOption">
-				<md-list-item class="md-2-line" ng-click="goTo('/completed/' + task.id)">
+				<md-list-item class="md-3-line" ng-click="goTo('/completed/' + task.id)">
 					<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
 					<div class="md-list-item-text" layout="column">
-						<h3>{{task.processInstance.title}}</h3>
-						<p> {{task.name}}
-							<span class="cardInline" ng-if="task.endDate">{{ 'completedOn' | translate }} : {{task.endDate | date:'d/M/yyyy'}}</span>
-						</p>
+						<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
+						<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
+						<p flex>{{ 'completedOn' | translate }}: {{task.endDate | date:'d/M/yyyy'}}</p>
 					</div>
 
 					<div layout="row" layout-align="end end">
@@ -140,7 +146,6 @@
 						</md-icon>
 						<md-icon ng-if="!task.endDate" class="nearDelayed" md-svg-icon="img/icons/delayed-notification.svg"></md-icon>
 					</div>
-
 				</md-list-item>
 			</md-card>
 		</md-list>

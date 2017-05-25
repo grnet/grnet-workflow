@@ -12,7 +12,14 @@
 	</md-toolbar>
 	
 	<md-dialog-content layout-padding>
-		<p>{{error.message}}</p>
+		<md-content layout="row" layout-align="start center" layout-padding style="min-height: 55px; padding-left:0px">
+			<span ng-if="error.message">{{ error.message | translate }}</span>
+			<span ng-if="!error.message">{{ 'serverError' | translate }}</span>
+		</md-content>
+		<md-content layout="row" layout-align="start center" layout-padding style="min-height: 55px; padding-left:0px"
+					ng-repeat="(key, value) in map">
+			<span>{{key | translate}}: {{value}}</span>
+		</md-content>
 	</md-dialog-content>
 	
 	<md-dialog-actions layout="row" layout-align="left center" class="dialogActions">

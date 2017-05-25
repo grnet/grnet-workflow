@@ -129,7 +129,7 @@ define(['angular', 'services/process-service'],
 					},
 					// error callback
 					function (response) {
-						exceptionModal(response);
+                        exceptionModal(response, $scope.task);
 					}
 				).finally(function () {
 					$scope.showProgress = false;
@@ -150,7 +150,7 @@ define(['angular', 'services/process-service'],
 					},
 					// error callback
 					function (response) {
-						exceptionModal(response);
+                        exceptionModal(response, $scope.task);
 					}
 
 				).finally(function () {
@@ -176,7 +176,7 @@ define(['angular', 'services/process-service'],
 					},
 					// error callback
 					function (response) {
-						exceptionModal(response);
+                        exceptionModal(response, $scope.task);
 					}
 
 				).finally(function () {
@@ -216,10 +216,6 @@ define(['angular', 'services/process-service'],
 					processService.getCompletedTasksByInstances($scope.task.processInstance.id).then(
 						function (response) {
 							$scope.historyTasks = response.data;
-						},
-						//error callback
-						function (response) {
-							exceptionModal(response);
 						});
 				} else
 					$scope.executionActiveView = "list";
@@ -244,7 +240,7 @@ define(['angular', 'services/process-service'],
 						$scope.historicStartDate = $filter('date')($scope.historicTask.startDate, "d/M/yyyy");
 					},
 					function (response) {
-						exceptionModal(response);
+                        exceptionModal(response, $scope.task);
 					});
 			};
 
@@ -313,22 +309,28 @@ define(['angular', 'services/process-service'],
 				$window.history.back();
 			};
 
-			function exceptionModal(response, $event) {
-				$mdDialog.show({
-					controller: function ($scope, $mdDialog) {
-						$scope.error = response.data;
+            function exceptionModal(response, task, event) {
+                $mdDialog.show({
+                    controller: function ($scope, $mdDialog) {
+                        $scope.error = response.data;
 
-						$scope.cancel = function () {
-							$mdDialog.hide();
-						};
-					},
+                        $scope.map = {};
+                        $scope.map["supervisor"] = task.processInstance.supervisor;
+                        $scope.map["taskName"] = task.name;
+                        $scope.map["processInstanceName"] = task.processInstance.title;
+                        $scope.map["process"] = task.definitionName;
 
-					templateUrl: 'templates/exception.tmpl.html',
-					parent: angular.element(document.body),
-					targetEvent: $event,
-					clickOutsideToClose: false
-				});
-			}
+                        $scope.cancel = function () {
+                            $mdDialog.hide();
+                        };
+                    },
+
+                    templateUrl: 'templates/exception.tmpl.html',
+                    parent: angular.element(document.body),
+                    targetEvent: event,
+                    clickOutsideToClose: false
+                })
+            }
 
 		}
 

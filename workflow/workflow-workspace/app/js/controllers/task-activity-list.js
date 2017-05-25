@@ -22,13 +22,19 @@ define(['angular', 'services/process-service'],
 
 			$scope.orderByOption = null;
 
-			$scope.options = [];
-			$scope.sortOptions = { title: 'dueTo', id: 'dueDate' };
-			$scope.options.push($scope.sortOptions);
-			$scope.sortOptions = { title: 'taskName', id: 'name' };
-			$scope.options.push($scope.sortOptions);
-			$scope.sortOptions = { title: 'execution', id: 'processInstance.title' };
-			$scope.options.push($scope.sortOptions);
+            $scope.options = [];
+            $scope.sortOptions = { title: 'process', id: 'definitionName' };
+            $scope.options.push($scope.sortOptions);
+            $scope.sortOptions = { title: 'taskName', id: 'name' };
+            $scope.options.push($scope.sortOptions);
+            $scope.sortOptions = { title: 'processInstanceName', id: 'processInstance.title' };
+            $scope.options.push($scope.sortOptions);
+            $scope.sortOptions = { title: 'dueTo', id: 'dueDate' };
+            $scope.options.push($scope.sortOptions);
+            $scope.sortOptions = { title: 'startDate', id: 'startDate' };
+            $scope.options.push($scope.sortOptions);
+            $scope.sortOptions = { title: 'complete', id: 'endDate' };
+            $scope.options.push($scope.sortOptions);
 
 			/**
 			 * Get completed definitions for user
@@ -43,11 +49,6 @@ define(['angular', 'services/process-service'],
 
 					$scope.initializeCriteria();
 					$scope.showTasksByFilters();
-				},
-				// error callback
-				function (response) {
-					exceptionModal(response);
-
 				}).finally(function () {
 					$scope.showProgressBar = false;
 				});

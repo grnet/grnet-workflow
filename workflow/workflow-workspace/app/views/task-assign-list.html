@@ -97,13 +97,12 @@
 							<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
 
 							<div class="md-list-item-text" layout="column">
-								<h3>{{task.processInstance.title}}</h3>
-								<p>{{task.name}}
-									<span ng-if="task.dueDate" class="cardInline">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy H:mm'}}
-						 				<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"
-						 					md-svg-icon="img/icons/delayed-notification.svg">
-						 				</md-icon>
-						 			</span>
+								<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
+								<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
+								<p flex ng-if="task.dueDate">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
+									<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"
+										md-svg-icon="img/icons/delayed-notification.svg">
+									</md-icon>
 								</p>
 							</div>
 
@@ -134,14 +133,13 @@
 							<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
 
 							<div class="md-list-item-text" layout="column">
-								<h3>{{task.processInstance.title}}</h3>
-								<p>{{task.name}}
-									<span ng-if="task.dueDate" class="cardInline">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy H:mm'}}
-										<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'" 
-											md-svg-icon="img/icons/delayed-notification.svg">
-										</md-icon>
-									</span>
-									<span class="cardInline">{{task.assignee}}</span>
+								<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
+								<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
+								<p flex>{{ 'assignedTo' | translate}}: {{task.assignee}}
+									<span class="cardInline" ng-if="task.dueDate">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}</span>
+									<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"
+											 md-svg-icon="img/icons/delayed-notification.svg">
+									</md-icon>
 								</p>
 							</div>
 						</md-list-item>

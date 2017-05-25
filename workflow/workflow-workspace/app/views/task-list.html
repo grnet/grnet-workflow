@@ -14,6 +14,25 @@
 
 		<span flex></span>
 
+		<div layout="column">
+
+			<md-menu md-position-mode="target-right target">
+				<md-button aria-label="Sort-By" class="md-icon-button" ng-click="$mdOpenMenu($event)">
+					<md-icon md-menu-origin md-svg-icon="img/icons/sort-by.svg"></md-icon>
+				</md-button>
+
+				<md-menu-content width="4">
+					<md-menu-item ng-repeat="option in sortOptions" ng-click="sortBy(option.id)">
+						<md-button aria-label="Menu button">
+							<div layout="row">
+								<p flex>{{ option.title | translate }}</p>
+							</div>
+						</md-button>
+					</md-menu-item>
+				</md-menu-content>
+			</md-menu>
+
+		</div>
 	</div>
 </md-toolbar>
 
@@ -49,19 +68,18 @@
 			<!-- Tasks to be claimed by user -->
 			<section ng-show="unAssignedTasks.length > 0">
 				<md-list flex style="padding-top: 0px;">
-					<md-subheader sticky-state="next" class="md-primary" md-whiteframe="2">{{ 'newTasksToClaim' | translate }}</md-subheader>
+					<md-subheader sticky-state="next" class="md-primary" md-whiteframe="2" style="margin-right: 8px">{{ 'newTasksToClaim' | translate }}</md-subheader>
 
-					<md-card ng-repeat="task in unAssignedTasks">
-						<md-list-item class="md-2-line" ng-click="goTo('/task/' + task.id)">
+					<md-card ng-repeat="task in unAssignedTasks | orderBy:orderByOption" style="margin-left: 0;">
+						<md-list-item class="md-3-line" ng-click="goTo('/task/' + task.id)">
 							<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
 							<div class="md-list-item-text" layout="column">
-								<h3>{{task.processInstance.title}}</h3>
-								<p>{{task.name}}
-									<span ng-if="task.dueDate" class="cardInline">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy H:mm'}}
+								<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
+								<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
+								<p flex ng-if="task.dueDate">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
 									<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'" 
 										md-svg-icon="img/icons/delayed-notification.svg">
 									</md-icon>
-								</span>
 								</p>
 							</div>
 						</md-list-item>
@@ -83,17 +101,16 @@
 						</md-card>
 					</div>
 
-					<md-card ng-repeat="task in assignedTasks">
-						<md-list-item class="md-2-line" ng-click="goTo('/task/' + task.id)">
+					<md-card ng-repeat="task in assignedTasks | orderBy:orderByOption" style="margin-left: 0;">
+						<md-list-item class="md-3-line" ng-click="goTo('/task/' + task.id)">
 							<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
 							<div class="md-list-item-text" layout="column">
-								<h3>{{task.processInstance.title}}</h3>
-								<p>{{task.name}}
-									<span ng-if="task.dueDate" class="cardInline">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
+								<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
+								<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
+								<p flex ng-if="task.dueDate">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
 									<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"
 										md-svg-icon="img/icons/delayed-notification.svg">
 									</md-icon>
-								</span>
 								</p>
 							</div>
 						</md-list-item>

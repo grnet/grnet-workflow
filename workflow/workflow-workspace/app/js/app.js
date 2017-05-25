@@ -46,9 +46,9 @@ define(['angular',
 		var initialize = function () {
 
 			/* Localhost */
-			var WORKFLOW_SERVICE_ENTRY = 'http://10.0.0.150:8080/workflow-engine/api';
-			var HOME_URL = 'http://localhost/workflow-workspace';
-			var WORKFLOW_DOCUMENTS_URL = 'http://10.0.0.150:8080/workflow-engine/document/';
+			var WORKFLOW_SERVICE_ENTRY = 'http://localhost:8080/workflow-engine/api';
+			var HOME_URL = 'http://localhost:81/workflow-workspace';
+			var WORKFLOW_DOCUMENTS_URL = 'http://localhost:8080/workflow-engine/document/';
 
 			var AVATARS_PATH = 'img/avatars/';
 			var DEFAULT_AVATAR = 'like.svg';
@@ -173,8 +173,9 @@ define(['angular',
 							}).
 							when('/completed', {
 								templateUrl: 'views/task-completed-list.html',
-								controller: 'CompletedTasksCtrl'
-							}).
+								controller: 'CompletedTasksCtrl',
+	                            reloadOnSearch: false
+                        	}).
 							when('/completed/:taskId', {
 								templateUrl: 'views/task-completed-details.html',
 								controller: 'TaskCompletedDetailsCtrl'
@@ -189,7 +190,8 @@ define(['angular',
 							}).
 							when('/activity', {
 								templateUrl: 'views/task-activity.html',
-								controller: 'TaskActivityListCtrl'
+								controller: 'TaskActivityListCtrl',
+	                            reloadOnSearch: false
 							}).
 							when('/startform/:mode/:instanceId', {
 								templateUrl: 'views/print-start-form.html',
@@ -201,7 +203,8 @@ define(['angular',
 							}).
 							when('/inprogress', {
 								templateUrl: 'views/in-progress.html',
-								controller: 'InProgressCtrl'
+								controller: 'InProgressCtrl',
+	                            reloadOnSearch: false
 							}).
 							when('/instance/:instanceId', {
 								templateUrl: 'views/instance-details.html',

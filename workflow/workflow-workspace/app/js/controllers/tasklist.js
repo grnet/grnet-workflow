@@ -12,6 +12,18 @@ define(['angular', 'services/process-service', 'util/core'],
             $scope.unAssignedTasks = {};
             $scope.taskMapByProcess = [];
 
+            $scope.sortOptions = [];
+            $scope.orderByOption = null;
+
+            $scope.sortOption = { title: 'dueTo', id: 'dueDate' };
+            $scope.sortOptions.push($scope.sortOption);
+            $scope.sortOption = { title: 'taskName', id: 'name' };
+            $scope.sortOptions.push($scope.sortOption);
+            $scope.sortOption = { title: 'process', id: 'definitionName' };
+            $scope.sortOptions.push($scope.sortOption);
+            $scope.sortOption = { title: 'processInstanceName', id: 'processInstance.title' };
+            $scope.sortOptions.push($scope.sortOption);
+
             $scope.imagePath = config.AVATARS_PATH;
 
             $scope.showProgress = true;
@@ -49,16 +61,7 @@ define(['angular', 'services/process-service', 'util/core'],
                             $scope.unAssignedTasks = response.data;
 
                             $scope.taskMapByProcess = ArrayUtil.extendMapByProperty($scope.claimTasks, $scope.taskMapByProcess, "definitionName", "unassigned");
-                        },
-                        // error callback
-                        function (response) {
-                            exceptionModal(response);
                         });
-
-                },
-                // error callback
-                function (response) {
-                    exceptionModal(response);
 
                 }).finally(function () {
                     $scope.showProgress = false;
@@ -81,22 +84,15 @@ define(['angular', 'services/process-service', 'util/core'],
                 $scope.unAssignedTasks = $scope.claimTasks;
             };
 
-            function exceptionModal(response, $event) {
-                $mdDialog.show({
-                    controller: function ($scope, $mdDialog) {
-                        $scope.error = response.data;
-
-                        $scope.cancel = function () {
-                            $mdDialog.hide();
-                        };
-                    },
-
-                    templateUrl: 'templates/exception.tmpl.html',
-                    parent: angular.element(document.body),
-                    targetEvent: $event,
-                    clickOutsideToClose: false
-                });
-            }
+            /**
+             * @memberOf TaskListCtrl
+             * @desc Sorts tasks by given option
+             *
+             * @param {String} optionId
+             */
+            $scope.sortBy = function (optionId) {
+                $scope.orderByOption = optionId;
+            };
         }
 
         angular.module('wfWorkspaceControllers').controller('TaskListCtrl', ['$scope', '$mdDialog', 'processService', 'CONFIG', taskListCtrl]);
