@@ -668,7 +668,7 @@ define(['angular'],
              * @returns {HttpPromise}
              */
             this.getInProgressInstances = function (definitionName, instanceTitle, after, before) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/inprogress/instances/search:'
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/inprogress/instances/search:'
                     + definitionName + ","
                     + instanceTitle + ","
                     + after + ","

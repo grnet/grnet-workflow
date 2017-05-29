@@ -19,6 +19,10 @@
 
 		<span flex></span>
 
+		<md-button class="md-icon-button" aria-label="Print" ng-click="print()" ng-if="inProgressInstances.length > 0">
+			<md-icon md-svg-icon="img/icons/print.svg"></md-icon>
+		</md-button>
+
 		<md-button aria-label="Sort-By" class="md-icon-button" ng-click="activeClearAllFilters()">
 			<md-icon md-menu-origin md-svg-icon="img/icons/reset.svg"></md-icon>
 		</md-button>
@@ -59,11 +63,7 @@
 
 				<section layout="row" class="md-block" style="padding-bottom: 10px;">
 					<label for="date-before" flex="45" class="wf-label">{{'startedBefore' | translate }}</label>
-
-					<md-datepicker id="date-before" ng-model="searchFilter.dateBefore" md-max-date="activeMaxDateBefore"
-								   ng-change="searchInProgressInstances()" style="margin-right: 0px;">
-					</md-datepicker>
-
+					<md-datepicker id="date-before" ng-model="searchFilter.dateBefore" md-max-date="activeMaxDateBefore" ng-change="searchInProgressInstances()" style="margin-right: 0px;"></md-datepicker>
 					<md-button class="md-icon-button" aria-label="Clear" ng-click="activeClearDateBefore()">
 						<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 8px;color: red;"></md-icon>
 					</md-button>
@@ -99,7 +99,7 @@
 
 	<md-content flex class="transparent">
 
-		<div layout="row" layout-align="center start" flex class="warning-message" ng-if="instances === null || instances.length == 0">
+		<div layout="row" layout-align="center start" flex class="warning-message" ng-if="inProgressInstances === null || inProgressInstances.length == 0">
 			<md-card>
 				<md-card-content layout-align="center center">
 					<md-icon md-svg-icon="img/icons/info.svg"></md-icon>
@@ -121,7 +121,7 @@
 
 			<div class="printing-divider"></div>
 
-			<md-card ng-repeat="instance in instances" style="margin-left:0px">
+			<md-card ng-repeat="instance in inProgressInstances" style="margin-left:0px">
 				<md-list-item class="md-3-line" ng-click="goTo('/instance/' + instance.id)">
 					<img ng-src="{{imagePath + instance.definitionIcon}}" class="md-avatar" alt="{{instance.title}}" />
 					<div class="md-list-item-text" layout="column">

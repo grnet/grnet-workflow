@@ -57,7 +57,6 @@ define(['angular', 'services/process-service', 'util/core'],
 			$scope.showTasksByFilters = function () {
 
 				var instanceIds = [];
-				var historyTasks = [];
 				var tasksMapped = {};
 
 				var dateAfterTime;
@@ -134,7 +133,21 @@ define(['angular', 'services/process-service', 'util/core'],
 				$scope.showTasksByFilters();
 			};
 
-			/**
+            $scope.clearInstanceTitle = function () {
+                $scope.searchFilter.instanceTitle = "";
+                $scope.showTasksByFilters();
+            };
+
+            $scope.clearAllFilters = function () {
+                $scope.searchFilter.dateAfter = 0;
+                $scope.searchFilter.dateBefore = 0;
+                $scope.searchFilter.instanceTitle = "";
+                $scope.searchFilter.definitionId = "all";
+
+                $scope.showTasksByFilters();
+            };
+
+            /**
 			 * Sorting function
 			 */
 			$scope.sortBy = function (optionId) {
