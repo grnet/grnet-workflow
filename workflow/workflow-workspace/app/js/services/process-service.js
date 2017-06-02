@@ -6,27 +6,9 @@ define(['angular'],
         
         function ProcessService($http, config) {
 
-            /**
-             * Creates a new process definition from a BPMN file
-             * @param {File} file
-             * @return {HttpPromise}
-             *
-             * @name ProcessService#createProcess
-             */
-            this.createProcess = function (file) {
-                var url = config.WORKFLOW_SERVICE_ENTRY + '/processbpmn';
-
-                var fd = new FormData();
-                fd.append('file', file);
-
-                return $http.post(url, fd, {
-                    transformRequest: angular.identity,
-                    headers: { 'Content-Type': undefined }
-                });
-            };
 
             this.getSupervisors = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/user/role/' + 'ROLE_Supervisor');
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/user/role/' + 'ROLE_Supervisor');
             };
 
             /**
@@ -36,27 +18,6 @@ define(['angular'],
             this.getInstanceById = function (instanceId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/public/instance/' + instanceId);
             };
-
-            /**
-             * Creates a new process version
-             * @param {number} processId
-             * @param {File} file
-             * @return {HttpPromise}
-             *
-             * @name ProcessService#createProcessVersion
-             */
-            this.createProcessVersion = function (processId, file) {
-                var url = config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId;
-
-                var fd = new FormData();
-                fd.append('file', file);
-
-                return $http.post(url, fd, {
-                    transformRequest: angular.identity,
-                    headers: { 'Content-Type': undefined }
-                });
-            };
-
 
             /**
              * Returns true if the selected version is active
@@ -91,18 +52,6 @@ define(['angular'],
             };
 
             /**
-             * Delete the process with the given id
-             * @param {number} processId       - the process (workflow definition) id
-             * @return {HttpPromise}
-             *
-             * @name ProcessService#deleteProcess
-             */
-            this.deleteProcess = function (processId) {
-                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId
-                );
-            };
-
-            /**
              * @memberOf processService
              * @function notifyNoCandidates
              * @desc Notifies administrator for no available candidates
@@ -110,14 +59,14 @@ define(['angular'],
              * @returns {HttpPromise}
              */
             this.notifyNoCandidates = function (taskId, user) {
-                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/task/'+ taskId + '/candidates/nocandidates/'+ user);
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/v2/task/'+ taskId + '/candidates/nocandidates/'+ user);
             };
 
             /**
              * Returns all active process definitions
              */
             this.getActiveProcessDefinitions = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/active');
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/process/active');
             };
 
             /**
@@ -224,25 +173,6 @@ define(['angular'],
                 );
             };
 
-
-            /**
-             * Delete the identified process version
-             *
-             * @param {number} processId       - the process (workflow definition) id
-             * @param {string} deploymentId    - the process version deployment id
-             * @return {HttpPromise}
-             *
-             * @name ProcessService#deleteProcessVersion
-             */
-            this.deleteProcessVersion = function (processId, deploymentId) {
-                return $http.delete(config.WORKFLOW_SERVICE_ENTRY
-                    + '/process/'
-                    + processId
-                    + '/'
-                    + deploymentId
-                );
-            };
-
             /**
              * Return a promise object for the list of all processes (workflow definition)
              * @return {HttpPromise}
@@ -253,32 +183,13 @@ define(['angular'],
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process');
             };
 
-            /**
-             * Return a promise object for the tasks by an array of instances id
-             * @param {array} definitionsId - array of selected instances id
-             * @return {HttpPromise}
-             *
-             */
-            this.getTasksByDefinitionsId = function (instancesId) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/unassigned?i=' + instancesId);
-
-            };
-
-
-            /**
-             * Returns a list of assigned tasks based on instances
-             */
-            this.getAssignedTasksByInstances = function (instancesId) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/assigned?i=' + instancesId);
-            };
-
 
             /**
              * Returns list of tasks that belong to instances supervised by the user in context
              */
             this.getSupervisedTasks = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/supervised');
-            }
+            };
 
 
             /**
@@ -286,20 +197,20 @@ define(['angular'],
              */
             this.getClaimTasks = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/claim');
-            }
+            };
 
             /**
              * Unclaims a task 
              */
             this.unclaimTask = function (taskId) {
-                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/task/' + taskId + '/unclaim');
-            }
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/v2/task/' + taskId + '/unclaim');
+            };
 
             /**
              * Claims a task
              */
             this.claimTask = function (taskId) {
-                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/task/' + taskId + '/claim');
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/v2/task/' + taskId + '/claim');
             }
 
             /**
@@ -379,7 +290,7 @@ define(['angular'],
 
             this.getTasksInProgress = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/inprogress/user');
-            }
+            };
 
             /**
              * Updates the workflow definition
@@ -521,17 +432,6 @@ define(['angular'],
             };
 
             /**
-             * Gets all unassigned tasks that belong to the list of supplied processes
-             * @name ProcessService#getUnassignedTasks
-             *
-             * @param {number[]} processes
-             * @return {HttpPromise}
-             */
-            this.getUnassignedTasks = function (processes) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/unassigned', { params: { 'p': processes } });
-            };
-
-            /**
              * Get the task
              * @name ProcessService#getTask
              *
@@ -539,7 +439,7 @@ define(['angular'],
              * @return {HttpPromise}
              */
             this.getTask = function (taskId) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/' + taskId);
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/task/' + taskId);
             };
 
             /**
@@ -564,7 +464,7 @@ define(['angular'],
              * Retrieve all active tasks
              */
             this.getActiveTasks = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task');
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/task');
             };
 
             /**
@@ -657,7 +557,7 @@ define(['angular'],
              * @name ProcessService#getProcessInstanceDocuments
              */
             this.getProcessInstanceDocuments = function (taskId) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/' + taskId + '/document');
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/task/' + taskId + '/document');
             };
 
             /**
@@ -682,7 +582,7 @@ define(['angular'],
              * @param {String} instanceId
              */
             this.getDocumentsByInstance = function (instanceId) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/instance/' + instanceId + '/documents')
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/instance/' + instanceId + '/documents')
             };
 
             this.sendTaskDueDateNotification = function (taskId, content) {

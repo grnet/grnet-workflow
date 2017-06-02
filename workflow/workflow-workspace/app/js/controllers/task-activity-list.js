@@ -156,7 +156,29 @@ define(['angular', 'services/process-service'],
 				$scope.showTasksByFilters();
 			};
 
-			/**
+            /**
+             * Clear the instance title filter
+             */
+            $scope.clearInstanceTitle = function () {
+                $scope.searchFilter.instanceTitle = "";
+                $scope.showTasksByFilters();
+            };
+
+            /**
+             * @memberof InProgressCtrl
+             * @desc Clears any filter
+             *
+             */
+            $scope.clearAllFilters = function () {
+                $scope.searchFilter.dateAfter = 0;
+                $scope.searchFilter.dateBefore = 0;
+                $scope.searchFilter.instanceTitle = "";
+                $scope.searchFilter.definitionId = "all";
+
+                $scope.showTasksByFilters();
+            };
+
+            /**
 			 * Sorting function
 			 */
 			$scope.sortBy = function (optionId) {

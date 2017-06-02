@@ -19,12 +19,12 @@
 
 		<span flex></span>
 
-		<md-button class="md-icon-button" aria-label="Print" ng-click="print()" ng-if="tasks.length > 0">
-			<md-icon md-svg-icon="img/icons/print.svg"></md-icon>
-		</md-button>
-
 		<md-button aria-label="Sort-By" class="md-icon-button" ng-click="activeClearAllFilters()">
 			<md-icon md-menu-origin md-svg-icon="img/icons/reset.svg"></md-icon>
+		</md-button>
+
+		<md-button class="md-icon-button" aria-label="Print" ng-click="print()" ng-if="tasks.length > 0">
+			<md-icon md-svg-icon="img/icons/print.svg"></md-icon>
 		</md-button>
 
 		<div layout="column">
@@ -53,18 +53,22 @@
 	<!-- Filtering options -->
 	<div layout="column" flex="35" class="criteria-options">
 		<md-card style="margin-right: 0;">
+			<md-subheader class="md-primary">{{ 'searchCompletedTasks' | translate }}</md-subheader>
+
+			<md-divider></md-divider>
+
 			<md-card-content style="padding-top: 0;">
 				<section layout="row" class="md-block" flex>
 					<label for="date-after" flex="35" class="wf-label">{{ 'completedAfter' | translate }}</label>
-					<md-datepicker id="date-after" ng-model="searchFilter.dateAfter" md-placeholder="{{ 'date' | translate }}" ng-change="showTasksByFilters()" style="margin-right: 0px;" md-max-date="nextDay"></md-datepicker>
+					<md-datepicker id="date-after" ng-model="searchFilter.dateAfter" md-placeholder="{{ 'date' | translate }}" ng-change="showTasksByFilters()" class="searchFilter-date" md-max-date="nextDay"></md-datepicker>
 					<md-button class="md-icon-button" aria-label="Clear" ng-click="clearAfterDate()">
 						<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 8px;color: red;"></md-icon>
 					</md-button>
 				</section>
 
-				<section layout="row" class="md-block" style="padding-bottom: 18px;">
+				<section layout="row" class="md-block" style="padding-bottom: 10px;">
 					<label for="date-before" flex="35" class="wf-label">{{ 'completedBefore' | translate }}</label>
-					<md-datepicker id="date-before" ng-model="searchFilter.dateBefore" md-placeholder="{{ 'date' | translate }}" ng-change="showTasksByFilters()" style="margin-right: 0px;" md-max-date="nextDay"></md-datepicker>
+					<md-datepicker id="date-before" ng-model="searchFilter.dateBefore" md-placeholder="{{ 'date' | translate }}" ng-change="showTasksByFilters()" class="searchFilter-date" md-max-date="nextDay"></md-datepicker>
 					<md-button class="md-icon-button" aria-label="Clear" ng-click="clearBeforeDate()">
 						<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 8px;color: red;"></md-icon>
 					</md-button>
@@ -128,14 +132,16 @@
 					<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
 					<div class="md-list-item-text" layout="column">
 						<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
-						<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
+						<p flex>{{ 'process' | translate}}: {{task.processInstance.definitionName}}</p>
 						<section layout="row">
-							<p flex>{{ 'completedBy' | translate }}: {{task.assignee}}</p>
-							<div layout="row" flex="15" layout-align="end end">
-								<p>{{task.endDate | date:'d/M/yyyy'}}</p>
-							</div>
+							<p ng-if="task.assignee" flex>{{ 'completedBy' | translate }}: {{task.assignee}} | {{ 'endDate' | translate }}: {{task.endDate | date:'d/M/yyyy'}}</p>
+							<p ng-if="!task.assignee" flex>{{ 'completedBy' | translate }}: {{ 'automaticCompletion' | translate}} | {{ 'endDate' | translate }}: {{task.endDate | date:'d/M/yyyy'}}</p>
 						</section>
 
+					</div>
+					<div layout="row" layout-align="end end">
+						<md-icon md-svg-icon="img/icons/cancel.svg" ng-if="task.processInstance.status == 'deleted'" title="Stopped instance"></md-icon>
+						<md-icon md-svg-icon="img/icons/suspend.svg" ng-if="task.processInstance.status == 'suspended'" title="Suspended instance"></md-icon>
 					</div>
 				</md-list-item>
 			</md-card>

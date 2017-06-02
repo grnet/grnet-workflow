@@ -121,10 +121,8 @@
 						 ng-click="claimTask()" style="margin-left: 0px;">{{ 'start' | translate }}
 						</md-button>
 
-						<md-button class="md-raised md-primary" ng-disabled="!taskForm.$valid" ng-if="task.assignee" ng-click="acceptTask(true)"
-						 style="margin-left: 0px;">{{ 'accept' | translate }}
-						</md-button>
-						<md-button class="md-raised md-warn" ng-disabled="!taskForm.$valid" ng-if="task.assignee" ng-click="acceptTask(false)" style="margin-left: 0px;">{{ 'reject' | translate }}</md-button>
+						<md-button class="md-raised md-primary" ng-if="task.assignee" ng-click="acceptTask(true)" style="margin-left: 0px;">{{ 'accept' | translate }}</md-button>
+						<md-button class="md-raised md-warn" ng-if="task.assignee" ng-click="acceptTask(false)" style="margin-left: 0px;">{{ 'reject' | translate }}</md-button>
 
 					</section>
 				</md-card-content>

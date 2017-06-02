@@ -107,13 +107,14 @@
 	"notifyAdmin": "ειδοποίηση διαχ.",
 	"instanceTitleUnique": "Ο τίτλος της εκτέλεσης πρέπει να είναι μοναδικός.",
 
-	"processIntanceNotFound": "Η συγκεκριμένη εκτέλεση δεν ήταν δυνατό να βρεθεί",
+	"processInstanceNotFound": "Η συγκεκριμένη εκτέλεση δεν ήταν δυνατό να βρεθεί",
 	"notAuthorizedToCancel": "Δεν έχετε τα απαραίτητα δικαιώματα για τη διακοπή της εκτέλεσης",
 	"notAuthorizedToDelete": "Δεν έχετε τα απαραίτητα δικαιώματα για τη διαγραφή της εκτέλεσης",
 	"notAuthorizedToSuspend": "Δεν έχετε τα απαραίτητα δικαιώματα για την προσωρινή διακοπή της εκτέλεσης",
 	"notAuthorizedToResume": "Δεν έχετε τα απαραίτητα δικαιώματα για την επανεκκίνηση της εκτέλεσης",
 	"notAuthorizedToStart": "Δεν έχετε τα απαραίτητα δικαιώματα για την εκκίνηση της εκτέλεσης",
 	"notAuthorizedToUpdateDefinition": "Δεν έχετε τα απαραίτητα δικαιώματα για την ανανέωση του ορισμού της διαδικασίας",
+	"notAuthorizedToCreateDefinition": "Δεν έχετε τα απαραίτητα δικαιώματα για τη δημιουργία διαδικασίας",
 	"suspendingFailed": "Η προσωρινή διακοπή της εκτέλεσης απέτυχε",
 	"resumingFailed": "Η επανεκκίνηση της εκτέλεσης απέτυχε",
 	"instanceAlreadyRunning": "Η εκτέλεση τρέχει ήδη",
@@ -140,6 +141,8 @@
 	"duplicateDocumentTitle": "Το όνομα εγγράφου υπάρχει ήδη",
 	"noInstanceFoundForProcess": "Δε βρέθηκε εκτέλεση για τη συγκεκριμένη διαδικασία",
 	"noTaskWithID": "Δε βρέθηκε εργασία με το συγκεκριμένο ID",
+	"taskInstanceSuspendedContactAdmin": "Η εκτέλεση της εργασίας έχει διακοπεί. Επικοινωνήστε με το διαχειριστή",
+	"taskInstanceDeletedContactAdmin": "Η εκτέλεση της εργασίας έχει διαγραφεί. Επικοινωνήστε με το διαχειριστή",
 	"taskInstanceNotExistsContactAdmin": "Η εκτέλεση της εργασίας δεν υπάρχει. Επικοινωνήστε με το διαχειριστή",
 	"notAuthorizedToCompleteTask": "Δεν έχετε τα απαραίτητα δικαιώματα για την ολοκλήρωση της εργασίας",
 	"emailNotSentContactAdmin": "Το e-mail δεν ήταν δυνατό να σταλεί. Επικοινωνήστε με το διαχειριστή",
@@ -164,5 +167,9 @@
 	"copiedToClipboard": "Ο σύνδεσμος αντιγράφηκε",
 	"template": "Πρότυπο",
 	"selectedInstance": "Επιλεγμένη εκτέλεση",
-	"noCompletedTasksFound": "Δεν βρέθηκαν ολοκληρωμένες εργασίες"
+	"noCompletedTasksFound": "Δεν βρέθηκαν ολοκληρωμένες εργασίες",
+	"searchCompletedTasks": "Αναζήτηση ολοκληρωμένων εργασιών",
+	"searchInProgressInstances": "Αναζήτηση εκτελέσεων σε εξέλιξη",
+	"automaticCompletion": "Αυτόματη ολοκλήρωση",
+	"noUserExistsWithId": "Δεν υπάρχει χρήστης με αυτό το ID"
 }

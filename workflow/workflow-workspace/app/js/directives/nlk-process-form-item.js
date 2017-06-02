@@ -23,7 +23,7 @@ define(['angular'],
 								'<md-input-container ng-if="ngModel.readable" class="md-block" flex="50"> ' +
 									'<label for="{{ngModel.id}}">{{ngModel.name}}</label> ' +
 									'<input id="{{ngModel.id}}" type="number" ng-model="ngModel.value" ng-required="ngModel.required" ' + 
-										'ng-readonly="!ngModel.writable || wfPreview()" ng-disabled="!ngModel.writable || wfPreview()"> ' +
+										'ng-readonly="!ngModel.writable || wfPreview()" ng-disabled="!ngModel.writable || wfPreview()"/> ' +
 								'</md-input-container> ' +
 								
 								'<md-button class="md-icon-button formItem-info" ng-if="ngModel.description" aria-label="Info" ng-click="showElementInfo()"> ' +
@@ -36,7 +36,7 @@ define(['angular'],
 						inputTmpl =
 							'<section layout="row" class="md-block"> ' +
 
-								'<md-input-container class="md-block formItemContainer"> ' +
+								'<md-input-container class="md-block"> ' +
 									'<md-checkbox id="{{ngModel.id}}" ng-model="ngModel.value" ng-readonly="!ngModel.writable || wfPreview()" ' +
 										'ng-disabled="!ngModel.writable || wfPreview()"> {{ngModel.name}} ' +
 									'</md-checkbox> ' +
@@ -83,7 +83,7 @@ define(['angular'],
 										'</div> '+
 									'</md-list-item> ' +
 								'</list> ' +
-							'</section';
+							'</section>';
 					break;
 					case 'position':
 						inputTmpl =
@@ -110,7 +110,7 @@ define(['angular'],
 						inputTmpl =
 							'<section layout="row" class="md-block">' +
 
-								'<input id="{{ngModel.id}}" type="hidden" ng-model="ngModel.value" ng-required="true">' +
+								'<input id="{{ngModel.id}}" type="hidden" ng-model="ngModel.value" ng-required="true"/>' +
 
 								'<md-button class="md-icon-button" style="top: 16px; padding:0px; margin:0px" ng-if="ngModel.description" ' +
 									'aria-label="Info" ng-click="showElementInfo()">' +
@@ -126,7 +126,7 @@ define(['angular'],
 								'<md-input-container class="md-block" flex="50"> ' +
 									'<label for="{{ngModel.id}}">{{ngModel.name}}</label> ' +
 									'<input id="{{ngModel.id}}" type="email" ng-model="ngModel.value" ng-required="ngModel.required" ' +
-										'ng-readonly="!ngModel.writable || wfPreview()" ng-disabled="!ngModel.writable || wfPreview()"> ' +
+										'ng-readonly="!ngModel.writable || wfPreview()" ng-disabled="!ngModel.writable || wfPreview()"/> ' +
 								'</md-input-container> ' +
 								
 								'<md-button class="md-icon-button formItem-info" ng-if="ngModel.description" aria-label="Info" ng-click="showElementInfo()"> ' +
@@ -176,7 +176,7 @@ define(['angular'],
 
 									'<span>{{ ngModel.name | translate }}:</span> ' +
 									
-									'<md-button ng-href="{{ngModel.value}}" class="md-primary" target="_blank">{{ngModel.value}}</md-button>'
+									'<md-button ng-href="{{ngModel.value}}" class="md-primary" target="_blank">{{ngModel.value}}</md-button>' +
 
 									'<md-button class="md-icon-button formItem-info" ng-if="ngModel.description" aria-label="Info" ng-click="showElementInfo()"> ' +
 										'<md-icon md-svg-icon="img/icons/elementInfo.svg" class="md-primary"></md-icon> ' +
@@ -188,11 +188,11 @@ define(['angular'],
 						inputTmpl =
 							'<section layout="row" class="md-block">' +
 
-								'<md-input-container style="padding-left:0px;" class="md-block formItemContainer">' +
+								'<md-input-container style="padding-left:0px;" class="md-block">' +
 									'<label class="wf-label">{{ ngModel.name }}</label> ' +
 									'<input mdc-datetime-picker date="true" time="ngModel.time" type="text" id="{{ngModel.id}}" short-time="true" min-date="minDate" ' +
 										'ng-disabled="!ngModel.writable || wfPreview()" ng-required="ngModel.required" ' +
-										'placeholder="{{ngModel.name}}" format="{{ngModel.datePattern}}" ng-model="ngModel.value"> ' +
+										'placeholder="{{ngModel.name}}" format="{{ngModel.datePattern}}" ng-model="ngModel.value"/> ' +
 								'</md-input-container> ' +
 								
 								'<md-button class="md-icon-button" style="top: 16px;padding:0px;margin:0px" ' + 
@@ -213,7 +213,7 @@ define(['angular'],
 								'<md-input-container class="md-block" flex="50"> ' +
 									'<label for="{{ngModel.id}}">{{ngModel.name}}</label> ' +
 									'<input id="{{ngModel.id}}" type="text" ng-model="ngModel.value" ng-required="ngModel.required" ' +
-										'ng-readonly="!ngModel.writable || wfPreview()" ng-disabled="!ngModel.writable || wfPreview()"> ' +
+										'ng-readonly="!ngModel.writable || wfPreview()" ng-disabled="!ngModel.writable || wfPreview()"/> ' +
 								'</md-input-container> ' +
 								
 								'<md-button class="md-icon-button formItem-info" ng-if="ngModel.description" aria-label="Info" ng-click="showElementInfo()"> ' +

@@ -46,20 +46,12 @@ define(['angular', 'services/process-service'],
 				});
 
             function initializeCriteria() {
-                var searchCriteria = cacheService.getCriteria("in-progress");
-
-                if (searchCriteria != null) {
-                    $scope.searchFilter = searchCriteria;
-
-                } else {
-
-                    $scope.searchFilter.dateBefore = new Date();
-                    $scope.searchFilter.dateAfter = new Date();
-                    $scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
-                    $scope.searchFilter.dateBefore.setDate($scope.searchFilter.dateBefore.getDate() + 1);
-                    $scope.searchFilter.definitionId = "all";
-                    $scope.searchFilter.instanceTitle = "";
-                }
+                $scope.searchFilter.dateBefore = new Date();
+                $scope.searchFilter.dateAfter = new Date();
+                $scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
+                $scope.searchFilter.dateBefore.setDate($scope.searchFilter.dateBefore.getDate() + 1);
+                $scope.searchFilter.instanceTitle = "";
+                $scope.searchFilter.definitionId = "all";
             }
 
             $scope.searchInProgressInstances = function () {
@@ -95,8 +87,6 @@ define(['angular', 'services/process-service'],
                             var instance = tasksMapped[item]["instances"][0];
                             $scope.inProgressInstances.push(instance);
                         });
-
-                        cacheService.saveCriteria('in-progress', $scope.searchFilter);
                     },
                     // error callback
                     function (response) {
