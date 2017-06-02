@@ -23,6 +23,10 @@
 			<md-icon md-menu-origin md-svg-icon="img/icons/reset.svg"></md-icon>
 		</md-button>
 
+		<md-button class="md-icon-button" aria-label="Print" ng-click="print()" ng-if="filteredTasks.length > 0">
+			<md-icon md-svg-icon="img/icons/print.svg"></md-icon>
+		</md-button>
+
 		<div layout="column">
 			<md-menu md-position-mode="target-right target">
 				<md-button aria-label="Sort-By" class="md-icon-button" ng-click="$mdOpenMenu($event)">
@@ -40,11 +44,6 @@
 				</md-menu-content>
 			</md-menu>
 		</div>
-
-		<md-button class="md-icon-button" aria-label="Print" ng-click="print()" ng-if="filteredTasks.length > 0">
-			<md-icon md-svg-icon="img/icons/print.svg"></md-icon>
-		</md-button>
-
 	</div>
 </md-toolbar>
 
@@ -60,24 +59,26 @@
 <section layout="row" style="overflow: hidden; height: 100%">
 
 	<!-- Filtering options -->
-	<div layout="column" flex="35">
+	<div layout="column" flex="35" hide show-gt-md>
 		<md-card style="margin-right: 0;">
+			<md-subheader class="md-primary">{{ 'searchPendingProcesses' | translate }}</md-subheader>
+
+			<md-divider></md-divider>
+
 			<md-card-content style="padding-top: 0;">
 				<section layout="row" class="md-block">
-					<label for="date-after" flex="45" class="wf-label">{{'startedAfter' | translate }}</label>
-					<md-datepicker id="date-after" ng-model="searchFilter.dateAfter" ng-change="searchTasks()" style="margin-right: 0px;"></md-datepicker>
+					<label for="date-after" flex="35" class="wf-label">{{'startedAfter' | translate }}</label>
+					<md-datepicker id="date-after" ng-model="searchFilter.dateAfter" ng-change="searchTasks()" class="searchFilter-date"></md-datepicker>
 					<md-button class="md-icon-button" aria-label="Clear" ng-click="clearDateAfter()">
 						<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 8px;color: red;"></md-icon>
 					</md-button>
 				</section>
 
 				<section layout="row" class="md-block" style="padding-bottom: 10px;">
-					<label for="date-after" flex="45" class="wf-label">{{'startedBefore' | translate }}</label>
-
+					<label for="date-after" flex="35" class="wf-label">{{'startedBefore' | translate }}</label>
 					<md-datepicker id="date-before" ng-model="searchFilter.dateBefore" md-max-date="maxDateBefore"
-								   ng-change="searchTasks()" style="margin-right: 0px;">
+								   ng-change="searchTasks()" class="searchFilter-date">
 					</md-datepicker>
-
 					<md-button class="md-icon-button" aria-label="Clear" ng-click="clearDateBefore()">
 						<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 10px;color: red;"></md-icon>
 					</md-button>

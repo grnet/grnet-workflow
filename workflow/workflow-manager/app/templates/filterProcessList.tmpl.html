@@ -6,29 +6,30 @@
 			<md-button class="md-icon-button" ng-click="cancel()">
 				<md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
 			</md-button>
-      	</div>
-   	</md-toolbar>
-   	
-   	<md-dialog-content>
-   		<md-content flex>
-	   		<md-list flex style="padding-top: 0px;">
-	   			<md-list-item>
-	        		<md-checkbox ng-change="updateOwnerSelection()" ng-model="status.allSelected"></md-checkbox>
-	       			<p class="md-subhead wf-selectAll" >{{ 'allOwners' | translate }}</p>
-	       				
-	        		<md-divider></md-divider>
-	       		</md-list-item>
-						
+		</div>
+	</md-toolbar>
+
+	<md-dialog-content>
+		<md-content flex>
+			<md-list flex style="padding-top: 0px;">
+				<md-list-item>
+					<md-checkbox ng-change="updateOwnerSelection()" ng-model="status.allSelected"></md-checkbox>
+					<p class="md-subhead wf-selectAll" >{{ 'allOwners' | translate }}</p>
+
+					<md-divider></md-divider>
+				</md-list-item>
+
 				<md-list-item ng-repeat="g in groups">
-					<md-checkbox ng-model="g.selected" ng-change="showProcessByOwners()"></md-checkbox>
-					<p>{{g.group.name}}</p>
+					<md-checkbox class="md-primary" ng-model="g.selected" ng-change="showProcessByOwners()"></md-checkbox>
+					<p ng-if="g.group.name">{{g.group.name}}</p>
+					<p ng-if="!g.group.name">{{g.group.ownerId}}</p>
 				</md-list-item>
 			</md-list>
 		</md-content>
-			
+
 		<md-divider></md-divider>
 	</md-dialog-content>
-	
+
 	<md-dialog-actions layout="row" layout-align="left center" style="padding-left:0">
 		<md-button class="md-raised md-primary" ng-click="cancel()">{{ 'confirm' | translate }}</md-button>
 	</md-dialog-actions>

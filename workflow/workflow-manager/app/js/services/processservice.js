@@ -17,7 +17,7 @@ define(['angular'],
              * Note: On v2 api the url should be /api/v2/process
              */
             this.createProcess = function (file, justification) {
-                var url = config.WORKFLOW_SERVICE_ENTRY + '/processbpmn:'
+                var url = config.WORKFLOW_SERVICE_ENTRY + '/v2/process:'
                     + justification;
 
                 var fd = new FormData();
@@ -36,7 +36,7 @@ define(['angular'],
              * V2 API: @name RealmController#getGroups
              */
             this.getGroups = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/group');
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/group');
             };
 
             /**
@@ -64,7 +64,7 @@ define(['angular'],
              * V2 API: @name RealmController#getUserGroups
              */
             this.getUserGroups = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/user/group');
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/user/group');
             };
 
             /**
@@ -108,8 +108,8 @@ define(['angular'],
              *
              */
             this.createProcessVersion = function (processId, file, justification) {
-                var url = config.WORKFLOW_SERVICE_ENTRY + '/process/'
-                    + processId + ","
+                var url = config.WORKFLOW_SERVICE_ENTRY + '/v2/process/'
+                    + processId + "/version:"
                     + justification;
 
                 var fd = new FormData();
@@ -130,7 +130,7 @@ define(['angular'],
              * V2 API: @name DefinitionController#deleteProcessDefinition
              */
             this.deleteProcess = function (processId) {
-                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId);
+                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/v2/process/' + processId);
             };
 
             /**
@@ -146,7 +146,7 @@ define(['angular'],
              * Note: On v2 api the url should be /api/v2/process/version/{processId}/{deploymentId}
              */
             this.deleteProcessVersion = function (processId, deploymentId) {
-                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId + '/' + deploymentId);
+                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/v2/process/' + processId + '/' + deploymentId);
             };
 
             /**
@@ -157,7 +157,7 @@ define(['angular'],
              * V2 API: @name DefinitionController#getProcessDefinitions
              */
             this.getProcesses = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process');
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/process');
             };
 
             /**
@@ -180,7 +180,7 @@ define(['angular'],
              * V2 API: @name DefinitionController#getProcessDefinition
              */
             this.getProcess = function (processId) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId);
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/process/' + processId);
             };
 
             /**
@@ -192,7 +192,7 @@ define(['angular'],
              * V2 API: @name DefinitionController#updateProcessDefinition
              */
             this.updateProcess = function (process) {
-                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/process', process);
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/v2/process', process);
             };
 
             /**
@@ -231,7 +231,7 @@ define(['angular'],
              * V2 API: @name TaskController#getTask
              */
             this.getTask = function (taskId) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/' + taskId);
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/task/' + taskId);
             };
 
             /**
@@ -373,31 +373,13 @@ define(['angular'],
              * @returns {HttpPromise}
              */
             this.getEndedInstances = function (definitionName, instanceTitle, dateAfterTime, dateBeforeTime) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/instances/ended/search:'
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/instances/ended/search:'
                     + definitionName + ","
                     + instanceTitle + ","
                     + dateAfterTime + ","
                     + dateBeforeTime
                 );
             };
-
-            /**
-             * Retrieve all ended instances
-             *
-             * V1 API: @name ProcessController#getEndedProcessInstancesTasks
-             * V2 API: @name TaskController#getEndedProcessInstancesTasks
-             *
-             * Note: On v2 api the url should be /api/v2/task/execution/ended/search:{title:.+},{after:\\d+},{before:\\d+},{anonymous:.+}
-             */
-            this.getEndedInstancesTasks = function (title, after, before, anonymous) {
-                var url = config.WORKFLOW_SERVICE_ENTRY + '/process/instance/ended/search:'
-                    + title + ","
-                    + after + ","
-                    + before + ","
-                    + anonymous;
-                return $http.get(url);
-            };
-
 
             /**
              * Get user activity, all tasks having the specified user as assignee
@@ -419,7 +401,7 @@ define(['angular'],
              * V2 API: @name TaskController#getAllActiveTasks
              */
             this.getActiveTasks = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task');
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/task');
             };
 
             /**
@@ -430,7 +412,7 @@ define(['angular'],
              * @returns {HttpPromise}
              */
             this.getActiveTasksByCriteria = function (definitionName, taskName, after, before) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/search:'
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/tasks/search:'
                     + definitionName + ","
                     + taskName + ","
                     + after + ","
@@ -444,7 +426,7 @@ define(['angular'],
              * V2 API: @name RealmController#getUsers
              */
             this.getUsers = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/user');
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/user');
             };
 
             /**
@@ -454,7 +436,7 @@ define(['angular'],
              * V2 API: @name PublicFormController#getRegistries
              */
             this.getRegistries = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/registry');
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/registry');
             };
 
             /**
@@ -464,7 +446,7 @@ define(['angular'],
              * V2 API: @name DefinitionController#getSettings
              */
             this.getSettings = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/settings');
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/settings');
             };
 
             /**
@@ -474,7 +456,7 @@ define(['angular'],
              * V2 API: @name DefinitionController#updateSettings
              */
             this.updateSettings = function (settings) {
-                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/settings', settings);
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/v2/settings', settings);
             };
 
             /**
@@ -484,7 +466,7 @@ define(['angular'],
              * V2 API: @name PublicFormController#getSettings
              */
             this.updateRegistry = function (registry) {
-                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/registry', registry);
+                return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/v2/registry', registry);
             };
 
             /**
@@ -496,7 +478,7 @@ define(['angular'],
              * Note: On v2 api the method is PUT
              */
             this.createRegistry = function (registry) {
-                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/registry', registry);
+                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/v2/registry', registry);
             };
 
             /**
@@ -506,7 +488,7 @@ define(['angular'],
              * V2 API: @name PublicFormController#deleteRegistry
              */
             this.deleteRegistry = function (registryId) {
-                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/registry/' + registryId);
+                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/v2/registry/' + registryId);
             };
 
             /**
@@ -719,7 +701,7 @@ define(['angular'],
              * V2 API: @name ExecutionController#getInProgressInstances
              */
             this.getInProgressInstances = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/inprogress/instances');
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/inprogress/instances');
             };
 
             /**
@@ -734,7 +716,7 @@ define(['angular'],
              * @returns {HttpPromise}
              */
             this.getInProgressInstancesByCriteria = function (definitionName, instanceTitle, dateAfterTime, dateBeforeTime) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/inprogress/instances/search:'
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/inprogress/instances/search:'
                     + definitionName + ","
                     + instanceTitle + ","
                     + dateAfterTime + ","
@@ -749,7 +731,7 @@ define(['angular'],
              * V2 API: @name ExecutionController#getDocumentsByInstanceId
              */
             this.getDocumentsByInstance = function (instanceId) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/instance/' + instanceId + '/documents')
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/instance/' + instanceId + '/documents')
             };
 
             /**
@@ -759,7 +741,7 @@ define(['angular'],
              * V2 API: @name RealmController#getUsersByRole
              */
             this.getSupervisors = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/user/role/' + 'ROLE_Supervisor');
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/user/role/' + 'ROLE_Supervisor');
             };
 
             /**
@@ -769,7 +751,7 @@ define(['angular'],
              * V2 API: @name ExecutionController#changeInstanceSupervisor
              */
             this.changeInstanceSupervisor = function (instanceId, supervisor) {
-                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/instance/' + instanceId + '/supervisor?supervisor=' + supervisor);
+                return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/v2/instance/' + instanceId + '/supervisor?supervisor=' + supervisor);
             };
 
             /**

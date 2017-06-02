@@ -50,31 +50,13 @@ define(['angular', 'services/processservice'],
              *
              */
             function initializeCriteria() {
-                if (!$location.search().dateAfter || $location.search().dateAfter == 0) {
-                    $scope.searchFilter.dateAfter = new Date();
-                    $scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
-                    $location.search('dateAfter', $scope.searchFilter.dateAfter.getTime());
-                } else
-                    $scope.searchFilter.dateAfter = new Date(parseFloat($location.search().dateAfter));
-
-                if (!$location.search().dateBefore || $location.search().dateBefore == 0) {
-                    $scope.searchFilter.dateBefore = new Date();
-                    $scope.searchFilter.dateBefore.setDate($scope.searchFilter.dateBefore.getDate() + 1);
-                    $location.search('dateBefore', $scope.searchFilter.dateBefore.getTime());
-
-                } else
-                    $scope.searchFilter.dateBefore = new Date(parseFloat($location.search().dateBefore));
-
-                if (!$location.search().instanceTitle)
-                    $location.search('instanceTitle', "");
-                else
-                    $scope.searchFilter.instanceTitle = $location.search().instanceTitle;
-
-                if (!$location.search().definitionId)
-                    $location.search('definitionId', "all");
-                else
-                    $scope.searchFilter.definitionId = $location.search().definitionId;
-            };
+                $scope.searchFilter.dateBefore = new Date();
+                $scope.searchFilter.dateAfter = new Date();
+                $scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
+                $scope.searchFilter.dateBefore.setDate($scope.searchFilter.dateBefore.getDate() + 1);
+                $scope.searchFilter.instanceTitle = "";
+                $scope.searchFilter.definitionId = "all";
+            }
 
             /**
              * @memberof InProgressCtrl
@@ -104,11 +86,6 @@ define(['angular', 'services/processservice'],
                 processService.getInProgressInstancesByCriteria($scope.searchFilter.definitionId, $scope.searchFilter.instanceTitle, dateAfterTime, dateBeforeTime).then(
                     // success callback
                     function (response) {
-                        $location.search('definitionId', $scope.searchFilter.definitionId);
-                        $location.search('instanceTitle', $scope.searchFilter.instanceTitle);
-                        $location.search('dateAfter', dateAfterTime);
-                        $location.search('dateBefore', dateBeforeTime);
-
                         var instances = response.data;
                         var tasksMapped = ArrayUtil.mapByProperty2Property(instances, "id", "instances");
                         var instanceIds = Object.keys(tasksMapped);
@@ -133,7 +110,7 @@ define(['angular', 'services/processservice'],
              *
              */
             $scope.activeClearDateAfter = function () {
-                $scope.searchFilter.dateAfter = 0;
+                $scope.searchFilter.dateAfter = null;
                 $scope.searchInProgressInstances();
             };
 
@@ -143,7 +120,7 @@ define(['angular', 'services/processservice'],
              *
              */
             $scope.activeClearDateBefore = function () {
-                $scope.searchFilter.dateBefore = 0;
+                $scope.searchFilter.dateBefore = null;
                 $scope.searchInProgressInstances();
             };
 
@@ -173,12 +150,16 @@ define(['angular', 'services/processservice'],
              *
              */
             $scope.activeClearAllFilters = function () {
-                $scope.searchFilter.dateAfter = 0;
-                $scope.searchFilter.dateBefore = 0;
+                $scope.searchFilter.dateAfter = null;
+                $scope.searchFilter.dateBefore = null;
                 $scope.searchFilter.instanceTitle = "";
                 $scope.searchFilter.definitionId = "all";
 
                 $scope.searchInProgressInstances();
+            };
+
+            $scope.print = function () {
+                window.print();
             };
 
             /**
@@ -202,7 +183,7 @@ define(['angular', 'services/processservice'],
                     targetEvent: event,
                     clickOutsideToClose: false
                 });
-            };
+            }
 
         }
 		angular.module('wfManagerControllers').controller('InProgressCtrl', ['$scope', '$mdDialog', 'processService', 'CONFIG', inProgressCtrl]);

@@ -57,32 +57,13 @@ define(['angular', 'services/authprovider'],
              *
              */
             function initializeCriteria() {
-                if (!$location.search().dateAfter || $location.search().dateAfter == 0) {
-                    $scope.searchFilter.dateAfter = new Date();
-                    $scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
-                    $location.search('dateAfter', $scope.searchFilter.dateAfter.getTime());
-
-                } else
-                    $scope.searchFilter.dateAfter = new Date(parseFloat($location.search().dateAfter));
-
-                if (!$location.search().dateBefore || $location.search().dateBefore == 0) {
-                    $scope.searchFilter.dateBefore = new Date();
-                    $scope.searchFilter.dateBefore.setDate($scope.searchFilter.dateBefore.getDate() + 1);
-                    $location.search('dateBefore', $scope.searchFilter.dateBefore.getTime());
-
-                } else
-                    $scope.searchFilter.dateBefore = new Date(parseFloat($location.search().dateBefore));
-
-                if (!$location.search().taskName)
-                    $location.search('taskName', "");
-                else
-                    $scope.searchFilter.taskName = $location.search().taskName;
-
-                if (!$location.search().definitionId)
-                    $location.search('definitionId', "all");
-                else
-                    $scope.searchFilter.definitionId = $location.search().definitionId;
-            };
+                $scope.searchFilter.dateBefore = new Date();
+                $scope.searchFilter.dateAfter = new Date();
+                $scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
+                $scope.searchFilter.dateBefore.setDate($scope.searchFilter.dateBefore.getDate() + 1);
+                $scope.searchFilter.taskName = "";
+                $scope.searchFilter.definitionId = "all";
+            }
 
             /**
              * @memberof PendingCtrl
@@ -112,11 +93,6 @@ define(['angular', 'services/authprovider'],
                 processService.getActiveTasksByCriteria($scope.searchFilter.definitionId, $scope.searchFilter.taskName, dateAfterTime, dateBeforeTime).then(
                     // success callback
                     function (response) {
-                        $location.search('definitionId', $scope.searchFilter.definitionId);
-                        $location.search('taskName', $scope.searchFilter.taskName);
-                        $location.search('dateAfter', dateAfterTime);
-                        $location.search('dateBefore', dateBeforeTime);
-
                         $scope.allTasks = response.data;
 
                         $scope.tasksMappedById = ArrayUtil.mapByProperty2Property($scope.allTasks, "definitionName", "tasks");
@@ -193,7 +169,7 @@ define(['angular', 'services/authprovider'],
                  *
                  */
                 $scope.clearDateAfter = function () {
-                    $scope.searchFilter.dateAfter = 0;
+                    $scope.searchFilter.dateAfter = null;
                     $scope.searchTasks();
                 };
 
@@ -203,7 +179,7 @@ define(['angular', 'services/authprovider'],
                  *
                  */
                 $scope.clearDateBefore = function () {
-                    $scope.searchFilter.dateBefore = 0;
+                    $scope.searchFilter.dateBefore = null;
                     $scope.searchTasks();
                 };
 
@@ -223,12 +199,16 @@ define(['angular', 'services/authprovider'],
                  *
                  */
                 $scope.clearAllFilters = function () {
-                    $scope.searchFilter.dateAfter = 0;
-                    $scope.searchFilter.dateBefore = 0;
+                    $scope.searchFilter.dateAfter = null;
+                    $scope.searchFilter.dateBefore = null;
                     $scope.searchFilter.taskName = "";
                     $scope.searchFilter.definitionId = "all";
 
                     $scope.searchTasks();
+                };
+
+                $scope.print = function() {
+                    window.print();
                 };
 
                 /**

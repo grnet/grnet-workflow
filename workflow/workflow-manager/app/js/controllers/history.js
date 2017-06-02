@@ -27,13 +27,14 @@ define(['angular', 'services/processservice', 'util/core'],
 
             $scope.sortOption = { title: 'status', id: 'status' };
             $scope.sortOptions.push($scope.sortOption);
-            $scope.sortOption = { title: 'worker', id: 'supervisor' };
+            $scope.sortOption = { title: 'supervisor', id: 'supervisor' };
             $scope.sortOptions.push($scope.sortOption);
             $scope.sortOption = { title: 'executionName', id: 'title' };
             $scope.sortOptions.push($scope.sortOption);
-
-            // initialize search criteria
-			initializeCriteria();
+            $scope.sortOption = { title: 'process', id: 'definitionName' };
+            $scope.sortOptions.push($scope.sortOption);
+            $scope.sortOption = { title: 'endDate', id: 'endDate' };
+            $scope.sortOptions.push($scope.sortOption);
 
             processService.getActiveProcesses().then(
                 // success callback
@@ -50,38 +51,6 @@ define(['angular', 'services/processservice', 'util/core'],
                 function (response) {
                     exceptionModal(response);
                 });
-
-            /**
-             * @memberof HistoryCtrl
-             * @descr Initializes all search criteria
-             *
-             */
-            function initializeCriteria() {
-                if (!$location.search().dateAfter || $location.search().dateAfter == 0) {
-                    $scope.searchFilter.dateAfter = new Date();
-                    $scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
-                    $location.search('dateAfter', $scope.searchFilter.dateAfter.getTime());
-                } else
-                    $scope.searchFilter.dateAfter = new Date(parseFloat($location.search().dateAfter));
-
-                if (!$location.search().dateBefore || $location.search().dateBefore == 0) {
-                    $scope.searchFilter.dateBefore = new Date();
-                    $scope.searchFilter.dateBefore.setDate($scope.searchFilter.dateBefore.getDate() + 1);
-                    $location.search('dateBefore', $scope.searchFilter.dateBefore.getTime());
-
-                } else
-                    $scope.searchFilter.dateBefore = new Date(parseFloat($location.search().dateBefore));
-
-                if (!$location.search().instanceTitle)
-                    $location.search('instanceTitle', "");
-                else
-                    $scope.searchFilter.instanceTitle = $location.search().instanceTitle;
-
-                if (!$location.search().definitionId)
-                    $location.search('definitionId', "");
-                else
-                    $scope.searchFilter.definitionId = $location.search().definitionId;
-            };
 
             $scope.searchInstances = function () {
 				var dateAfterTime;
@@ -106,20 +75,15 @@ define(['angular', 'services/processservice', 'util/core'],
                 processService.getEndedInstances($scope.searchFilter.definitionId,$scope.searchFilter.instanceTitle, dateAfterTime, dateBeforeTime).then(
                     // success callback
                     function (response) {
-                        $location.search('definitionId', $scope.searchFilter.definitionId);
-                        $location.search('instanceTitle', $scope.searchFilter.instanceTitle);
-                        $location.search('dateAfter', dateAfterTime);
-                        $location.search('dateBefore', dateBeforeTime);
-
-                        var tasks = response.data;
-                        var tasksMapped = ArrayUtil.mapByProperty2innerProperty(tasks, "processInstance", "id", "tasks");
+                        var instances = response.data;
+                        var tasksMapped = ArrayUtil.mapByProperty2Property(instances, "id", "instances");
                         var instanceIds = Object.keys(tasksMapped);
 
                         $scope.endedInstances = [];
 
                         instanceIds.forEach(function (item) {
-                            var task = tasksMapped[item]["tasks"][0];
-                            $scope.endedInstances.push(task.processInstance);
+                            var instance = tasksMapped[item]["instances"][0];
+                            $scope.endedInstances.push(instance);
                         });
                     },
                     // error callback
@@ -128,9 +92,6 @@ define(['angular', 'services/processservice', 'util/core'],
                     }
                 );
 			};
-
-			// search for instances
-			$scope.searchInstances();
 
 			$scope.clearDateAfter = function () {
 				$scope.searchFilter.dateAfter = null;
@@ -191,19 +152,14 @@ define(['angular', 'services/processservice', 'util/core'],
 				window.print();
 			};
 
-			function initializeCriteria() {
-
-				var searchCriteria = cacheService.getCriteria("history");
-
-				if (searchCriteria != null) {
-					$scope.searchFilter = searchCriteria;
-
-				} else {
-					$scope.searchFilter.dateAfter = new Date();
-					$scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
-					$scope.searchFilter.dateBefore = new Date();
-				}
-			};
+            function initializeCriteria() {
+                $scope.searchFilter.dateBefore = new Date();
+                $scope.searchFilter.dateAfter = new Date();
+                $scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
+                $scope.searchFilter.dateBefore.setDate($scope.searchFilter.dateBefore.getDate() + 1);
+                $scope.searchFilter.instanceTitle = "";
+                $scope.searchFilter.definitionId = "all";
+            }
 
             /**
              * @memberof HistoryCtrl

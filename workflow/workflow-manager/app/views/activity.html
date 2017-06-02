@@ -48,19 +48,19 @@
 <section layout="row" class="main-section">
 
 	<!-- Filtering options -->
-	<div layout="column" flex="30" hide show-gt-md>
+	<div layout="column" flex="35">
 		<md-card>
 
 			<md-subheader class="md-primary">{{ 'searchUserHistory' | translate }}</md-subheader>
 
-			<md-divider style="padding-top:10px"></md-divider>
+			<md-divider></md-divider>
 
 			<md-card-content>
 
 				<section layout="row" class="md-block">
 
 					<label flex="35" class="wf-label">{{ 'startedAfter' | translate }}</label>
-					<md-datepicker ng-model="searchFilter.dateAfter" md-placeholder="{{ 'date' | translate }}" ng-change="searchTasks()" md-max-date="nextDay"></md-datepicker>
+					<md-datepicker ng-model="searchFilter.dateAfter" md-placeholder="{{ 'date' | translate }}" ng-change="searchTasks()" md-max-date="nextDay" class="searchFilter-date"></md-datepicker>
 
 					<md-button class="md-icon-button" aria-label="Clear" ng-click="clearDateAfter()">
 						<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 8px;color: #d84315;"></md-icon>
@@ -68,11 +68,11 @@
 
 				</section>
 
-				<section layout="row" class="md-block">
-					
+				<section layout="row" class="md-block" style="padding-bottom: 10px;">
+
 					<label flex="35" class="wf-label">{{"startedBefore" | translate}}</label>
-					<md-datepicker id="date-before" ng-model="searchFilter.dateBefore" ng-change="searchTasks()" md-placeholder="{{ 'date' | translate }}" md-max-date="maxDateBefore"></md-datepicker>
-					
+					<md-datepicker id="date-before" ng-model="searchFilter.dateBefore" ng-change="searchTasks()" md-placeholder="{{ 'date' | translate }}" md-max-date="maxDateBefore" class="searchFilter-date"></md-datepicker>
+
 					<md-button class="md-icon-button" aria-label="Clear" ng-click="clearDateBefore()">
 						<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 8px; color: #d84315;"></md-icon>
 					</md-button>
@@ -90,6 +90,19 @@
 								 md-item-text = "selectedUser.firstName + ' ' + selectedUser.lastName">
 					<span>{{user.lastName}} {{user.firstName}}</span>
 				</md-autocomplete>
+
+				<md-input-container class="md-block" ng-if="enableProcessFilter">
+					<label for="workflowDefinitions">{{ 'processes' | translate }}</label>
+					<md-select ng-model="groupFilter.definitionId" ng-change="filterTasksByDefinition()">
+						<md-option ng-repeat="definition in definitions" ng-value="definition.id" id="workflowDefinitions">{{definition.title | translate }}</md-option>
+					</md-select>
+				</md-input-container>
+
+				<md-divider style="margin-top: 20px;"></md-divider>
+
+				<md-button class="md-raised" aria-label="Clear" ng-click="clearAllFilters()" style="margin-left: 0; margin-top: 15px;">
+					{{ 'clearFilters' | translate }}
+				</md-button>
 
 			</md-card-content>
 		</md-card>
@@ -143,11 +156,12 @@
 								<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
 								<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
 								<p flex ng-if="task.endDate != null">{{'completedOn' | translate }}: {{task.endDate | date:'d/M/yyyy'}}</p>
-								<p flex ng-if="task.endDate == null">{{ 'status' | translate }}: {{'running' | translate }}</p>
+								<p flex ng-if="task.endDate == null">{{'status' | translate }}: {{task.processInstance.status | translate }}</p>
 							</div>
 
 							<div layout="row" layout-align="end end">
-								<md-icon md-svg-icon="img/icons/stop-sign.svg" ng-if="task.processInstance.status == 'deleted'" title="Deleted instance"></md-icon>
+								<md-icon md-svg-icon="img/icons/cancel.svg" ng-if="task.processInstance.status == 'deleted'" title="Stopped instance"></md-icon>
+								<md-icon md-svg-icon="img/icons/suspend.svg" ng-if="task.processInstance.status == 'suspended'" title="Suspended instance"></md-icon>
 							</div>
 
 						</md-list-item>
@@ -186,7 +200,7 @@
 
 							<div ng-if="diffInDays < 1" layout="row" layout-align="start start" style="margin-right:15px">
 								<md-icon ng-class="diffInDays < 1 ? (diffInDays < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'" style="position: relative; top: -12px"
-								 md-svg-icon="img/icons/delayed-notification.svg">
+										 md-svg-icon="img/icons/delayed-notification.svg">
 								</md-icon>
 							</div>
 
@@ -202,13 +216,14 @@
 
 						</section>
 
-						<section layout="row" layout-align="start center" style="width: 100%">
-							<section>
-								<label for="processDescription">{{ 'description' | translate }}</label>
-								<div id="processDescription" ng-bind-html="task.description" class="disabledLabel" disabled>{{task.description}}</div>
-							</section>
+						<section layout="row" layout-align="start center">
+
+							<md-input-container class="md-block" ng-if="task.description" flex>
+								<label for="processDescription">{{'description' | translate }}</label>
+								<input id="processDescription" ng-model="task.description" readonly disabled>
+							</md-input-container>
+
 						</section>
-						<md-input-container class="md-block" flex></md-input-container>
 
 					</md-card-content>
 				</md-card>
