@@ -28,6 +28,7 @@ import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
 import gr.cyberstream.workflow.engine.model.WorkflowInstance;
 import gr.cyberstream.workflow.engine.model.WorkflowSettings;
 import gr.cyberstream.workflow.engine.persistence.Processes;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Implements the Processes Repository
@@ -52,6 +53,7 @@ public class JPAProcesses implements Processes {
 				WorkflowDefinition.class).getResultList();
 	}
 
+	@Transactional
 	@Override
 	public WorkflowDefinition save(WorkflowDefinition process) {
 
@@ -89,6 +91,7 @@ public class JPAProcesses implements Processes {
 		return query.setParameter("name", name).getSingleResult();
 	}
 
+	@Transactional
 	@Override
 	public void delete(int processId) {
 		WorkflowDefinition process = getById(processId);
@@ -97,6 +100,7 @@ public class JPAProcesses implements Processes {
 			entityManager.remove(process);
 	}
 
+	@Transactional
 	@Override
 	public DefinitionVersion saveVersion(int processId, DefinitionVersion definitionVersion) {
 		WorkflowDefinition definition = getById(processId);
@@ -172,6 +176,7 @@ public class JPAProcesses implements Processes {
 		return query.setParameter("owners", owners).getResultList();
 	}
 
+	@Transactional
 	@Override
 	public UserTaskDetails save(UserTaskDetails userTaskDetails) {
 		if (entityManager.contains(userTaskDetails)) {
@@ -181,6 +186,7 @@ public class JPAProcesses implements Processes {
 		return userTaskDetails;
 	}
 
+	@Transactional
 	@Override
 	public WorkflowInstance save(WorkflowInstance instance) {
 
@@ -283,6 +289,7 @@ public class JPAProcesses implements Processes {
 		return query.getSingleResult();
 	}
 
+	@Transactional
 	@Override
 	public void cancelProcessInstance(WorkflowInstance instance) {
 		entityManager.remove(instance);
@@ -334,6 +341,7 @@ public class JPAProcesses implements Processes {
 		return query.setParameter("formId", formId).getSingleResult();
 	}
 
+	@Transactional
 	@Override
 	public void saveRegistry(Registry registry) {
 		if (entityManager.contains(registry))
@@ -349,6 +357,7 @@ public class JPAProcesses implements Processes {
 		return query.setParameter("id", 1).getSingleResult();
 	}
 
+	@Transactional
 	@Override
 	public WorkflowSettings updateSettings(WorkflowSettings settings) {
 		return entityManager.merge(settings);
@@ -367,6 +376,7 @@ public class JPAProcesses implements Processes {
 		return entityManager.createQuery("select r from Registry r", Registry.class).getResultList();
 	}
 
+	@Transactional
 	@Override
 	public ExternalForm saveExternalForm(ExternalForm xform) {
 
@@ -388,6 +398,7 @@ public class JPAProcesses implements Processes {
 		return query.setParameter("id", id).getSingleResult();
 	}
 
+	@Transactional
 	@Override
 	public void deleteExternalForm(String externalFormId) {
 		// the check for null object has been done on the service layer
@@ -404,6 +415,7 @@ public class JPAProcesses implements Processes {
 		return query.getSingleResult();
 	}
 
+	@Transactional
 	@Override
 	public void deleteRegistry(String registryId) {
 		Query query = entityManager.createQuery("delete from Registry reg where reg.id = :id");
@@ -435,6 +447,7 @@ public class JPAProcesses implements Processes {
 		return query.getSingleResult();
 	}
 
+	@Transactional
 	@Override
 	public UserTaskFormElement save(UserTaskFormElement taskFormElement) {
 
@@ -525,6 +538,7 @@ public class JPAProcesses implements Processes {
 		return query.getResultList();
 	}
 
+	@Transactional
 	@Override
 	public void deleteProcessInstance(String instanceId) {
 		Query query = entityManager.createQuery("delete from WorkflowInstance inst where inst.id = :instanceId");
@@ -567,6 +581,7 @@ public class JPAProcesses implements Processes {
 		return query.getResultList();
 	}
 
+	@Transactional
 	@Override
 	public ExternalGroup createExternalGroup(ExternalGroup externalGroup) {
 		externalGroup = entityManager.merge(externalGroup);
@@ -591,6 +606,7 @@ public class JPAProcesses implements Processes {
 		return query.getResultList();
 	}
 
+	@Transactional
 	@Override
 	public void deletePublicGroup(int groupId) {
 		ExternalGroup externalGroup = getExternalGroupById(groupId);
@@ -617,6 +633,7 @@ public class JPAProcesses implements Processes {
 		return query.getSingleResult();
 	}
 
+	@Transactional
 	@Override
 	public ExternalGroup updatePublicGroup(ExternalGroup externalGroup) {
 
@@ -645,6 +662,7 @@ public class JPAProcesses implements Processes {
 		return query.getResultList();
 	}
 
+	@Transactional
 	@Override
 	public void saveExternalUser(ExternalUser mobileUser) {
 
@@ -689,6 +707,7 @@ public class JPAProcesses implements Processes {
 		return query.getResultList();
 	}
 
+	@Transactional
 	@Override
 	public void deleteOwnerByOwnerId(String ownerId) {
 		Owner owner = getOwnerById(ownerId);
@@ -696,6 +715,7 @@ public class JPAProcesses implements Processes {
 		entityManager.remove(owner);
 	}
 
+	@Transactional
 	@Override
 	public Owner saveOwner(Owner owner) {
 
@@ -723,6 +743,7 @@ public class JPAProcesses implements Processes {
 		return query.getSingleResult();
 	}
 
+	@Transactional
 	@Override
 	public Role saveRole(Role role) {
 
@@ -734,6 +755,7 @@ public class JPAProcesses implements Processes {
 		return role;
 	}
 
+	@Transactional
 	@Override
 	public void deleteRoleByRoleId(String roleId) {
 		Role role = getRoleByRoleId(roleId);

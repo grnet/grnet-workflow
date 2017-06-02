@@ -9,10 +9,21 @@ public interface MailService {
 
 	/**
 	 * When a task is assigned, sends an email to the "assignee"
-	 * 
+	 *
 	 * @param recipient
 	 *            The assignee's email
-	 * 
+	 *
+	 * @param task
+	 *            The task which is assigned
+	 */
+	public void sendTaskAssignedMail(String recipient, Task task);
+
+	/**
+	 * When a task is assigned, sends an email to the "assignee"
+	 *
+	 * @param recipient
+	 *            The assignee's email
+	 *
 	 * @param task
 	 *            The task which is assigned
 	 */

@@ -1,12 +1,12 @@
 package gr.cyberstream.workflow.engine.service;
 
-import java.util.List;
-
 import gr.cyberstream.workflow.engine.model.Owner;
 import gr.cyberstream.workflow.engine.model.Role;
 import gr.cyberstream.workflow.engine.model.api.WfOwner;
 import gr.cyberstream.workflow.engine.model.api.WfRole;
 import gr.cyberstream.workflow.engine.model.api.WfUser;
+
+import java.util.List;
 
 public interface RealmService {
 
@@ -66,6 +66,13 @@ public interface RealmService {
 	 * @return List of {@link WfOwner}
 	 */
 	public List<WfOwner> getRealmGroups();
+
+	/**
+	 * Returns logged in user's membership in the given group
+	 *
+	 * @return List of {@link String}
+	 */
+	public boolean groupContainsUser(String groupName);
 
 	/**
 	 * Returns logged in user's groups

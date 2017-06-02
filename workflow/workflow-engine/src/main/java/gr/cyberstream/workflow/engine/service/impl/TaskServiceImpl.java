@@ -198,7 +198,7 @@ public class TaskServiceImpl implements TaskService {
 								processInstanceIds.add(processInstance.getId());
 							}
 						} catch (EmptyResultDataAccessException e) {
-							throw new InvalidRequestException("No instance found for the selected process");
+							throw new InvalidRequestException("noInstanceFoundForProcess");
 						}
 
 					}
@@ -257,7 +257,7 @@ public class TaskServiceImpl implements TaskService {
 								processInstanceIds.add(processInstance.getId());
 							}
 						} catch (EmptyResultDataAccessException e) {
-							throw new InvalidRequestException("No instance found for the selected process");
+							throw new InvalidRequestException("noInstanceFoundForProcess");
 						}
 					}
 
@@ -364,7 +364,7 @@ public class TaskServiceImpl implements TaskService {
 		HistoricTaskInstance task = activitiHistoryService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
 
 		if (task == null)
-			throw new InvalidRequestException("There is no task with the given id");
+			throw new InvalidRequestException("noTaskWithID");
 
 		WfTask wfTask = new WfTask(task);
 		WorkflowInstance taskInstance = processRepository.getInstanceById(task.getProcessInstanceId());
@@ -537,7 +537,7 @@ public class TaskServiceImpl implements TaskService {
 			// task's assignee not matched with the person who requests to
 			// complete it or not admin
 		} else
-			throw new InvalidRequestException("Seems you are not the authorized to complete the task");
+			throw new InvalidRequestException("notAuthorizedToCompleteTask");
 	}
 
 	@Override
@@ -817,7 +817,7 @@ public class TaskServiceImpl implements TaskService {
 			// the person who request to assign the task, is not supervisor for
 			// the task or admin
 		} else
-			throw new InvalidRequestException("Seems you are not authorized to assign the task");
+			throw new InvalidRequestException("noAuthorizedToAssignTask");
 	}
 
 	@Override
@@ -885,7 +885,7 @@ public class TaskServiceImpl implements TaskService {
 			// the person who request to assign the task, is not supervisor for
 			// the task or admin
 		} else
-			throw new InvalidRequestException("Seems you are not authorized to assign the task");
+			throw new InvalidRequestException("noAuthorizedToAssignTask");
 	}
 
 	@Override
@@ -1029,7 +1029,7 @@ public class TaskServiceImpl implements TaskService {
 			taskDetails = processRepository.getUserTaskDetailsById(wfTaskDetails.getId());
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("No task details entity was found with the given id");
+			throw new InvalidRequestException("noTaskDetailsEntity");
 		}
 
 		if (hasRole(ROLE_ADMIN)) {
@@ -1041,7 +1041,7 @@ public class TaskServiceImpl implements TaskService {
 			taskDetails = processRepository.save(taskDetails);
 
 		} else
-			throw new InvalidRequestException("You are not authorized to update the task details");
+			throw new InvalidRequestException("notAuthorizedToUpdateTaskDetails");
 
 		return new WfTaskDetails(taskDetails);
 	}
@@ -1202,7 +1202,7 @@ public class TaskServiceImpl implements TaskService {
 
 		List<WfUser> users = this.getCandidatesByTaskId(task.getId());
 
-		if (users == null || users.isEmpty()) {
+		if ((users == null || users.isEmpty()) && task.getAssignee() == null) {
 			String adminEmail = environment.getProperty("mail.admin");
 			WorkflowDefinition workflowDef = processRepository.getProcessByDefinitionId(task.getProcessDefinitionId());
 			WorkflowInstance instance = processRepository.getInstanceById(task.getProcessInstanceId());
@@ -1242,7 +1242,7 @@ public class TaskServiceImpl implements TaskService {
 
 		} catch (EmptyResultDataAccessException e) {
 
-			throw new InvalidRequestException("The process instance ID is not valid.");
+			throw new InvalidRequestException("processInstanceIDNotValid");
 		}
 
 		Folder folder = cmisFolder.getFolderById(instance.getFolderId());
@@ -1351,7 +1351,7 @@ public class TaskServiceImpl implements TaskService {
 				document = cmisDocument.createDocument(folder, wfDocument.getTitle(), contentType, inputStream);
 
 			} catch (CmisStorageException e) {
-				throw new InvalidRequestException("Duplicate document title.");
+				throw new InvalidRequestException("duplicateDocumentTitle");
 			}
 		}
 		return document;
@@ -1521,7 +1521,7 @@ public class TaskServiceImpl implements TaskService {
 
 			WfFormProperty wfFormProperty = new WfFormProperty();
 			wfFormProperty.setId(property.getId());
-			wfFormProperty.setName(wfFormProperty.getName());
+			wfFormProperty.setName(property.getName());
 			wfFormProperty.setType(property.getType().getName());
 			wfFormProperty.setValue(propertyValue);
 			wfFormProperty.setReadable(property.isReadable());

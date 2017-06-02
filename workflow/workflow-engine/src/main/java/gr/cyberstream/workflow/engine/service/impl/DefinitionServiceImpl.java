@@ -165,7 +165,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 			definition = processRepository.getById(process.getId());
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("No process found with the given id");
+			throw new InvalidRequestException("noProcessDefinitionWithID");
 		}
 
 		// check user's roles/groups
@@ -173,7 +173,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 
 			// 1. apply some rules
 			if (StringUtil.isEmpty(definition.getName()))
-				throw new InvalidRequestException("the name is required for the process definition");
+				throw new InvalidRequestException("nameRequired");
 
 			// check if name already exists
 			try {
@@ -202,7 +202,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 			// user has neither admin role nor belongs to group same as the
 			// definition
 		} else
-			throw new InvalidRequestException("Seems you are not authorized to update the definition");
+			throw new InvalidRequestException("notAuthorizedToUpdateDefinition");
 
 		return new WfProcess(definition);
 	}
@@ -218,7 +218,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 			bpmn = IOUtils.toString(inputStream, "UTF-8");
 		} catch (IOException e) {
 			logger.error("Unable to read BPMN Input Stream. " + e.getMessage());
-			throw new InvalidRequestException("Unable to read BPMN Input Stream.");
+			throw new InvalidRequestException("unableToReadBPMN");
 		}
 
 		// parse the id of the process from the bpmn file
@@ -229,12 +229,12 @@ public class DefinitionServiceImpl implements DefinitionService {
 		if (processId == null) {
 
 			logger.error("Process Definition Key is null");
-			throw new InvalidRequestException("Process key is null.");
+			throw new InvalidRequestException("processKeyNull");
 
 		} else if (definitionExistenceCheck(processId)) {
 
 			logger.error("Process Definition Key " + processId + " already exists");
-			throw new InvalidRequestException("Process with key " + processId + " already exists.");
+			throw new InvalidRequestException("processWithKeyAlreadyExists");
 		}
 
 		// 1. Deploy the BPMN file to Activiti repository service
@@ -247,14 +247,14 @@ public class DefinitionServiceImpl implements DefinitionService {
 		} catch (XMLException | ActivitiIllegalArgumentException ex) {
 			String message = "The BPMN input is not valid. Error string: " + ex.getMessage();
 			logger.error(message);
-			throw new InvalidRequestException(message);
+			throw new InvalidRequestException("BPMNInputNotValid");
 		}
 
 		// 2. Check deployment and get metadata from the deployed process
 		// definition
 		if (deployment == null) {
 			logger.error("BPMN file error");
-			throw new InvalidRequestException("The BPMN input is not valid");
+			throw new InvalidRequestException("BPMNInputNotValid");
 		}
 
 		logger.info("New BPMN deployment: " + deployment.getName());
@@ -264,7 +264,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 
 		if (processDef == null) {
 			logger.error("BPMN file error");
-			throw new InvalidRequestException("The BPMN input is not valid");
+			throw new InvalidRequestException("BPMNInputNotValid");
 		}
 
 		WorkflowDefinition workflow = new WorkflowDefinition();
@@ -330,7 +330,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 		try {
 			workflow = processRepository.getById(id);
 		} catch (Exception e) {
-			throw new InvalidRequestException("No process found with the given id");
+			throw new InvalidRequestException("noProcessWithId");
 		}
 
 		// nothing to check
@@ -340,7 +340,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 
 			} catch (IOException e) {
 				logger.error("Unable to read BPMN Input Stream. " + e.getMessage());
-				throw new InvalidRequestException("Unable to read BPMN Input Stream.");
+				throw new InvalidRequestException("unableToReadBPMN");
 			}
 
 			// parse the id of the process from the bpmn file
@@ -350,7 +350,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 			// process id
 			if (!definitionVersionExistenceCheck(id, processId)) {
 				logger.error("Successive process versions should have the same key");
-				throw new InvalidRequestException("Successive process versions should have the same key");
+				throw new InvalidRequestException("successiveVersionsSameKey");
 			}
 
 			try {
@@ -398,7 +398,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 
 				} catch (IOException e) {
 					logger.error("Unable to read BPMN Input Stream. " + e.getMessage());
-					throw new InvalidRequestException("Unable to read BPMN Input Stream.");
+					throw new InvalidRequestException("unableToReadBPMN");
 				}
 
 				// parse the id of the process from the bpmn file
@@ -408,7 +408,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 				// process id
 				if (!definitionVersionExistenceCheck(id, processId)) {
 					logger.error("Successive process versions should have the same key");
-					throw new InvalidRequestException("Successive process versions should have the same key");
+					throw new InvalidRequestException("successiveVersionsSameKey");
 				}
 
 				try {
@@ -445,7 +445,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 				return new WfProcessVersion(definitionVersion);
 
 			} else
-				throw new InvalidRequestException("The definition you are trying to edit doesn't belong to your group");
+				throw new InvalidRequestException("definitionNotInYourGroup");
 		}
 		return null;
 	}
@@ -458,7 +458,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 			definitionVersion = processRepository.getVersionById(version.getId());
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("No process version found with the given id");
+			throw new InvalidRequestException("noProcessVersionWithId");
 		}
 
 		if (hasRole(ROLE_ADMIN)) {
@@ -475,7 +475,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 				return new WfProcessVersion(definitionVersion);
 
 			} else
-				throw new InvalidRequestException("The definition you are trying to edit doesn't belong to your group");
+				throw new InvalidRequestException("definitionNotInYourGroup");
 		}
 
 		return null;
@@ -508,7 +508,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 			definition = processRepository.getById(processId);
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("No process version found with the given id");
+			throw new InvalidRequestException("noProcessVersionWithId");
 		}
 
 		if (hasRole(ROLE_ADMIN) || hasGroup(definition.getOwner())) {
@@ -523,8 +523,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 			}
 
 			if (found)
-				throw new InvalidRequestException("The process definition with id: " + processId
-						+ "could not be deleted. There are associated entries");
+				throw new InvalidRequestException("definitionNotDeletedAssociatedEntries");
 
 			// delete all process definitions (all versions)
 			String activeDeploymentId = definition.getActiveDeploymentId();
@@ -551,7 +550,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 			cmisFolder.deleteFolderById(definition.getFolderId());
 
 		} else
-			throw new InvalidRequestException("You are not authorized to delete the definition");
+			throw new InvalidRequestException("notAuthorizedToDeleteDefinition");
 	}
 
 	@Override
@@ -564,13 +563,12 @@ public class DefinitionServiceImpl implements DefinitionService {
 			definition = processRepository.getById(processId);
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("No process version found with the given id");
+			throw new InvalidRequestException("noProcessVersionWithId");
 		}
 
 		// check if the version id the last one
 		if (definition.getDefinitionVersions().size() < 2)
-			throw new InvalidRequestException(
-					"Trying to delete the last version. Delete the process definition instead.");
+			throw new InvalidRequestException("errorDeleteLastVersion");
 
 		// no need to check anything
 		if (hasRole(ROLE_ADMIN)) {
@@ -598,13 +596,11 @@ public class DefinitionServiceImpl implements DefinitionService {
 			}
 			// definition version not found
 			if (!found)
-				throw new InvalidRequestException("The process definition version with id: " + deploymentId
-						+ " does not exist in process " + processId);
+				throw new InvalidRequestException("processDefinitionNotInProcess");
 
 			// definition with the specific version is used
 			if (used)
-				throw new InvalidRequestException("The process definition version with id: " + deploymentId
-						+ "could not be deleted. There are associated entries");
+				throw new InvalidRequestException("processDefinitionNotInProcess");
 
 			// delete the deployment
 			activitiRepositoryService.deleteDeployment(deploymentId);
@@ -647,13 +643,11 @@ public class DefinitionServiceImpl implements DefinitionService {
 				}
 				// definition version not found
 				if (!found)
-					throw new InvalidRequestException("The process definition version with id: " + deploymentId
-							+ " does not exist in process " + processId);
+					throw new InvalidRequestException("processDefinitionNotInProcess");
 
 				// definition with the specific version is used
 				if (used)
-					throw new InvalidRequestException("The process definition version with id: " + deploymentId
-							+ "could not be deleted. There are associated entries");
+					throw new InvalidRequestException("processDefinitionNotInProcess");
 
 				// delete the deployment
 				activitiRepositoryService.deleteDeployment(deploymentId);
@@ -671,7 +665,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 				return new WfProcess(processRepository.save(definition));
 
 			} else
-				throw new InvalidRequestException("The definition you are trying to edit doesn't belong to your group");
+				throw new InvalidRequestException("definitionNotInYourGroup");
 		}
 		return null;
 	}
@@ -686,7 +680,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 			definition = processRepository.getById(processId);
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("No process version found with the given id");
+			throw new InvalidRequestException("noProcessWithId");
 		}
 
 		// nothing to check
@@ -709,8 +703,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 			}
 
 			if (!found)
-				throw new InvalidRequestException("The process definition version with id: " + versionId
-						+ " does not exist in process " + definition.getId());
+				throw new InvalidRequestException("processDefinitionNotInProcess");
 
 			return new WfProcess(processRepository.save(definition));
 
@@ -734,13 +727,12 @@ public class DefinitionServiceImpl implements DefinitionService {
 				}
 
 				if (!found)
-					throw new InvalidRequestException("The process definition version with id: " + versionId
-							+ " does not exist in process " + definition.getId());
+					throw new InvalidRequestException("processDefinitionNotInProcess");
 
 				return new WfProcess(processRepository.save(definition));
 
 			} else
-				throw new InvalidRequestException("The definition you are trying to edit doesn't belong to your group");
+				throw new InvalidRequestException("definitionNotInYourGroup");
 		}
 
 		return null;
@@ -778,7 +770,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 				return new WfProcessVersion(processRepository.saveVersion(processId, version));
 
 			} else
-				throw new InvalidRequestException("The definition you are trying to edit doesn't belong to your group");
+				throw new InvalidRequestException("definitionNotInYourGroup");
 		}
 
 		return null;
@@ -793,7 +785,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 			definition = processRepository.getById(processId);
 
 		} catch (EmptyResultDataAccessException e) {
-			throw new InvalidRequestException("No process version found with the given id");
+			throw new InvalidRequestException("noProcessVersionWithId");
 		}
 
 		WfProcess process = new WfProcess(definition);
@@ -1294,6 +1286,6 @@ public class DefinitionServiceImpl implements DefinitionService {
 	private boolean hasGroup(String group) {
 		List<String> userGroups = realmService.getUserGroups();
 
-		return userGroups.contains(group) ? true : false;
+		return userGroups != null && (userGroups.contains(group) ? true : false);
 	}
 }

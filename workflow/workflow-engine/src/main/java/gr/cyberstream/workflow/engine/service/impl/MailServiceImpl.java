@@ -8,6 +8,8 @@ import gr.cyberstream.workflow.engine.model.api.WfTask;
 import gr.cyberstream.workflow.engine.persistence.Processes;
 import gr.cyberstream.workflow.engine.service.InternalException;
 import gr.cyberstream.workflow.engine.service.MailService;
+import org.activiti.engine.RepositoryService;
+import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.task.Task;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.slf4j.Logger;
@@ -36,15 +38,17 @@ public class MailServiceImpl implements MailService {
 	private Processes processRepository;
 
 	@Autowired
+	private RepositoryService activitiRepositorySrv;
+
+	@Autowired
 	private JavaMailSender mailSender;
 
 	@Autowired
 	private SettingsStatus settingsStatus;
 
-	private final String datePattern = "d/M/yyyy";
+	private final String datePattern = "HH:mm, d/M/yyyy";
 	private String from;
 	private String workspaceURL;
-	private String managerURL;
 
 	private boolean sendDueTask;
 	private boolean sendTaskExpired;
@@ -53,9 +57,48 @@ public class MailServiceImpl implements MailService {
 	public void initializeService() {
 		from = environment.getProperty("mail.from");
 		workspaceURL = environment.getProperty("workspaceURL");
-		managerURL = environment.getProperty("managerURL");
 		sendDueTask = environment.getProperty("mail.sendDueTask").equals("true");
 		sendTaskExpired = environment.getProperty("mail.sendTaskExpired").equals("true");
+	}
+
+	@Override
+	public void sendTaskAssignedMail(String recipient, Task task) {
+		WorkflowSettings settings = getSettings();
+		String taskName = task.getName();
+		Date dueDate = task.getDueDate();
+		String taskId = task.getId();
+
+		if (!settings.isAssignmentNotification())
+			return;
+
+		ProcessDefinition definition = activitiRepositorySrv.getProcessDefinition(task.getProcessDefinitionId());
+		WorkflowInstance instance = processRepository.getProcessInstance(task.getProcessInstanceId());
+
+		String taskAssignedSubject = "Νέα εργασία";
+		String taskAssignedContent = "<p><b>Διαδικασία:</b> '" + definition.getName() + "'</p>";
+		taskAssignedContent += "<p><b>Εκτέλεση:</b> '" + instance.getTitle() + "'</p>";
+		processRepository.getByName(task.getProcessDefinitionId());
+
+		if (taskName != null && !taskName.isEmpty()) {
+			taskAssignedSubject += " '" + taskName + "'";
+			taskAssignedContent += "<p>Σας έχει ανατεθεί η εργασία '" + taskName + "'.</p>";
+		} else {
+			taskAssignedContent += "<p>Σας έχει ανατεθεί μία εργασία.</p>";
+		}
+
+		if (dueDate != null) {
+			taskAssignedContent += "<p>Η χρονική περιόδος για την εκτέλεση της εργασίας είναι μέχρι τις "
+					+ DateFormatUtils.format(dueDate, datePattern) + ".</p>";
+		}
+
+		taskAssignedContent += "<p><a href=\"" + workspaceURL + "/#/task/" + taskId
+				+ "\">Επιλέξτε για να δείτε την εργασία</a></p>";
+
+		try {
+			sendMail(recipient, taskAssignedSubject, taskAssignedContent);
+		} catch (MessagingException e) {
+			logger.warn("Unable to send task assignment email to " + recipient);
+		}
 	}
 
 	@Override
@@ -68,9 +111,12 @@ public class MailServiceImpl implements MailService {
 		if (!settings.isAssignmentNotification())
 			return;
 
+		ProcessDefinition definition = activitiRepositorySrv.getProcessDefinition(task.getProcessDefinitionId());
+		WorkflowInstance instance = processRepository.getProcessInstance(task.getProcessInstance().getId());
+
 		String taskAssignedSubject = "Νέα εργασία";
-		String taskAssignedContent = "<p><b>Διαδικασία:</b> '" + task.getDefinitionName() + "'</p>";
-		taskAssignedContent += "<p><b>Εκτέλεση:</b> '" + task.getProcessInstance().getTitle() + "'</p>";
+		String taskAssignedContent = "<p><b>Διαδικασία:</b> '" + definition.getName() + "'</p>";
+		taskAssignedContent += "<p><b>Εκτέλεση:</b> '" + instance.getTitle() + "'</p>";
 
 		if (taskName != null && !taskName.isEmpty()) {
 			taskAssignedSubject += " '" + taskName + "'";

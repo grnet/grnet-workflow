@@ -1,14 +1,13 @@
 package gr.cyberstream.workflow.engine.service.impl;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-
+import gr.cyberstream.workflow.engine.model.Owner;
+import gr.cyberstream.workflow.engine.model.Role;
+import gr.cyberstream.workflow.engine.model.api.WfOwner;
+import gr.cyberstream.workflow.engine.model.api.WfRole;
+import gr.cyberstream.workflow.engine.model.api.WfUser;
+import gr.cyberstream.workflow.engine.persistence.Processes;
+import gr.cyberstream.workflow.engine.service.InvalidRequestException;
+import gr.cyberstream.workflow.engine.service.RealmService;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.keycloak.admin.client.Keycloak;
@@ -35,14 +34,13 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import gr.cyberstream.workflow.engine.model.Owner;
-import gr.cyberstream.workflow.engine.model.Role;
-import gr.cyberstream.workflow.engine.model.api.WfOwner;
-import gr.cyberstream.workflow.engine.model.api.WfRole;
-import gr.cyberstream.workflow.engine.model.api.WfUser;
-import gr.cyberstream.workflow.engine.persistence.Processes;
-import gr.cyberstream.workflow.engine.service.InvalidRequestException;
-import gr.cyberstream.workflow.engine.service.RealmService;
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 
@@ -156,8 +154,7 @@ public class RealmServiceImpl implements RealmService {
 	@Override
 	public List<WfUser> getAllUsers() {
 		List<WfUser> returnList = new ArrayList<WfUser>();
-		
-		// UserRepresentation doesn't return groups/roles a workaround is to 
+		// UserRepresentation doesn't return groups/roles a workaround is to
 		// request for every user for its groups/roles
 		List<UserRepresentation> users = keycloak.users().search("", 0, -1);
 		
@@ -294,12 +291,37 @@ public class RealmServiceImpl implements RealmService {
 	}
 
 	@Override
+	public boolean groupContainsUser(String groupName){
+		KeycloakAuthenticationToken authentication = (KeycloakAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+		AccessToken token = authentication.getAccount().getKeycloakSecurityContext().getToken();
+
+		GroupRepresentation group = keycloak.getGroupByPath(groupName);
+		List<UserRepresentation> users = keycloak.groups().group(group.getId()).members(0, 999);
+
+		for(UserRepresentation user : users){
+			if(user.getEmail().equals(token.getEmail()))
+				return true;
+		}
+		return false;
+	}
+
+	@Override
 	@SuppressWarnings("unchecked")
 	public List<String> getUserGroups() {
 		KeycloakAuthenticationToken authentication = (KeycloakAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
 		AccessToken token = authentication.getAccount().getKeycloakSecurityContext().getToken();
+		List<String> userGroups = new ArrayList<>();
 
-		return (List<String>) token.getOtherClaims().get("groups");
+		List<GroupRepresentation> groups = keycloak.groups().groups();
+		for(GroupRepresentation group : groups){
+			List<UserRepresentation> users = keycloak.groups().group(group.getId()).members(0,999);
+			for(UserRepresentation user : users){
+				if(user.getEmail().equals(token.getEmail()))
+					userGroups.add(group.getName());
+			}
+		}
+
+		return userGroups;
 	}
 	
 	@Override
