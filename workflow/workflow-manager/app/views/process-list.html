@@ -14,7 +14,7 @@
 		
 		<span flex></span>
 		
-		<md-button class="md-icon-button" aria-label="Add" ng-click="addProcess()">
+		<md-button class="md-icon-button" aria-label="Add" ng-click="addProcess()" ng-if="!isOnlyUser">
 			<md-icon md-svg-icon="img/icons/add.svg"></md-icon>
 			<md-tooltip direction="bottom">{{ 'addProcess' | translate }}</md-tooltip>
 		</md-button>

@@ -130,7 +130,7 @@
 		</section>
 
 		<md-list flex ng-if="inProgressInstances.length > 0" style="padding: 0;" ng-if="!showProgress">
-			<md-card ng-repeat="instance in inProgressInstances | orderBy:orderByOption">
+			<md-card ng-repeat="instance in inProgressInstances | orderBy:activeOrderByOption">
 				<md-list-item class="md-3-line" ng-click="goTo('/instance/' + instance.id)">
 					<img ng-src="{{imagePath + instance.definitionIcon}}" class="md-avatar" alt="{{instance.definitionName}}" />
 					<div class="md-list-item-text" layout="column">

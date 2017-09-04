@@ -94,7 +94,8 @@ define(['angular', 'services/processservice'],
 
                         instanceIds.forEach(function (item) {
                             var instance = tasksMapped[item]["instances"][0];
-                            $scope.inProgressInstances.push(instance);
+                            if($scope.activeDefinitions.map(function(a) {return a.name;}).indexOf(instance.definitionName) >= 0)
+                                $scope.inProgressInstances.push(instance);
                         });
                     },
                     // error callback

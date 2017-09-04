@@ -22,15 +22,15 @@
 			<md-icon md-svg-icon="img/icons/bpmn.svg"></md-icon>
 		</md-button>
 
-		<md-button class="md-icon-button" aria-label="Add Version" ng-click="showAddVersion($event)" ng-if="selectedTab == 'process' && !isManager">
+		<md-button class="md-icon-button" aria-label="Add Version" ng-click="showAddVersion($event)" ng-if="selectedTab == 'process' && !isManager && !isSupervisor && !isOnlyUser">
 			<md-icon md-svg-icon="img/icons/add.svg"></md-icon>
 		</md-button>
 
-		<md-button class="md-icon-button" aria-label="Add Version" ng-click="addExternalForm($event)" ng-if="selectedTab == 'externalForms'">
+		<md-button class="md-icon-button" aria-label="Add Version" ng-click="addExternalForm($event)" ng-if="selectedTab == 'externalForms' && !isSupervisor && !isOnlyUser">
 			<md-icon md-svg-icon="img/icons/add.svg"></md-icon>
 		</md-button>
 
-		<md-button class="md-icon-button" aria-label="Delete Process" ng-click="askDeleteProcess($event)" ng-if="selectedTab == 'process' && !isManager">
+		<md-button class="md-icon-button" aria-label="Delete Process" ng-click="askDeleteProcess($event)" ng-if="selectedTab == 'process' && !isManager && !isSupervisor && !isOnlyUser">
 			<md-icon md-svg-icon="img/icons/delete.svg"></md-icon>
 		</md-button>
 
@@ -56,12 +56,12 @@
 
 							<md-input-container class="md-block">
 								<label for="processName">{{ 'processTitle' | translate }}</label>
-								<input id="processName" ng-model="workflowDefinition.name" md-maxlength="250" required ng-disabled="isManager">
+								<input id="processName" ng-model="workflowDefinition.name" md-maxlength="250" required ng-disabled="isManager || isSupervisor || isOnlyUser">
 							</md-input-container>
 
 							<md-input-container flex class="md-block">
 								<label for="processDescription">{{ 'description' | translate }}</label>
-								<textarea id="processDescription" ng-model="workflowDefinition.description" md-maxlength="250" ng-disabled="isManager"></textarea>
+								<textarea id="processDescription" ng-model="workflowDefinition.description" md-maxlength="250" ng-disabled="isManager || isSupervisor || isOnlyUser"></textarea>
 							</md-input-container>
 
 							<md-input-container flex class="md-block"></md-input-container>
@@ -73,7 +73,7 @@
 									<input id="processIcon" readonly ng-model="iconName">
 								</md-input-container>
 
-								<md-button class="md-avatar" aria-label="Process Icon" ng-click="showIconSelect($event)" ng-disabled="isManager">
+								<md-button class="md-avatar" aria-label="Process Icon" ng-click="showIconSelect($event)" ng-disabled="isManager || isSupervisor || isOnlyUser">
 									<md-icon ng-if="workflowDefinition.icon" md-svg-src="img/avatars/{{workflowDefinition.icon}}" class="avatar"></md-icon>
 								</md-button>
 
@@ -82,7 +82,7 @@
 
 							<md-input-container class="md-block" flex="35" style="margin-top: 0;">
 								<label for="registry">{{ 'processRegistry' | translate }}</label>
-								<md-select id="registry" ng-model="workflowDefinition.registryId" ng-disabled="isManager">
+								<md-select id="registry" ng-model="workflowDefinition.registryId" ng-disabled="isManager || isSupervisor || isOnlyUser">
 									<md-option ng-value=""><span>{{ 'none' | translate }}</span></md-option>
 									<md-option ng-repeat="registry in registries" ng-value="registry.id"><span>{{registry.id}}</span></md-option>
 								</md-select>
@@ -93,7 +93,7 @@
 
 								<md-input-container class="md-block" flex="35">
 									<label for="processVersion">{{ 'processActiveVersion' | translate }}</label>
-									<md-select id="processVersion" ng-model="workflowDefinition.activeDeploymentId" ng-disabled="isManager">
+									<md-select id="processVersion" ng-model="workflowDefinition.activeDeploymentId" ng-disabled="isManager || isSupervisor || isOnlyUser">
 										<md-option ng-repeat="deployment in workflowDefinition.processVersions track by deployment.deploymentId" ng-value="deployment.deploymentId">
 											<span>v{{deployment.version}} ({{deployment.deploymentdate | date:'d/M/yyyy'}})</span>
 											<span ng-style="{'color': deployment.status==='active'?'default':'red'}">({{deployment.status | translate}})</span>
@@ -104,7 +104,7 @@
 								<div layout="row" class="md-block" layout-align="start center">
 
 									<md-button class="md-raised" aria-label="Change Status" ng-click="changeStatus($event)" ng-disabled="!processForm.$valid"
-									 ng-show="workflowDefinition.activeDeploymentId !== null && findActiveVersion() !== null" ng-if="!isManager">
+									 ng-show="workflowDefinition.activeDeploymentId !== null && findActiveVersion() !== null" ng-if="!isManager && !isSupervisor && !isOnlyUser">
 										{{newStatusButtonLabel() | translate}}
 									</md-button>
 
@@ -123,11 +123,11 @@
 
 							</section>
 
-							<md-checkbox ng-model="workflowDefinition.assignBySupervisor" ng-disabled="isManager">{{ 'assignmentsByCoordinator' | translate }}</md-checkbox>
+							<md-checkbox ng-model="workflowDefinition.assignBySupervisor" ng-disabled="isManager || isSupervisor || isOnlyUser">{{ 'assignmentsByCoordinator' | translate }}</md-checkbox>
 
 							<md-input-container class="md-block" flex="35">
 								<label>{{ 'owner' | translate }}</label>
-								<md-select name="owner" ng-model="workflowDefinition.owner" required ng-disabled="isManager">
+								<md-select name="owner" ng-model="workflowDefinition.owner" required ng-disabled="isManager || isSupervisor || isOnlyUser">
 									<md-option ng-repeat="group in groups" value="{{group.ownerId}}">
 										<p ng-if="group.name">{{group.name}}</p>
 										<p ng-if="!group.name">{{group.ownerId}}</p>
@@ -137,7 +137,7 @@
 
 							<section layout-align="center center" style="position:absolute;bottom: 2%;right: 2%;">
 								<md-button class="md-fab md-primary" aria-label="Save Process Definition" ng-click="save()" ng-disabled="!processForm.$dirty || !processForm.$valid"
-								 ng-if="!isManager">
+								 ng-if="!isManager && !isSupervisor && !isOnlyUser">
 									<md-icon md-svg-src="img/icons/save.svg"></md-icon>
 								</md-button>
 							</section>
@@ -190,10 +190,10 @@
 
 							<md-input-container class="md-block">
 								<label>{{'taskDescription' | translate }}</label>
-								<textarea ng-model="editTaskDetails.description" md-maxlength="250" rows="3" md-select-on-focus></textarea>
+								<textarea ng-model="editTaskDetails.description" ng-disabled="isSupervisor || isOnlyUser" md-maxlength="250" rows="3" md-select-on-focus></textarea>
 							</md-input-container>
 
-							<md-checkbox id="coordinatorAssigned" ng-model="editTaskDetails.assign">{{'assignmentsByCoordinator' | translate }}</md-checkbox>
+							<md-checkbox id="coordinatorAssigned" ng-model="editTaskDetails.assign" ng-disabled="isSupervisor || isOnlyUser">{{'assignmentsByCoordinator' | translate }}</md-checkbox>
 
 							<div ng-if="exception" role="alert" multiple style="font-size: 13px;color: red;">
 								<div class="exceptionMessage">{{exceptionMessage.message}}</div>
@@ -201,7 +201,9 @@
 
 							<div layout="row" layout-align="start center">
 								<md-button class="md-raised" aria-label="Back" ng-click="goBackToTaks()" style="margin-left: 0px;">{{ 'back' | translate }}</md-button>
-								<md-button class="md-primary md-raised" aria-label="Save task details" ng-click="saveTaskDetails(editTaskDetails)">{{ 'save' | translate }}</md-button>
+								<md-button class="md-primary md-raised" aria-label="Save task details" ng-click="saveTaskDetails(editTaskDetails)" ng-disabled="isSupervisor || isOnlyUser">
+									{{ 'save' | translate }}
+								</md-button>
 							</div>
 						</md-card-content>
 					</md-card>
@@ -213,7 +215,7 @@
 						<md-list flex style="padding:0px;">
 							<md-card ng-repeat="formItem in taskFormItems">
 								<!--<md-list-item class="md-2-line" ng-click="editTaskDescription(task.id)"> -->
-								<md-list-item class="md-2-line" ng-if="formItem.name" ng-click="editFormItem(formItem, $event)">
+								<md-list-item class="md-2-line" ng-if="formItem.name" ng-click="editFormItem(formItem, $event)" ng-disabled="isSupervisor || isOnlyUser">
 									<div class="md-list-item-text">
 										<h3>{{ formItem.name }}
 											<md-icon ng-if="formItem.description" md-svg-src="img/icons/description.svg" aria-label="task description" style="width:15px; padding-left:10px">
@@ -252,22 +254,22 @@
 								<p>{{ 'supervisor' | translate }}: {{instance.supervisor}}</p>
 								<p>{{ 'startedAt' | translate }}: {{ instance.startDate | date:'d/M/yyyy'}}
 									<span>
-							 			<md-button class="md-icon-button" ng-if="!isManager && instance.status != 'deleted'" aria-label="instance-cancel" ng-click="cancelInstance(instance, $event)">
+							 			<md-button class="md-icon-button" ng-if="!isManager && !isSupervisor && !isOnlyUser && instance.status != 'deleted'" aria-label="instance-cancel" ng-click="cancelInstance(instance, $event)">
 							 				<md-icon md-svg-icon="img/icons/cancel.svg"></md-icon>
 											 <md-tooltip md-direction="bottom">{{ 'permInstanceSuspend' | translate }} "{{instance.title}}"</md-tooltip>
 						 				</md-button>
 										 
-										 <md-button class="md-icon-button" ng-if="!isManager" aria-label="delete instance" ng-click="deleteInstance(instance, $event)">
+										 <md-button class="md-icon-button" ng-if="!isManager && !isSupervisor && !isOnlyUser" aria-label="delete instance" ng-click="deleteInstance(instance, $event)">
 											 <md-icon md-svg-icon="img/icons/shredder.svg"></md-icon>
 											 <md-tooltip md-direction="bottom">{{ 'permInstanceDel' | translate }} "{{instance.title}}"</md-tooltip>
 						 				</md-button>
 						 				
-						 				<md-button class="md-icon-button" ng-if="!isManager" aria-label="instance-suspend" ng-show="instance.status == 'running'" ng-click="actOnInstance(instance,'suspend')">
+						 				<md-button class="md-icon-button" ng-if="!isManager && !isSupervisor && !isOnlyUser" aria-label="instance-suspend" ng-show="instance.status == 'running'" ng-click="actOnInstance(instance,'suspend')">
 											 <md-icon md-svg-icon="img/icons/suspend.svg"></md-icon>
 											 <md-tooltip md-direction="bottom">{{ 'suspendInstance' | translate }} "{{instance.title}}".</md-tooltip>
 					 					</md-button>
 					 					
-					 					<md-button class="md-icon-button" ng-if="!isManager" aria-label="instance-resume" ng-show="instance.status == 'suspended'" ng-click="actOnInstance(instance,'resume', $event)">
+					 					<md-button class="md-icon-button" ng-if="!isManager && !isSupervisor && !isOnlyUser" aria-label="instance-resume" ng-show="instance.status == 'suspended'" ng-click="actOnInstance(instance,'resume', $event)">
 											 <md-icon md-svg-icon="img/icons/resume.svg"></md-icon>
 											 <md-tooltip md-direction="bottom">{{ 'resumeInstance' | translate }} "{{instance.title}}". ({{ 'femaleDisabled' | translate }})</md-tooltip>
 			 							</md-button>
@@ -328,7 +330,7 @@
 									<input id="xFormId" ng-model="extForm.formId" ng-required="true" md-maxlength="150" readonly disabled>
 								</md-input-container>
 
-								<md-input-container class="md-block">
+								<md-input-container class="md-block" ng-disabled="isSupervisor || isOnlyUser">
 									<label for="titleTemplate">{{ 'externalFormTitleTemplate' | translate }}</label>
 									<textarea id="titleTemplate" ng-model="extForm.titleTemplate" ng-required="true" md-maxlength="250"></textarea>
 								</md-input-container>
@@ -338,14 +340,14 @@
 									<input id="selectDefinition" ng-model="workflowDefinition.name" readonly disabled>
 								</md-input-container>
 
-								<md-input-container class="md-block">
+								<md-input-container class="md-block" ng-disabled="isSupervisor || isOnlyUser">
 									<label for="selectSupervisor">{{ 'supervisor' | translate }}</label>
 									<md-select id="selectSupervisor" ng-model="extForm.supervisor" ng-required="true" ng-disabled="!extForm.workflowDefinitionId">
 										<md-option ng-repeat="supervisor in supervisors" ng-value="supervisor.email">{{supervisor.lastName}} {{supervisor.firstName}}</md-option>
 									</md-select>
 								</md-input-container>
 
-								<md-input-container class="md-block">
+								<md-input-container class="md-block" ng-disabled="isSupervisor || isOnlyUser">
 									<label for="selectGroup">{{ 'groupName' | translate }}</label>
 									<md-select id="selectGroup" ng-model="extForm.formExternalGroup.groupId">
 										<md-option ng-value="null">{{ 'none' | translate }}</md-option>
@@ -353,11 +355,11 @@
 									</md-select>
 								</md-input-container>
 
-								<md-input-container class="md-block">
+								<md-input-container class="md-block" ng-disabled="isSupervisor || isOnlyUser">
 									<md-checkbox ng-model="extForm.mobileEnabled" aria-label="Mobile enabled">{{ 'mobileEnabled' | translate }}</md-checkbox>
 								</md-input-container>
 
-								<md-input-container class="md-block">
+								<md-input-container class="md-block" ng-disabled="isSupervisor || isOnlyUser">
 									<md-checkbox ng-model="extForm.enabled" aria-label="Enabled">{{ 'femaleEnabled' | translate }}</md-checkbox>
 								</md-input-container>
 
@@ -366,8 +368,8 @@
 							<md-divider style="padding-bottom: 5px;"></md-divider>
 
 							<section layout="row" layout-align="left center" style="padding-left: 0px;">
-								<md-button class="md-raised md-primary" ng-click="updateExternalForm()" ng-disabled="!externalFormDetails.$valid" style="margin-left: 0;">{{ 'confirm' | translate }}</md-button>
-								<md-button class="md-raised md-warn" ng-click="deleteExternalForm()" style="margin-left: 0px;">{{ 'delete' | translate }}</md-button>
+								<md-button class="md-raised md-primary" ng-click="updateExternalForm()" ng-disabled="!externalFormDetails.$valid || isSupervisor || isOnlyUser" style="margin-left: 0;">{{ 'confirm' | translate }}</md-button>
+								<md-button class="md-raised md-warn" ng-click="deleteExternalForm()" ng-disabled="isSupervisor" style="margin-left: 0px;">{{ 'delete' | translate }}</md-button>
 								<md-button class="md-raised" aria-label="Back" ng-click="goBackToFormList()" style="margin-left: 0px;">{{ 'back' | translate }}</md-button>
 							</section>
 

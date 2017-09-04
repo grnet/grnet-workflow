@@ -34,9 +34,20 @@ define(['angular', 'services/processservice', 'services/authprovider'],
             $scope.taskMetadataActiveView = "taskMetadata";
 
             $scope.isManager = false;
+            $scope.isSupervisor = false;
+            $scope.isOnlyUser = false;
 
             if (authProvider.getRoles().length == 1 && authProvider.getRoles().indexOf("ROLE_Manager") > -1)
                 $scope.isManager = true;
+
+            if(authProvider.getRoles().indexOf("ROLE_Supervisor") > -1)
+                $scope.isSupervisor = true;
+
+            if(authProvider.getRoles().indexOf("ROLE_Admin") < 0 &&
+                    authProvider.getRoles().indexOf("ROLE_Supervisor") < 0 &&
+                    authProvider.getRoles().indexOf("ROLE_ProcessAdmin") < 0 &&
+                    authProvider.getRoles().indexOf("ROLE_User") > -1)
+                $scope.isOnlyUser = true;
 
             /****************** Process tab ******************/
 

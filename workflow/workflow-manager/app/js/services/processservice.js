@@ -64,7 +64,7 @@ define(['angular'],
              * V2 API: @name RealmController#getUserGroups
              */
             this.getUserGroups = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/user/group');
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/user/group');
             };
 
             /**
@@ -146,7 +146,7 @@ define(['angular'],
              * Note: On v2 api the url should be /api/v2/process/version/{processId}/{deploymentId}
              */
             this.deleteProcessVersion = function (processId, deploymentId) {
-                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/v2/process/' + processId + '/' + deploymentId);
+                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/v2/process/version/' + processId + '/' + deploymentId);
             };
 
             /**
@@ -168,7 +168,7 @@ define(['angular'],
              * V2 API: @name DefinitionController#getProcessDefinitionsByOwner
              */
             this.getProcessesByOwners = function (selectedOwners) {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/filter?owners=' + encodeURIComponent(selectedOwners));
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/process/filter?owners=' + encodeURIComponent(selectedOwners));
             };
 
             /**
@@ -358,7 +358,7 @@ define(['angular'],
              * @returns {HttpPromise}
              */
             this.getActiveProcesses = function () {
-                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/process/active');
+                return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/v2/process/active');
             };
 
             /**

@@ -21,8 +21,17 @@ define(['angular', 'services/processservice'],
 			$scope.sortOptions = { title: 'owner', id: 'owner' };
 			$scope.options.push($scope.sortOptions);
 
-			//checking if user has role admin in order to show all groups/owners
-			if (authProvider.getRoles().indexOf('ROLE_Admin') >= 0 || authProvider.getRoles().indexOf('ROLE_Manager') >= 0) {
+			$scope.isOnlyUser = false;
+
+            if(authProvider.getRoles().indexOf("ROLE_Admin") < 0 &&
+                authProvider.getRoles().indexOf("ROLE_Supervisor") < 0 &&
+                authProvider.getRoles().indexOf("ROLE_ProcessAdmin") < 0 &&
+                authProvider.getRoles().indexOf("ROLE_User") > -1)
+                $scope.isOnlyUser = true;
+
+            //checking if user has role admin in order to show all groups/owners
+			if (authProvider.getRoles().indexOf('ROLE_Admin') >= 0 || authProvider.getRoles().indexOf('ROLE_Manager') >= 0 ||
+				authProvider.getRoles().indexOf('ROLE_Supervisor') >= 0) {
 				processService.getGroups().then(
 					// success callback
 					function (response) {
