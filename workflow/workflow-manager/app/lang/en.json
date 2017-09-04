@@ -3,7 +3,7 @@
 	"processes": "processes",
 	"allOwners": "all owners",
 	"noOwners": "no owners",
-	"processesHistory": "processes history",
+	"processesHistory": "execution history",
 	"pendingTasks": "pending tasks",
 	"userActivity": "user history",
 	"settings": "settings",
