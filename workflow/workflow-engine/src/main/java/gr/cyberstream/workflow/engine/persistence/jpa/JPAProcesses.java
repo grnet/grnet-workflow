@@ -4,6 +4,7 @@
 package gr.cyberstream.workflow.engine.persistence.jpa;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -654,12 +655,25 @@ public class JPAProcesses implements Processes {
 	}
 
 	@Override
-	public List<WorkflowInstance> getEndedProgressInstances() {
+	public List<WorkflowInstance> getEndedProcessInstances() {
 
 		TypedQuery<WorkflowInstance> query = entityManager.createQuery(
 				"select inst from WorkflowInstance inst where inst.status='ended' or inst.status='deleted'", WorkflowInstance.class);
 
 		return query.getResultList();
+	}
+
+	public List<WorkflowInstance> getEndedProcessInstancesByGroups(List<String> groups) {
+		List<WorkflowInstance> returnList = new LinkedList<>();
+
+		for(String owner : groups) {
+			TypedQuery<WorkflowInstance> query = entityManager.createQuery(
+					"select inst from WorkflowInstance inst where (inst.status='ended' or inst.status='deleted') " +
+							"and inst.definitionVersion.workflowDefinition.owner = :owner", WorkflowInstance.class);
+			query.setParameter("owner", owner);
+			returnList.addAll(query.getResultList());
+		}
+		return returnList;
 	}
 
 	@Transactional
@@ -697,6 +711,15 @@ public class JPAProcesses implements Processes {
 				Owner.class);
 
 		query.setParameter("ownerId", ownerId);
+		return query.getSingleResult();
+	}
+
+	@Override
+	public Owner getOwnerByName(String ownerName) {
+		TypedQuery<Owner> query = entityManager.createQuery("select own from Owner own where own.name = :ownerName",
+				Owner.class);
+
+		query.setParameter("ownerName", ownerName);
 		return query.getSingleResult();
 	}
 

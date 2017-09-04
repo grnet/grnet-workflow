@@ -111,7 +111,6 @@ public class DefinitionController {
 	 */
 	@RequestMapping(value = "/process/filter", method = RequestMethod.GET)
 	@ResponseBody
-	@PreAuthorize("hasAnyRole('ProcessAdmin','Admin')")
 	public List<WfProcess> getProcessDefinitionsByOwner(@RequestParam("owners") List<String> owners) {
 
 		if (owners.size() > 0) {

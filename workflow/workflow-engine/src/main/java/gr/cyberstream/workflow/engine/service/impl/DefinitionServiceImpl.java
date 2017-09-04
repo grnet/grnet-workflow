@@ -90,6 +90,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 
 	// user roles
 	private static final String ROLE_ADMIN = "ROLE_Admin";
+	private static final String ROLE_SUPERVISOR = "ROLE_Supervisor";
 	private static final String ROLE_PROCESS_ADMIN = "ROLE_ProcessAdmin";
 
 	@Override
@@ -104,7 +105,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 		List<WfProcess> returnList = new ArrayList<WfProcess>();
 		List<WorkflowDefinition> workflows = processRepository.getAll();
 
-		if (hasRole(ROLE_ADMIN)) {
+		if (hasRole(ROLE_ADMIN) || hasRole(ROLE_SUPERVISOR)) {
 			returnList = WfProcess.fromWorkflowDefinitions(workflows);
 		} else {
 			for (WorkflowDefinition workflowDefinition : workflows) {
@@ -122,7 +123,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 		List<WfProcess> returnList = new ArrayList<WfProcess>();
 		List<WorkflowDefinition> workflows = processRepository.getActiveProcessDefintions();
 
-		if (hasRole(ROLE_ADMIN)) {
+		if (hasRole(ROLE_ADMIN) || hasRole(ROLE_SUPERVISOR)) {
 			returnList = WfProcess.fromWorkflowDefinitions(workflows);
 		} else {
 			for (WorkflowDefinition workflowDefinition : workflows) {
@@ -437,6 +438,7 @@ public class DefinitionServiceImpl implements DefinitionService {
 				definitionVersion.setDeploymentdate(deployment.getDeploymentTime());
 				definitionVersion.setProcessDefinitionId(ActivitiHelper
 						.getProcessDefinitionByDeploymentId(activitiRepositoryService, deployment.getId()).getId());
+				definitionVersion.setJustification(justification);
 
 				workflow.addDefinitionVersion(definitionVersion);
 				processRepository.save(workflow);

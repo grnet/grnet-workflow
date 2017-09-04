@@ -2444,7 +2444,7 @@ public class ProcessService {
 				}
 				// check if admin or process admin in order to display all
 				// instances
-				if (hasRole(ROLE_ADMIN) || hasRole(ROLE_PROCESS_ADMIN)) {
+				if (hasRole(ROLE_ADMIN) || hasRole(ROLE_SUPERVISOR)) {
 
 					if (instance != null) {
 						if (StringUtils.containsIgnoreCase(instance.getTitle(), instanceTitle)) {
@@ -2456,6 +2456,16 @@ public class ProcessService {
 						}
 					}
 					// user is not admin or process admin
+				} else if (hasRole(ROLE_PROCESS_ADMIN)){
+					if (instance != null && hasGroup(instance.getDefinitionVersion().getWorkflowDefinition().getOwner())) {
+						if (StringUtils.containsIgnoreCase(instance.getTitle(), instanceTitle)) {
+
+							WfTask wfTask = new WfTask(task);
+							wfTask.setProcessInstance(new WfProcessInstance(instance));
+							wfTask.setIcon(instance.getDefinitionVersion().getWorkflowDefinition().getIcon());
+							returnList.add(wfTask);
+						}
+					}
 				} else {
 					if (instance != null) {
 						if (StringUtils.containsIgnoreCase(instance.getTitle(), instanceTitle) && instance.getSupervisor().equals(getAccessToken().getEmail())) {
@@ -3821,7 +3831,9 @@ public class ProcessService {
 			try {
 				WorkflowInstance instance = processRepository.getInstanceById(hit.getProcessInstanceId());
 				WorkflowDefinition workflowDefinition = instance.getDefinitionVersion().getWorkflowDefinition();
-	
+
+				if((hasRole(ROLE_PROCESS_ADMIN) || hasRole(ROLE_SUPERVISOR)) && !hasGroup(workflowDefinition.getOwner()))
+					continue;
 				wfTask.setProcessInstance(new WfProcessInstance(instance));
 				wfTask.setIcon(workflowDefinition.getIcon());
 				wfTask.setDefinitionName(workflowDefinition.getName());
@@ -3859,8 +3871,19 @@ public class ProcessService {
 
 		if (!settings.isAutoAssignment() || users.size() > 1)
 			return;
+		String userEmail;
 
-		String userEmail = users.get(0).getEmail();
+		if(users.size() > 0)
+			userEmail = users.get(0).getEmail();
+		else if (task.getAssignee() != null)
+			userEmail = task.getAssignee();
+		else{
+			String adminEmail = environment.getProperty("mail.admin");
+			WorkflowDefinition workflowDef = processRepository.getProcessByDefinitionId(task.getProcessDefinitionId());
+			WorkflowInstance instance = processRepository.getInstanceById(task.getProcessInstanceId());
+			mailService.sendBpmnErrorEmail(adminEmail, workflowDef, task, instance);
+			return;
+		}
 
 		activitiTaskSrv.claim(task.getId(), userEmail);
 
@@ -4897,11 +4920,12 @@ public class ProcessService {
 		if(instanceTitle.isEmpty() || instanceTitle.equals(" "))
 			instanceTitle = null;
 
-
-		for(WfProcessInstance instance : WfProcessInstance.fromWorkflowInstances(processRepository.getEndedProgressInstances())) {
-			if (instance != null) {
+		for(WorkflowInstance instance : processRepository.getEndedProcessInstances()){
+			if(instance != null){
+				if(hasRole(ROLE_PROCESS_ADMIN) && !hasGroup(instance.getDefinitionVersion().getWorkflowDefinition().getOwner()))
+					continue;
 				String title = instance.getTitle().toLowerCase();
-				String name = instance.getDefinitionName().toLowerCase();
+				String name = instance.getDefinitionVersion().getWorkflowDefinition().getName().toLowerCase();
 
 				if (dateBefore.getTime() == 0) {
 					dateBefore = new Date();
@@ -4912,10 +4936,51 @@ public class ProcessService {
 						&& instance.getEndDate() != null && instance.getEndDate().after(dateAfter)
 						&& instance.getEndDate() != null && instance.getEndDate().before(dateBefore)) {
 
-					returnList.add(instance);
+					returnList.add(new WfProcessInstance(instance));
 				}
 			}
 		}
+
+//		if(hasRole(ROLE_ADMIN)){
+//			for(WfProcessInstance instance : WfProcessInstance.fromWorkflowInstances(processRepository.getEndedProcessInstances())) {
+//				if (instance != null) {
+//					String title = instance.getTitle().toLowerCase();
+//					String name = instance.getDefinitionName().toLowerCase();
+//
+//					if (dateBefore.getTime() == 0) {
+//						dateBefore = new Date();
+//					}
+//
+//					if ((instanceTitle == null || instanceTitle.toLowerCase().equals(title))
+//							&& (definitionName == null || definitionName.toLowerCase().equals(name))
+//							&& instance.getEn/process/filter?ownersdDate() != null && instance.getEndDate().after(dateAfter)
+//							&& instance.getEndDate() != null && instance.getEndDate().before(dateBefore)) {
+//
+//						returnList.add(instance);
+//					}
+//				}
+//			}
+//		}
+//		else {
+//			for (WfProcessInstance instance : WfProcessInstance.fromWorkflowInstances(processRepository.getEndedProcessInstancesByGroups(realmService.getUserGroups()))) {
+//				if (instance != null) {
+//					String title = instance.getTitle().toLowerCase();
+//					String name = instance.getDefinitionName().toLowerCase();
+//
+//					if (dateBefore.getTime() == 0) {
+//						dateBefore = new Date();
+//					}
+//
+//					if ((instanceTitle == null || instanceTitle.toLowerCase().equals(title))
+//							&& (definitionName == null || definitionName.toLowerCase().equals(name))
+//							&& instance.getEndDate() != null && instance.getEndDate().after(dateAfter)
+//							&& instance.getEndDate() != null && instance.getEndDate().before(dateBefore)) {
+//
+//						returnList.add(instance);
+//					}
+//				}
+//			}
+//		}
 		return returnList;
 	}
 

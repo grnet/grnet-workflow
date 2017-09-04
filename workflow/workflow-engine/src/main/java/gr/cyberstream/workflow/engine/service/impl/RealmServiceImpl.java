@@ -329,24 +329,27 @@ public class RealmServiceImpl implements RealmService {
 	public List<WfOwner> getUserOwnership() {
 		KeycloakAuthenticationToken authentication = (KeycloakAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
 		AccessToken token = authentication.getAccount().getKeycloakSecurityContext().getToken();
-		List<String> groups = (List<String>) token.getOtherClaims().get("groups");
+//		List<String> groups = (List<String>) token.getOtherClaims().get("groups");
 		List<WfOwner> returnList = new ArrayList<>();
-		
-		if(groups != null && groups.size() > 0) {
-			for(String group : groups) {
-				WfOwner wfOwner;
-				
-				try {
-					wfOwner = new WfOwner(processRepository.getOwnerById(group));
-					
-				} catch (Exception e) {
-					wfOwner = new WfOwner();
-					wfOwner.setOwnerId(group);
-					wfOwner.setName(group);
+
+		List<GroupRepresentation> groups = keycloak.groups().groups();
+		for(GroupRepresentation group : groups){
+			List<UserRepresentation> users = keycloak.groups().group(group.getId()).members(0,999);
+			for(UserRepresentation user : users){
+				if(user.getEmail().equals(token.getEmail())) {
+					WfOwner wfOwner;
+					try {
+						wfOwner = new WfOwner(processRepository.getOwnerByName(group.getName()));
+					} catch (Exception e) {
+						wfOwner = new WfOwner();
+						wfOwner.setOwnerId(group.getName());
+						wfOwner.setName(group.getName());
+					}
+					returnList.add(wfOwner);
 				}
-				returnList.add(wfOwner);
 			}
 		}
+
 		return returnList;
 	}
 

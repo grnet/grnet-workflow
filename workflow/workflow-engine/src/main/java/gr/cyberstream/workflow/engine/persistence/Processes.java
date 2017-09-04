@@ -645,11 +645,22 @@ public interface Processes {
 	 * @return A list of {@link WorkflowInstance} containing ended
 	 *         instances
 	 */
-	public List<WorkflowInstance> getEndedProgressInstances();
+	public List<WorkflowInstance> getEndedProcessInstances();
+
+	/**
+	 * Returns a list of ended progress instances by groups
+	 *
+	 * @param groups
+	 *            The groups to search by
+	 *
+	 * @return A list of {@link WorkflowInstance} containing ended
+	 *         instances
+	 */
+	public List<WorkflowInstance> getEndedProcessInstancesByGroups(List<String> groups);
 
 	/**
 	 * Save or update an external user
-	 * 
+	 *
 	 * @param externalUser
 	 *            The external user to be saved/updated
 	 */
@@ -676,11 +687,18 @@ public interface Processes {
 	public DefinitionVersion getDefinitionVersionById(Integer definitionVersionId);
 
 	/**
-	 * 
+	 *
 	 * @param ownerId
 	 * @return
 	 */
 	public Owner getOwnerById(String ownerId);
+
+	/**
+	 *
+	 * @param ownerName
+	 * @return
+	 */
+	public Owner getOwnerByName(String ownerName);
 
 	/**
 	 * Returns all available owners

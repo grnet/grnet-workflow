@@ -77,7 +77,6 @@ public class MailServiceImpl implements MailService {
 		String taskAssignedSubject = "Νέα εργασία";
 		String taskAssignedContent = "<p><b>Διαδικασία:</b> '" + definition.getName() + "'</p>";
 		taskAssignedContent += "<p><b>Εκτέλεση:</b> '" + instance.getTitle() + "'</p>";
-		processRepository.getByName(task.getProcessDefinitionId());
 
 		if (taskName != null && !taskName.isEmpty()) {
 			taskAssignedSubject += " '" + taskName + "'";

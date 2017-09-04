@@ -1104,6 +1104,10 @@ public class TaskServiceImpl implements TaskService {
 				continue;
 
 			WorkflowInstance instance = processRepository.getInstanceById(task.getProcessInstanceId());
+
+			if(hasRole(ROLE_PROCESS_ADMIN) && !hasGroup(instance.getDefinitionVersion().getWorkflowDefinition().getOwner()))
+				continue;
+
 			if(definitionName == null ||
 					definitionName.toLowerCase().equals(instance.getDefinitionVersion().getWorkflowDefinition().
 							getName().toLowerCase())){
