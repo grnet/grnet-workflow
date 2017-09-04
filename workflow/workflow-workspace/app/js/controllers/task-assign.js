@@ -1,10 +1,10 @@
-define(['angular', 'services/process-service'],
+define(['angular', 'services/process-service', 'services/authprovider'],
 
     function (angular) {
 
         'use strict';
 
-        function taskAssignCtrl($scope, $filter, $routeParams, $mdDialog, processService, config) {
+        function taskAssignCtrl($scope, $filter, $routeParams, $mdDialog, processService, config, authProvider) {
 
             $scope.imagePath = config.AVATARS_PATH;
             $scope.documentPath = config.WORKFLOW_DOCUMENTS_URL;
@@ -15,6 +15,10 @@ define(['angular', 'services/process-service'],
 
             $scope.startDate = null;
             $scope.dueDate = null;
+
+
+            $scope.canAssign = authProvider.getRoles().indexOf("ROLE_Admin") > -1 || authProvider.getRoles().indexOf("ROLE_Supervisor") > -1;
+
 
             /**
              * Returns the difference between due date and current date
@@ -255,7 +259,7 @@ define(['angular', 'services/process-service'],
 
         }
 
-        angular.module('wfWorkspaceControllers').controller('TaskAssignCtrl', ['$scope', '$filter', '$routeParams', '$mdDialog', 'processService', 'CONFIG', taskAssignCtrl]);
+        angular.module('wfWorkspaceControllers').controller('TaskAssignCtrl', ['$scope', '$filter', '$routeParams', '$mdDialog', 'processService', 'CONFIG', 'auth', taskAssignCtrl]);
 
     }
 );

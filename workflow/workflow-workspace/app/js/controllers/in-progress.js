@@ -22,9 +22,9 @@ define(['angular', 'services/process-service'],
 
             var sortOption = { title: 'process', id: 'definitionName' };
             $scope.activeSortOptions.push(sortOption);
-            sortOption = { title: 'processInstanceName', id: 'processInstance.title' };
+            sortOption = { title: 'processInstanceName', id: 'title' };
             $scope.activeSortOptions.push(sortOption);
-            sortOption = { title: 'supervisor', id: 'assignee' };
+            sortOption = { title: 'supervisor', id: 'supervisor' };
             $scope.activeSortOptions.push(sortOption);
             sortOption = { title: 'startDate', id: 'startDate' };
             $scope.activeSortOptions.push(sortOption);
@@ -85,7 +85,8 @@ define(['angular', 'services/process-service'],
 
                         instanceIds.forEach(function (item) {
                             var instance = tasksMapped[item]["instances"][0];
-                            $scope.inProgressInstances.push(instance);
+                            if($scope.activeDefinitions.map(function(a) {return a.name;}).indexOf(instance.definitionName) >= 0)
+                                $scope.inProgressInstances.push(instance);
                         });
                     },
                     // error callback

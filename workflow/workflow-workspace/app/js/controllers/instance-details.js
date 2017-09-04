@@ -1,10 +1,10 @@
-define(['angular', 'services/process-service'],
+define(['angular', 'services/process-service', 'services/authprovider'],
 
 	function (angular) {
 
 		'use strict';
 
-		function instanceDetailsCtrl($scope, $mdDialog, $routeParams, $filter, $location, processService, config) {
+		function instanceDetailsCtrl($scope, $mdDialog, $routeParams, $filter, $location, processService, config, authProvider) {
 
 			$scope.imagePath = config.AVATARS_PATH;
 			$scope.documentPath = config.WORKFLOW_DOCUMENTS_URL;
@@ -14,6 +14,9 @@ define(['angular', 'services/process-service'],
 
 			$scope.activeView = "taskList";
 			$scope.backToTaskList = false;
+
+
+			$scope.canAssign = authProvider.getRoles().indexOf("ROLE_Admin") > -1 || authProvider.getRoles().indexOf("ROLE_Supervisor") > -1;
 
 			processService.getTasksByInstanceId(instanceId).then(
 				//success callback
@@ -165,6 +168,8 @@ define(['angular', 'services/process-service'],
 									$scope.showProgressBar = false;
 								},
 								function (response) {
+                                    exceptionModal(response, $scope.task);
+                                    $scope.task.assignee = $scope.prevAssignee;
 									$scope.showProgressBar = false;
 								});
 						}
@@ -316,6 +321,6 @@ define(['angular', 'services/process-service'],
             };
 		}
 
-		angular.module('wfWorkspaceControllers').controller('InstanceDetailsCtrl', ['$scope', '$mdDialog', '$routeParams', '$filter', '$location', 'processService', 'CONFIG', instanceDetailsCtrl]);
+		angular.module('wfWorkspaceControllers').controller('InstanceDetailsCtrl', ['$scope', '$mdDialog', '$routeParams', '$filter', '$location', 'processService', 'CONFIG', 'auth', instanceDetailsCtrl]);
 	}
 );

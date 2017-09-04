@@ -66,11 +66,11 @@
 					<input id="dueDate" ng-model="dueDate" readonly disabled>
 				</md-input-container>
 
-				<md-button class="md-fab md-primary" aria-label="Select assignee" ng-click="selectAssignee()" ng-if="!task.assignee" style="margin-top:18px;position: absolute;right: 3%;bottom: 3%;">
+				<md-button class="md-fab md-primary" aria-label="Select assignee" ng-click="selectAssignee()" ng-if="!task.assignee && canAssign" style="margin-top:18px;position: absolute;right: 3%;bottom: 3%;">
 					<md-icon md-svg-src="img/icons/addPerson.svg"></md-icon>
 				</md-button>
 
-				<md-button class="md-fab md-primary" aria-label="Remove assignee" ng-click="removeAssignee()" ng-if="task.assignee" style="margin-top:18px;position: absolute;right: 3%;bottom: 3%;">
+				<md-button class="md-fab md-primary" aria-label="Remove assignee" ng-click="removeAssignee()" ng-if="task.assignee && canAssign" style="margin-top:18px;position: absolute;right: 3%;bottom: 3%;">
 					<md-icon md-svg-src="img/icons/removePerson.svg"></md-icon>
 				</md-button>
 

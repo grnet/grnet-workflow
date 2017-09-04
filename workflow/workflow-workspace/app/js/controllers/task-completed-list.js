@@ -29,7 +29,7 @@ define(['angular', 'services/process-service', 'util/core'],
             $scope.options.push($scope.sortOptions);
             $scope.sortOptions = { title: 'processInstanceName', id: 'processInstance.title' };
             $scope.options.push($scope.sortOptions);
-            $scope.sortOptions = { title: 'process', id: 'definitionName' };
+            $scope.sortOptions = { title: 'process', id: 'processInstance.definitionName' };
             $scope.options.push($scope.sortOptions);
             $scope.sortOptions = { title: 'dueTo', id: 'dueDate' };
             $scope.options.push($scope.sortOptions);
