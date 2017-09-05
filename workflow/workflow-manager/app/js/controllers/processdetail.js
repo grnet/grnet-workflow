@@ -40,7 +40,9 @@ define(['angular', 'services/processservice', 'services/authprovider'],
             if (authProvider.getRoles().length == 1 && authProvider.getRoles().indexOf("ROLE_Manager") > -1)
                 $scope.isManager = true;
 
-            if(authProvider.getRoles().indexOf("ROLE_Supervisor") > -1)
+            if(authProvider.getRoles().indexOf("ROLE_Admin") < 0 &&
+                authProvider.getRoles().indexOf("ROLE_ProcessAdmin") < 0 &&
+                authProvider.getRoles().indexOf("ROLE_Supervisor") > -1)
                 $scope.isSupervisor = true;
 
             if(authProvider.getRoles().indexOf("ROLE_Admin") < 0 &&
