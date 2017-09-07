@@ -53,7 +53,9 @@
 						<md-icon md-svg-src="img/avatars/{{task.icon}}" class="md-avatar" style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
 						<div class="after-icon">
 							<h2 class="md-title">[{{task.processInstance.title}}] {{task.name}}</h2>
-							<p class="md-subhead">{{ 'process' | translate}}: {{task.definitionName}}</p>
+							<p class="md-subhead">{{ 'process' | translate}}: {{task.definitionName}}
+								<span class="cardInline">{{ 'version' | translate}}: {{task.processInstance.version}}</span>
+							</p>
 						</div>
 					</div>
 
@@ -104,7 +106,7 @@
 					<md-divider style="padding-bottom: 5px;"></md-divider>
 
 					<!-- Actions with no approve doc -->
-					<section flex layout="row" layout-align="start end" ng-if="approveAction == null">
+					<section flex layout="row" layout-align="start end" ng-if="approveAction == null || approveAction.value != null">
 
 						<md-button class="md-raised md-primary" ng-if="!task.assignee" ng-click="claimTask()" style="margin-left: 0px;">{{ 'start' | translate }}</md-button>
 
@@ -115,7 +117,7 @@
 					</section>
 
 					<!-- Actions with approve doc -->
-					<section flex layout="row" layout-align="start end" ng-if="approveAction != null">
+					<section flex layout="row" layout-align="start end" ng-if="approveAction != null && approveAction.value == null">
 
 						<md-button class="md-raised md-primary" ng-if="!task.assignee" ng-class="{'md-accent': (taskForm.$dirty && taskForm.$valid) }"
 						 ng-click="claimTask()" style="margin-left: 0px;">{{ 'start' | translate }}
@@ -141,13 +143,21 @@
 						<md-list-item class="md-2-line" ng-click="goToCompletedTask(task.id)">
 							<div class="md-list-item-text" layout="column">
 								<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
-								<p>{{task.name}}
-									<span ng-if="task.dueDate" class="cardInline">{{ 'dueTo' | translate }} : {{task.dueDate | date:'d/M/yyyy'}}
+								<p flex>{{ 'process' | translate}}: {{task.definitionName}}
+									<span class="cardInline">{{ 'version' | translate}}: {{task.processInstance.version}}</span>
+								</p>
+								<p>
+									<span ng-if="task.dueDate">{{ 'dueTo' | translate }}: {{task.dueDate | date:'d/M/yyyy'}}
 										<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"
 											md-svg-icon="img/icons/delayed-notification.svg">
 										</md-icon>
 									</span>
-									<span class="cardInline">{{task.assignee}}</span>
+									<span class="cardInline" ng-if="task.endDate && task.dueDate">{{ 'completedBy' | translate }}: {{task.assignee}}
+										{{ 'on' | translate }}: {{task.endDate | date:'d/M/yyyy'}}
+									</span>
+									<span ng-if="task.endDate">{{ 'completedBy' | translate }}: {{task.assignee}}
+										{{ 'on' | translate }}: {{task.endDate | date:'d/M/yyyy'}}
+									</span>
 								</p>
 							</div>
 						</md-list-item>

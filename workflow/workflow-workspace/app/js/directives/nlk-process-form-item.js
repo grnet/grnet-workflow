@@ -110,8 +110,14 @@ define(['angular'],
 						inputTmpl =
 							'<section layout="row" class="md-block">' +
 
-								'<input id="{{ngModel.id}}" type="hidden" ng-model="ngModel.value" ng-required="true"/>' +
+                            '<md-input-container class="md-block" flex="50" ng-if="ngModel.value != null"> ' +
+                            '<label for="{{ngModel.id}}">{{ngModel.name}}</label> ' +
+								'<input id="{{ngModel.id}}" ng-required="true" ng-readonly="true" ' +
+								'ng-disabled="true" value="{{ngModel.value | translate}}"/> ' +
+                            '</md-input-container> ' +
 
+							// '<input id="{{ngModel.id}}" ng-model="ngModel.value" ng-required="true"/>' +
+                            //
 								'<md-button class="md-icon-button" style="top: 16px; padding:0px; margin:0px" ng-if="ngModel.description" ' +
 									'aria-label="Info" ng-click="showElementInfo()">' +
 									'<md-icon md-svg-icon="img/icons/elementInfo.svg" class="md-primary" ></md-icon> ' +

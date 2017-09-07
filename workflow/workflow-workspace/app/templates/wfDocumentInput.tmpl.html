@@ -22,7 +22,7 @@
 	</md-input-container>
 	
 	<md-button class="md-icon-button documentActions" aria-label="Add File" ng-click="showAddFile()" ng-disabled="true" style="padding:0px">
-		<md-icon md-svg-icon="img/icons/add.svg" ng-show="!ngModel.file" style="position: relative;top: -10px;"></md-icon>
+		<md-icon md-svg-icon="img/icons/add.svg" ng-show="!ngModel.documentId" style="position: relative;top: -10px;"></md-icon>
 	</md-button>
 	
 </section>
@@ -49,8 +49,8 @@
         <input type="text" id="refNo" name="refNo" readonly="true" ng-model="ngModel.refNo"/>
     </md-input-container>
     
-    <md-button class="md-icon-button" aria-label="Add File" ng-click="showAddFile()" style="padding:0px">
-		<md-icon md-svg-icon="img/icons/add.svg" ng-show="!ngModel.file" class="md-primary" style="position: relative;top: -10px;"></md-icon>
-		<md-icon md-svg-icon="img/icons/filter.svg" ng-show="ngModel.file" style="position: relative;top: -10px;"></md-icon>
+    <md-button class="md-icon-button" aria-label="Add File" ng-click="showAddFile()" style="padding:0px" ng-if="!ngModel.documentId">
+		<md-icon md-svg-icon="img/icons/add.svg" ng-show="!ngModel.documentId" class="md-primary" style="position: relative;top: -10px;"></md-icon>
+		<md-icon md-svg-icon="img/icons/filter.svg" ng-show="ngModel.documentId" style="position: relative;top: -10px;"></md-icon>
 	</md-button>
 </section>

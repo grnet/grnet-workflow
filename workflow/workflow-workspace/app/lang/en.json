@@ -172,5 +172,10 @@
 	"searchCompletedTasks": "Search for completed tasks",
 	"searchInProgressInstances": "Search for in progress instances",
 	"automaticCompletion": "Automatic completion",
-	"noUserExistsWithId": "No user exists with this ID"
+	"noUserExistsWithId": "No user exists with this ID",
+	"candidates": "candidates",
+	"owner": "owner",
+	"approval": "document approval",
+	"{\"approve\":true}": "approved",
+	"{\"approve\":false}": "not approved"
 }

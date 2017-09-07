@@ -38,7 +38,7 @@
 	"assignTo": "ανάθεση σε",
 	"assignedTo": "ανατεθειμένο σε",
 	"workerSelection": "επιλογή εργαζομένου",
-	"pending": "εκκρεμείς",
+	"pending": "εκκρεμείς εργασίες",
 	"noCandidatesFound": "δεν βρέθηκαν υποψήφιοι",
 	"completedAfter": "ολοκλήρωση μετά",
 	"completedBefore": "ολοκλήρωση πριν",
@@ -171,5 +171,10 @@
 	"searchCompletedTasks": "Αναζήτηση ολοκληρωμένων εργασιών",
 	"searchInProgressInstances": "Αναζήτηση εκτελέσεων σε εξέλιξη",
 	"automaticCompletion": "Αυτόματη ολοκλήρωση",
-	"noUserExistsWithId": "Δεν υπάρχει χρήστης με αυτό το ID"
+	"noUserExistsWithId": "Δεν υπάρχει χρήστης με αυτό το ID",
+	"candidates": "υποψήφιοι",
+	"owner": "ιδιοκτήτης",
+	"approval": "έγκριση κειμένου",
+	"{\"approve\":true}": "εγκρίθηκε",
+	"{\"approve\":false}": "δεν εγκρίθηκε"
 }

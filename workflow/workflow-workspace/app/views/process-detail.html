@@ -31,17 +31,22 @@
 				<md-divider></md-divider>
 				
 				<md-card-content>
-					<!-- 				<md-list ng-repeat="(owner, processes) in groupProcesses"> -->
-					<!-- 					<md-list-item  -->
-					<!-- 						ng-class="{ 'process-selected': process.id == selectedIndex, 'md-shadow-bottom-z-1': process.id == selectedIndex }" -->
-					<!-- 						ng-repeat="process in processes"  -->
-					<!-- 						ng-click="processSelectionChanged(process.id)" -->
-					<!-- 						ng-value="process.id">{{process.name}} -->
-					<!-- 					</md-list-item> -->
-					<!-- 				</md-list> -->
+					<!--<md-input-container class="md-block">-->
+						<!--<label for="workflowDefinitions">{{ 'processes' | translate }}</label>-->
+						<!--<md-select ng-model="selectedProcess" ng-change="searchInProgressInstances()">-->
+							<!--<md-option ng-repeat="process in processes" ng-value="process.id" id="workflowDefinitions" ng-click="processSelectionChanged(process.id)">-->
+								<!--{{process.name}}-->
+							<!--</md-option>-->
+						<!--</md-select>-->
+					<!--</md-input-container>-->
 
 					<md-radio-group ng-model="selectedProcess">
-						<md-radio-button ng-repeat="process in processes" ng-value="process.id" class="md-primary" ng-click="processSelectionChanged(process.id)">{{process.name}}
+						<md-radio-button ng-repeat="process in processes" ng-value="process.id" class="md-primary" ng-click="processSelectionChanged(process.id)">
+							<span ng-if="(status == $filter('translate')('active') && isActive(process)) || (status == $filter('translate')('inactive')) && !isActive(process)">
+								{{process.name}}
+								<md-icon ng-if="!isActive(process)" md-svg-src="img/icons/status/powered-off.svg" ng-style="{color: '#990000'}" class="s24"
+										 aria-label="Cake"></md-icon>
+							</span>
 						</md-radio-button>
 					</md-radio-group>
 
@@ -54,7 +59,10 @@
 
 			<div class="card-header">
 				<md-icon md-svg-src="img/avatars/{{process.icon}}" class="md-avatar" style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
-				<h2 class="md-title after-icon">{{process.name}}</h2>
+				<div class="after-icon">
+					<h2 class="md-title">{{process.name}}</h2>
+					<p class="md-subhead">{{ 'owner' | translate}}: {{process.owner}}</p>
+				</div>
 			</div>
 
 			<md-card-content>

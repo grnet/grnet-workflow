@@ -132,7 +132,9 @@
 					<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
 					<div class="md-list-item-text" layout="column">
 						<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
-						<p flex>{{ 'process' | translate}}: {{task.processInstance.definitionName}}</p>
+						<p flex>{{ 'process' | translate}}: {{task.definitionName}}
+							<span class="cardInline">{{ 'version' | translate}}: {{task.processInstance.version}}</span>
+						</p>
 						<section layout="row">
 							<p ng-if="task.assignee" flex>{{ 'completedBy' | translate }}: {{task.assignee}} | {{ 'endDate' | translate }}: {{task.endDate | date:'d/M/yyyy'}}</p>
 							<p ng-if="!task.assignee" flex>{{ 'completedBy' | translate }}: {{ 'automaticCompletion' | translate}} | {{ 'endDate' | translate }}: {{task.endDate | date:'d/M/yyyy'}}</p>

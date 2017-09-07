@@ -12,20 +12,39 @@
         </div>
     </md-toolbar>
     
-    <md-dialog-content style="min-height:350px; width:400px">
+    <md-dialog-content style="min-height:150px; width:600px">
     
-    	<div layout="row" layout-align="center center" ng-if="showProgressBar" style="height: 350px;">
+    	<div layout="row" layout-align="center center" ng-if="showProgressBar" style="height: 150px;">
     		<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
    		</div>
    		
-   		<md-content style="max-height: 350px; padding-top:0px; background: transparent;" layout-padding ng-if="!showProgressBar">
-   			<md-radio-group ng-model="task.assignee">
-    			<md-radio-button ng-repeat="candidate in candidates" ng-value="candidate.email">
-    				<span>{{candidate.lastName}} {{candidate.firstName}} {{ 'pending' | translate }} : {{candidate.pendingTasks}}</span>
-       			</md-radio-button>
-   			</md-radio-group>
+   		<!--<md-content style="max-height: 350px; padding-top:0px; background: transparent;" layout-padding ng-if="!showProgressBar">-->
+   			<!--<md-radio-group ng-model="task.assignee">-->
+    			<!--<md-radio-button ng-repeat="candidate in candidates" ng-value="candidate.email">-->
+    				<!--<span>{{candidate.lastName}} {{candidate.firstName}}, {{ 'pending' | translate }} : {{candidate.pendingTasks}}</span>-->
+       			<!--</md-radio-button>-->
+   			<!--</md-radio-group>-->
+		<!--</md-content>-->
+
+		<!--<md-card ng-repeat="candidate in candidates | orderBy:'lastName'">-->
+			<!--<md-list-item class="md-2-line" ng-value="candidate.email">-->
+				<!--<span>{{candidate.lastName}} {{candidate.firstName}}, {{ 'pending' | translate }} : {{candidate.pendingTasks}}</span>-->
+			<!--</md-list-item>-->
+		<!--</md-card>-->
+
+		<md-content style="max-height: 150px; padding-top:0px; background: transparent;" layout-padding ng-if="!showProgressBar">
+			<md-input-container class="md-block" >
+				<label for="candidates">{{ 'candidates' | translate }}</label>
+				<md-select ng-model="task.assignee">
+					<md-option ng-repeat="candidate in candidates | orderBy:'lastName'" ng-value="candidate.email" id="candidates" ng-if="candidate.email != null && candidate.lastName != null">
+						<span>
+							{{candidate.lastName}} {{candidate.firstName}}<span ng-if="candidate.pendingTasks != null">, {{ 'pending' | translate }}: {{candidate.pendingTasks}}</span>
+						</span>
+					</md-option>
+				</md-select>
+			</md-input-container>
 		</md-content>
-		
+
 		<section layout="row" layout-align="center center" ng-if="candidates.length == 0 && !showProgressBar">
 			<div>{{ 'noCandidatesFound' | translate }}</div>
 			<div>{{ 'notifyAdminDescription' | translate }}</div>

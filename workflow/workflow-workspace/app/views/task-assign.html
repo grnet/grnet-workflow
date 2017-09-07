@@ -1,11 +1,11 @@
 <md-toolbar>
 	<div class="md-toolbar-tools" style="padding-left: 0px;">
 
-		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
+		<md-button id="menu-button-toggle" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
 			<md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
 		</md-button>
 
-		<md-button id="back-button" class="md-icon-button" aria-label="Back" ng-click="goTo('/assign')">
+		<md-button id="menu-button-back" class="md-icon-button" aria-label="Back" ng-click="goTo('/assign')">
 			<md-icon md-svg-icon="img/icons/back.svg"></md-icon>
 		</md-button>
 
@@ -22,15 +22,15 @@
 			<md-icon md-svg-icon="img/icons/bpmn.svg"></md-icon>
 		</md-button>
 
-		<md-button id="menu-button" ng-if="task.taskDetails.description" class="md-icon-button" aria-label="task details" ng-click="showTaskDetails()">
+		<md-button id="menu-button-info" ng-if="task.taskDetails.description" class="md-icon-button" aria-label="task details" ng-click="showTaskDetails()">
 			<md-icon md-svg-icon="img/icons/info.svg"></md-icon>
 		</md-button>
 
-		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="goTo('/documents/assign/' + task.id)">
+		<md-button id="menu-button-folder" class="md-icon-button" aria-label="Menu" ng-click="goTo('/documents/assign/' + task.id)">
 			<md-icon md-svg-icon="img/icons/folder.svg"></md-icon>
 		</md-button>
 
-		<md-button id="menu-button" class="md-icon-button" aria-label="print start form" ng-if="task.startForm" ng-click="goTo('/startform/print/' + task.processInstance.id)">
+		<md-button id="menu-button-print" class="md-icon-button" aria-label="print start form" ng-if="task.startForm" ng-click="goTo('/startform/print/' + task.processInstance.id)">
 			<md-icon md-svg-icon="img/icons/print.svg"></md-icon>
 		</md-button>
 	</div>
@@ -45,7 +45,9 @@
 				<md-icon ng-if="task.icon" md-svg-src="img/avatars/{{task.icon}}" class="md-avatar" style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
 				<div class="after-icon">
 					<h2 class="md-title">[{{task.processInstance.title}}] {{task.name}}</h2>
-					<p class="md-subhead">{{ 'process' | translate}}: {{task.definitionName}}</p>
+					<p class="md-subhead">{{ 'process' | translate}}: {{task.definitionName}}
+						<span class="cardInline">{{ 'version' | translate}}: {{task.processInstance.version}}</span>
+					</p>
 				</div>
 			</div>
 
