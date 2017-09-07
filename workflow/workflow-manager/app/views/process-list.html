@@ -94,7 +94,7 @@
 						<div class="md-list-item-text" layout="column">
 							<h3>{{definition.name}}</h3>
 							 <p>{{definition.owner}}
-							 	<md-icon ng-if="!isActive(definition)" md-svg-src="img/icons/status/powered-off.svg" ng-style="{color: '#990000'}" class="s24" aria-label="Cake"></md-icon>
+							 	<md-icon ng-if="!definition.active" md-svg-src="img/icons/status/powered-off.svg" ng-style="{color: '#990000'}" class="s24" aria-label="Cake"></md-icon>
                         	</p>
 						</div>
 					</md-list-item>

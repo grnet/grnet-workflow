@@ -42,14 +42,16 @@
 
 	<md-list flex style="padding-top: 0px;" ng-if="tasks.length > 0 && !showProgressBar">
 		<md-card ng-repeat="task in tasks">
-			<md-list-item class="md-3-line" ng-click="goTo('/task/details/' + task.id)">
+			<md-list-item class="md-2-line" ng-click="goTo('/task/details/' + task.id)">
 				<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
 				<div class="md-list-item-text" layout="column">
 					<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
-					<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
+					<p flex>{{ 'process' | translate}}: {{task.definitionName}}
+						<span class="cardInline">{{ 'version' | translate}}: {{task.processInstance.version}}</span>
+					</p>
 					<p>
 						<span ng-if="task.assignee">{{'completedBy' | translate }} : {{task.assignee}}</span>
-						<span ng-if="task.endDate">{{'completedOn' | translate }} : {{task.endDate | date:'d/M/yyyy'}}</span>
+						<span class="cardInline" ng-if="task.endDate">{{'completedOn' | translate }} : {{task.endDate | date:'d/M/yyyy'}}</span>
 					</p>
 				</div>
 			</md-list-item>

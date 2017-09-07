@@ -66,7 +66,7 @@ define(['angular', 'services/processservice'],
             /**
              * Open a modal to display task details
              */
-            $scope.showTaskDetails = function () {
+            $scope.showTaskDetails = function (event) {
                 $mdDialog.show({
                     controller: function ($mdDialog) {
 

@@ -154,7 +154,9 @@
 							/>
 							<div class="md-list-item-text" layout="column">
 								<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
-								<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
+								<p flex>{{ 'process' | translate}}: {{task.definitionName}}
+									<span class="cardInline">{{ 'version' | translate}}: {{task.processInstance.version}}</span>
+								</p>
 								<p flex ng-if="task.endDate != null">{{'completedOn' | translate }}: {{task.endDate | date:'d/M/yyyy'}}</p>
 								<p flex ng-if="task.endDate == null">{{'status' | translate }}: {{task.processInstance.status | translate }}</p>
 							</div>
@@ -185,7 +187,9 @@
 
 							<div class="after-icon">
 								<h2 class="md-title">[{{task.processInstance.title}}] {{task.name}}</h2>
-								<p class="md-subhead">{{ 'process' | translate}}: {{task.definitionName}}</p>
+								<p flex>{{ 'process' | translate}}: {{task.definitionName}}
+									<span class="cardInline">{{ 'version' | translate}}: {{task.processInstance.version}}</span>
+								</p>
 							</div>
 
 						</div>

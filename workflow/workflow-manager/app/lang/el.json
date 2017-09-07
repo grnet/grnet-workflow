@@ -258,7 +258,9 @@
 	"legend": "Υπόμνημα",
 	"chartTypeSelection": "Επιλογή τύπου γραφήματος",
 	"addGroup": "Προσθήκη ομάδας",
-	"searchProcessHistory": "Αναζήτηση ιστορικού διαδικασιών",
+	"searchProcessHistory": "Αναζήτηση ιστορικού εκτελέσεων",
 	"searchPendingProcesses": "Αναζήτηση εκκρεμών διαδικασιών",
-	"searchInProgressInstances": "Αναζήτηση εκτελέσεων σε εξέλιξη"
+	"searchInProgressInstances": "Αναζήτηση εκτελέσεων σε εξέλιξη",
+	"on": "στις",
+	"version": "έκδοση"
 }

@@ -173,9 +173,9 @@ div.wf-wait {
 
 .cardInline {
 	display: inline-block;
-	margin-left: 15px;
+	margin-left: 20px;
 	padding-left: 10px;
-	border-left: 1px solid #fafafa;
+	border-left: 1px solid #e0e0e0;
 }
 
 div.card-header {

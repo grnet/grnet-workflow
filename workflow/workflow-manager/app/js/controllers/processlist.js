@@ -18,8 +18,10 @@ define(['angular', 'services/processservice'],
 
 			$scope.sortOptions = { title: 'processTitle', id: 'name' };
 			$scope.options.push($scope.sortOptions);
-			$scope.sortOptions = { title: 'owner', id: 'owner' };
-			$scope.options.push($scope.sortOptions);
+            $scope.sortOptions = { title: 'owner', id: 'owner' };
+            $scope.options.push($scope.sortOptions);
+            $scope.sortOptions = { title: 'active', id: 'active' };
+            $scope.options.push($scope.sortOptions);
 
 			$scope.isOnlyUser = false;
 
@@ -117,6 +119,7 @@ define(['angular', 'services/processservice'],
 						$scope.workflowDefinitions = response.data.map(
 							function (def) {
 								def.icon = def.icon || config.DEFAULT_AVATAR;
+								def.active = $scope.isActive(def);
 								return def;
 							}
 						);

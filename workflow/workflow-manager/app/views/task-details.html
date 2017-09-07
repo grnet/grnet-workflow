@@ -37,7 +37,9 @@
 				<md-icon ng-if="task.icon" md-svg-src="img/avatars/{{task.icon}}" class="md-avatar" style="width: 40px; height: 40px; vertical-align: middle"></md-icon>
 				<div class="after-icon">
 					<h2 class="md-title">[{{task.processInstance.title}}] {{task.name}}</h2>
-					<p class="md-subhead">{{ 'process' | translate}}: {{task.definitionName}}</p>
+					<p class="md-subhead">{{ 'process' | translate}}: {{task.definitionName}}
+						<span class="cardInline">{{ 'version' | translate}}: {{task.processInstance.version}}</span>
+					</p>
 				</div>
 			</div>
 
