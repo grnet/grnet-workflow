@@ -46,7 +46,7 @@ public class MailServiceImpl implements MailService {
 	@Autowired
 	private SettingsStatus settingsStatus;
 
-	private final String datePattern = "HH:mm, d/M/yyyy";
+	private final String datePattern = "dd/MM/yyyy HH:mm";
 	private String from;
 	private String workspaceURL;
 
@@ -86,7 +86,7 @@ public class MailServiceImpl implements MailService {
 		}
 
 		if (dueDate != null) {
-			taskAssignedContent += "<p>Η χρονική περιόδος για την εκτέλεση της εργασίας είναι μέχρι τις "
+			taskAssignedContent += "<p>Η χρονική περίοδος για την εκτέλεση της εργασίας είναι μέχρι τις "
 					+ DateFormatUtils.format(dueDate, datePattern) + ".</p>";
 		}
 
@@ -125,7 +125,7 @@ public class MailServiceImpl implements MailService {
 		}
 
 		if (dueDate != null) {
-			taskAssignedContent += "<p>Η χρονική περιόδος για την εκτέλεση της εργασίας είναι μέχρι τις "
+			taskAssignedContent += "<p>Η χρονική περίοδος για την εκτέλεση της εργασίας είναι μέχρι τις "
 					+ DateFormatUtils.format(dueDate, datePattern) + ".</p>";
 		}
 

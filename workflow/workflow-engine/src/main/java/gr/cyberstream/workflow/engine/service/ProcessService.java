@@ -2535,6 +2535,7 @@ public class ProcessService {
 			WfTask wfTask = new WfTask(completedUserTask);
 			wfTask.setIcon(definitionVersion.getWorkflowDefinition().getIcon());
 			wfTask.setProcessInstance(new WfProcessInstance(instance));
+			wfTask.setDefinitionName(wfTask.getProcessInstance().getDefinitionName());
 
 			returnList.add(wfTask);
 		}
