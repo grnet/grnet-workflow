@@ -1,0 +1,46 @@
+<md-dialog aria-label="{{ 'owner' | translate }}" ng-style="{'min-width': '400px'}">
+
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2 ng-if="isNew">{{ 'addNewOwner' | translate }}</h2>
+			<h2 ng-if="!isNew">{{ 'editOwner' | translate }}</h2>
+			
+			<span flex></span>
+			
+			<md-button class="md-icon-button" ng-click="cancel()">
+				<md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+	
+	<md-dialog-content layout-padding>
+		<form name="ownerForm">
+			
+			<md-input-container class="md-block">
+				<label for="ownerId">{{ 'ownerId' | translate }}</label>
+				<input id="ownerId" ng-model="owner.ownerId" ng-required="true" md-maxlength="250" ng-readonly="!isNew" ng-disabled="!isNew">
+			</md-input-container>
+			
+			<md-input-container class="md-block" style="margin-top: 0;">
+				<label for="ownerName">{{ 'ownerName' | translate }}</label>
+				<input id="ownerName" ng-model="owner.name" ng-required="true" md-maxlength="250">
+			</md-input-container>
+			
+       		<div alert style="font-size: 13px;color: red;">
+       			<div ng-if="ownerAlreadyDeleted">{{ 'ownerDeleted' | translate }}</div>
+   			</div>
+				
+		</form>
+		
+	</md-dialog-content>
+	
+	<md-dialog-actions layout="row" layout-align="left center" class="dialogActions">
+		<md-button class="md-raised md-primary" ng-click="saveOwner()" ng-if="!ownerAlreadyDeleted" ng-disabled="!ownerForm.$valid">{{ 'save' | translate }}</md-button>
+		
+		<span flex></span>
+		
+		<md-button class="md-icon-button" ng-if="!isNew" ng-click="deleteOwner()" ng-disabled="ownerAlreadyDeleted" aria-label="add new">
+			<md-icon md-svg-icon="img/icons/delete.svg"></md-icon>
+		</md-button>
+	</md-dialog-actions>
+</md-dialog>

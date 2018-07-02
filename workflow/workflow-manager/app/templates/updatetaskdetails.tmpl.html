@@ -1,0 +1,35 @@
+<md-dialog aria-label="{{'taskDescription' | translate }}" ng-style="{'min-width': '600px'}">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+	        <h2>{{'taskDescription' | translate }} {{editValue.name}}</h2>
+	        <span flex></span>
+	        <md-button class="md-icon-button" ng-click="cancel()">
+	            <md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+	        </md-button>
+	    </div>
+	</md-toolbar>
+	
+	<md-dialog-content>
+		<div class="md-dialog-content">
+		
+	  		<md-input-container class="md-block">
+	  			<label>{{'taskDescription' | translate }}</label>
+	  			<textarea ng-model="editValue.description" md-maxlength="250" rows="3" md-select-on-focus></textarea>
+	  		</md-input-container>
+	  
+	  		<md-input-container class="md-block">
+	  			<md-checkbox id="coordinatorAssigned" ng-model="editValue.assign">{{'assignmentsByCoordinator' | translate }}</md-checkbox>
+	  		</md-input-container>
+	  		
+	       	<div ng-if="exception" role="alert" multiple style="font-size: 13px;color: red;">
+      			<div class="exceptionMessage">{{exceptionMessage.message}}</div>
+   			</div>
+	 	</div>
+	</md-dialog-content>
+	
+	<md-dialog-actions layout="row" layout-align="left center" class="dialogActions">
+	 	<md-button class="md-raised md-primary" ng-click="save()">{{'save' | translate }}</md-button>
+		<md-button class="md-raised md-warn" ng-click="cancel()">{{'cancel' | translate }}</md-button>
+	</md-dialog-actions>
+	
+</md-dialog>

@@ -1,6 +1,10 @@
-(function () {
-    angular.module('wfDirectives').directive('nlkFileInput', ['$parse',
-        function ($parse) {
+define(['angular'],
+
+    function (angular) {
+
+        'use strict';
+        
+        function fileInput($parse) {
 
             return {
                 restrict: 'AE',
@@ -15,9 +19,13 @@
                         scope.$apply(function () {
                             modelSetter(scope, element[0].files[0]);
                         });
-
                     });
                 }
+
             };
-        }]);
-})();
+
+        }
+
+        angular.module('wfManagerDirectives').directive('nlkFileInput', ['$parse', fileInput]);
+    }
+);

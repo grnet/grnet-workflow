@@ -1,21 +1,30 @@
 <md-toolbar>
 	<div class="md-toolbar-tools">
-	
+
 		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
 			<md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
 		</md-button>
-		
+
 		<md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
-		
-		<div hide-sm layout-padding>
+
+		<div hide-sm layout-padding class="non-printing-heading">
 			<h1 class="md-title application-title">workflow::manager</h1>
 			<h2 class="md-subhead page-title">{{'pendingTasks' | translate }}</h2>
 		</div>
-		
+
+		<div class="print-heading">
+			<h1 class="md-title application-title">Grnet Workflow</h1>
+			<h2 class="md-subhead page-title">{{'pendingTasks' | translate }}</h2>
+		</div>
+
 		<span flex></span>
 
 		<md-button aria-label="Sort-By" class="md-icon-button" ng-click="clearAllFilters()">
 			<md-icon md-menu-origin md-svg-icon="img/icons/reset.svg"></md-icon>
+		</md-button>
+
+		<md-button class="md-icon-button" aria-label="Print" ng-click="print()" ng-if="filteredTasks.length > 0">
+			<md-icon md-svg-icon="img/icons/print.svg"></md-icon>
 		</md-button>
 
 		<div layout="column">
@@ -38,27 +47,38 @@
 	</div>
 </md-toolbar>
 
+<div layout="row" layout-align="center start" flex class="warning-message" ng-if="filteredTasks === null || filteredTasks.length == 0">
+	<md-card style="margin-left: 8px;">
+		<md-card-content layout-align="center center">
+			<md-icon md-svg-icon="img/icons/info.svg"></md-icon>
+			<span>{{'noTasksFound' | translate }}</span>
+		</md-card-content>
+	</md-card>
+</div>
+
 <section layout="row" style="overflow: hidden; height: 100%">
 
 	<!-- Filtering options -->
-	<div layout="column" flex="35">
+	<div layout="column" flex="35" hide show-gt-md>
 		<md-card style="margin-right: 0;">
+			<md-subheader class="md-primary">{{ 'searchPendingProcesses' | translate }}</md-subheader>
+
+			<md-divider></md-divider>
+
 			<md-card-content style="padding-top: 0;">
 				<section layout="row" class="md-block">
-					<label for="date-after" flex="45" class="wf-label">{{'startedAfter' | translate }}</label>
-					<md-datepicker id="date-after" ng-model="searchFilter.dateAfter" ng-change="searchTasks()" style="margin-right: 0px;"></md-datepicker>
+					<label for="date-after" flex="35" class="wf-label">{{'startedAfter' | translate }}</label>
+					<md-datepicker id="date-after" ng-model="searchFilter.dateAfter" ng-change="searchTasks()" class="searchFilter-date"></md-datepicker>
 					<md-button class="md-icon-button" aria-label="Clear" ng-click="clearDateAfter()">
 						<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 8px;color: red;"></md-icon>
 					</md-button>
 				</section>
 
 				<section layout="row" class="md-block" style="padding-bottom: 10px;">
-					<label for="date-after" flex="45" class="wf-label">{{'startedBefore' | translate }}</label>
-
+					<label for="date-after" flex="35" class="wf-label">{{'startedBefore' | translate }}</label>
 					<md-datepicker id="date-before" ng-model="searchFilter.dateBefore" md-max-date="maxDateBefore"
-					   ng-change="searchTasks()" style="margin-right: 0px;">
+								   ng-change="searchTasks()" class="searchFilter-date">
 					</md-datepicker>
-
 					<md-button class="md-icon-button" aria-label="Clear" ng-click="clearDateBefore()">
 						<md-icon md-svg-icon="img/icons/clear.svg" style="margin-left: 10px;color: red;"></md-icon>
 					</md-button>
@@ -91,9 +111,9 @@
 			</md-card-content>
 		</md-card>
 	</div>
-	
+
 	<md-content flex class="transparent">
-	
+
 		<div layout="row" layout-align="center start" flex class="infoMessage" ng-if="filteredTasks === null || filteredTasks.length == 0">
 			<md-card style="width:100%; line-height: 32px; background-color: #d84315">
 				<md-card-content layout-align="center center">
@@ -113,7 +133,9 @@
 					<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
 					<div class="md-list-item-text" layout="column">
 						<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
-						<p flex>{{ 'process' | translate}}: {{task.definitionName}}</p>
+						<p flex>{{ 'process' | translate}}: {{task.definitionName}}
+							<span class="cardInline">{{version | translate}}: {{task.processInstance.version}}</span>
+						</p>
 						<p flex ng-if="task.assignee">{{'worker' | translate }} : {{task.assignee}}
 							<span class="cardInline" ng-if="task.dueDate">{{'dueTo'|translate}} : {{task.dueDate | date:'d/M/yyyy'}}</span>
 							<md-icon ng-class="taskDelay(task) < 1 ? (taskDelay(task) < 0 ? 'delayed' : 'nearDelayed') : 'removeIcon'"

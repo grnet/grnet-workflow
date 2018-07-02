@@ -1,0 +1,42 @@
+<md-dialog aria-label="{{ 'role' | translate }}" ng-style="{'min-width': '400px'}">
+
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2 ng-if="isNew">{{ 'addRole' | translate }}</h2>
+			<h2 ng-if="!isNew">{{ 'editRole' | translate }}</h2>
+			
+			<span flex></span>
+			
+			<md-button class="md-icon-button" ng-click="cancel()">
+				<md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+	
+	<md-dialog-content layout-padding>
+		<form name="roleForm">
+			
+			<md-input-container class="md-block">
+				<label for="roleId">{{ 'roleId' | translate }}</label>
+				<input id="roleId" ng-model="role.roleId" ng-required="true" md-maxlength="250" ng-readonly="!isNew" ng-disabled="!isNew">
+			</md-input-container>
+			
+			<md-input-container class="md-block" style="margin-top: 0;">
+				<label for="roleDescription">{{ 'roleDescription' | translate }}</label>
+				<input id="roleDescription" ng-model="role.description" md-maxlength="250">
+			</md-input-container>
+				
+		</form>
+		
+	</md-dialog-content>
+	
+	<md-dialog-actions layout="row" layout-align="left center" class="dialogActions">
+		<md-button class="md-raised md-primary" ng-click="saveRole()" ng-disabled="!roleForm.$valid">{{ 'save' | translate }}</md-button>
+		
+		<span flex></span>
+		
+		<md-button class="md-icon-button" ng-if="!isNew" ng-click="deleteRole()" aria-label="delete role">
+			<md-icon md-svg-icon="img/icons/delete.svg"></md-icon>
+		</md-button>
+	</md-dialog-actions>
+</md-dialog>

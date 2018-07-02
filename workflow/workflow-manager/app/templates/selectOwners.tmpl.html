@@ -1,0 +1,49 @@
+<md-dialog aria-label="{{ 'importOwners' | translate }}" flex="30">
+
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>{{ 'importOwners' | translate }}</h2>
+
+			<span flex></span>
+
+			<md-button class="md-icon-button" ng-click="cancel()">
+				<md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+
+	<md-dialog-content layout-padding style="max-height: 350px;">
+		<section layout="row" flex>
+
+			<div layout="row" layout-wrap flex ng-if="ownersToSync.length > 0  && !showProgress">
+
+				<div flex-xs flex="50">
+					<md-checkbox aria-label="Select All" ng-checked="isChecked()" ng-click="toggleAll()" color="primary" md-indeterminate="isIndeterminate()">
+						<span ng-if="!isChecked()">{{ 'selectAll' | translate }}</span>
+						<span ng-if="isChecked()">{{ 'deSelectAll' | translate }}</span>
+					</md-checkbox>
+				</div>
+
+				<div style=" padding-left: 30px;" flex="100" ng-repeat="owner in ownersToSync">
+					<md-checkbox ng-checked="exists(owner, selected)" ng-click="toggle(owner, selected)">
+						<span>{{ owner.ownerId }}</span>
+					</md-checkbox>
+				</div>
+			</div>
+
+			<section layout="row" flex layout-align="center center" ng-if="showProgress">
+				<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
+			</section>
+
+			<section layout="row" flex layout-align="center center" ng-if="ownersToSync.length == 0 && !showProgress">
+				<span>{{ 'noOwnerToSyncFound' | translate }}</span>
+			</section>
+
+		</section>
+	</md-dialog-content>
+
+	<md-dialog-actions layout="row" layout-align="start center" class="dialogActions">
+		<md-button class="md-raised md-primary" ng-disabled="selected.length == 0" ng-if="ownersToSync.length > 0 && !showProgress" ng-click="confirm()">{{ 'confirm' | translate }}</md-button>
+	</md-dialog-actions>
+
+</md-dialog>

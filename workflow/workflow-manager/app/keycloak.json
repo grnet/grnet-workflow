@@ -1,16 +1,16 @@
 {
-  "realm": "workflow",
-  "realm-public-key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArLb+K6lrvNB6mLEhIVH8IskZTiJHYhEgixCCUOCrsPpApnOxo/fDUoiMIYzAn4xw+Z2ByvOwYRXipT8i4ReAFNRSyH50JVIb/JpTIqWzVnaX3WCGlDrgHqo1lsOpgGW+ihZqodqfpv8S/+DNIorQehAkfjx9Sn484ePijSSR4emavEAiFcg8fJvba805yYjP6PAG8+IdmXiaYFT1YrL5ZDIdr1YeBquEaK/48fMy5sRmnPWDCINHh2H/cpSDdKptyFlTIWg8oS3h+/KlvymD8vA7+cOFGDA1EjhoFWg7+wf5l5PSkTQLHxYrUTz9yqPgrAR6NxknFid/DHltVLOyiwIDAQAB",
-  "auth-server-url": "http://10.0.0.179:8080/auth",
-  "ssl-required": "none",
-  "resource": "workflow-manager",
-  "public-client": true,
-  "enable-cors": true,
-  "cors-max-age": 1000,
-  "cors-allowed-methods": [
-    "POST",
-    "PUT",
-    "DELETE",
-    "GET"
-  ]
+	"realm": "workflow",
+	"realm-public-key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArLb+K6lrvNB6mLEhIVH8IskZTiJHYhEgixCCUOCrsPpApnOxo/fDUoiMIYzAn4xw+Z2ByvOwYRXipT8i4ReAFNRSyH50JVIb/JpTIqWzVnaX3WCGlDrgHqo1lsOpgGW+ihZqodqfpv8S/+DNIorQehAkfjx9Sn484ePijSSR4emavEAiFcg8fJvba805yYjP6PAG8+IdmXiaYFT1YrL5ZDIdr1YeBquEaK/48fMy5sRmnPWDCINHh2H/cpSDdKptyFlTIWg8oS3h+/KlvymD8vA7+cOFGDA1EjhoFWg7+wf5l5PSkTQLHxYrUTz9yqPgrAR6NxknFid/DHltVLOyiwIDAQAB",
+	"auth-server-url": "http://10.0.0.179:8080/auth",
+	"ssl-required": "none",
+	"resource": "workflow-manager",
+	"public-client": true,
+	"enable-cors": true,
+	"cors-max-age": 1000,
+	"cors-allowed-methods": [
+		"POST",
+		"PUT",
+		"DELETE",
+		"GET"
+	]
 }

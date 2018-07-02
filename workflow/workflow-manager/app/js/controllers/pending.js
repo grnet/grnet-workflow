@@ -1,16 +1,10 @@
-(function () {
+define(['angular', 'services/authprovider'],
 
-    'use strict';
+    function (angular) {
 
-    angular.module('wfmanagerControllers').controller('PendingCtrl', ['$scope', '$location', '$mdDialog', 'processService', 'CONFIG',
-        /**
-         * @name PendingCtrl
-         * @ngDoc controllers
-         * @memberof wfmanagerControllers
-         * 
-         * @desc Controller used in Pending tasks view
-         */
-        function ($scope, $location, $mdDialog, processService, config) {
+        'use strict';
+
+        function pendingCtrl($scope, $http, $location, $mdDialog, processService, config, auth) {
 
             $scope.imagePath = config.AVATARS_PATH;
             $scope.allTasks = null;
@@ -21,23 +15,23 @@
             $scope.maxDateBefore = new Date();
             $scope.maxDateBefore.setDate($scope.maxDateBefore.getDate() + 1);
 
-            $scope.searchFilter = { dateAfter: null, dateBefore: null, taskName: "", definitionId: "" };
+            $scope.searchFilter = {dateAfter: null, dateBefore: null, taskName: "", definitionId: ""};
 
             $scope.orderByOption = null;
 
             $scope.options = [];
 
-            $scope.sortOption = { title: 'taskName', id: 'name' };
+            $scope.sortOption = {title: 'taskName', id: 'name'};
             $scope.options.push($scope.sortOption);
-            $scope.sortOption = { title: 'processDetail', id: 'definitionName' };
+            $scope.sortOption = {title: 'processDetail', id: 'definitionName'};
             $scope.options.push($scope.sortOption);
-            $scope.sortOption = { title: 'processInstanceName', id: 'processInstance.title' };
+            $scope.sortOption = {title: 'processInstanceName', id: 'processInstance.title'};
             $scope.options.push($scope.sortOption);
-            $scope.sortOption = { title: 'startDate', id: 'startDate' };
+            $scope.sortOption = {title: 'startDate', id: 'startDate'};
             $scope.options.push($scope.sortOption);
-            $scope.sortOption = { title: 'dueTo', id: 'dueDate' };
+            $scope.sortOption = {title: 'dueTo', id: 'dueDate'};
             $scope.options.push($scope.sortOption);
-            $scope.sortOption = { title: 'worker', id: 'assignee' };
+            $scope.sortOption = {title: 'worker', id: 'assignee'};
             $scope.options.push($scope.sortOption);
 
 
@@ -46,7 +40,7 @@
                 function (response) {
                     $scope.definitions = response.data;
 
-                    $scope.selectAllDefinitions = { name: "showAll", processDefinitionId: "all" };
+                    $scope.selectAllDefinitions = {name: "showAll", processDefinitionId: "all"};
                     $scope.definitions.push($scope.selectAllDefinitions);
 
                     initializeCriteria();
@@ -63,32 +57,13 @@
              *
              */
             function initializeCriteria() {
-                if (!$location.search().dateAfter || $location.search().dateAfter == 0) {
-                    $scope.searchFilter.dateAfter = new Date();
-                    $scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
-                    $location.search('dateAfter', $scope.searchFilter.dateAfter.getTime());
-
-                } else
-                    $scope.searchFilter.dateAfter = new Date(parseFloat($location.search().dateAfter));
-
-                if (!$location.search().dateBefore || $location.search().dateBefore == 0) {
-                    $scope.searchFilter.dateBefore = new Date();
-                    $scope.searchFilter.dateBefore.setDate($scope.searchFilter.dateBefore.getDate() + 1);
-                    $location.search('dateBefore', $scope.searchFilter.dateBefore.getTime());
-
-                } else
-                    $scope.searchFilter.dateBefore = new Date(parseFloat($location.search().dateBefore));
-
-                if (!$location.search().taskName)
-                    $location.search('taskName', "");
-                else
-                    $scope.searchFilter.taskName = $location.search().taskName;
-
-                if (!$location.search().definitionId)
-                    $location.search('definitionId', "all");
-                else
-                    $scope.searchFilter.definitionId = $location.search().definitionId;
-            };
+                $scope.searchFilter.dateBefore = new Date();
+                $scope.searchFilter.dateAfter = new Date();
+                $scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
+                $scope.searchFilter.dateBefore.setDate($scope.searchFilter.dateBefore.getDate() + 1);
+                $scope.searchFilter.taskName = "";
+                $scope.searchFilter.definitionId = "all";
+            }
 
             /**
              * @memberof PendingCtrl
@@ -115,14 +90,9 @@
                 if (!$scope.searchFilter.taskName)
                     $scope.searchFilter.taskName = "";
 
-                processService.getActiveTasksByCriteria($scope.searchFilter.definitionId,$scope.searchFilter.taskName, dateAfterTime, dateBeforeTime).then(
+                processService.getActiveTasksByCriteria($scope.searchFilter.definitionId, $scope.searchFilter.taskName, dateAfterTime, dateBeforeTime).then(
                     // success callback
                     function (response) {
-                        $location.search('definitionId', $scope.searchFilter.definitionId);
-                        $location.search('taskName', $scope.searchFilter.taskName);
-                        $location.search('dateAfter', dateAfterTime);
-                        $location.search('dateBefore', dateBeforeTime);
-
                         $scope.allTasks = response.data;
 
                         $scope.tasksMappedById = ArrayUtil.mapByProperty2Property($scope.allTasks, "definitionName", "tasks");
@@ -149,117 +119,123 @@
                         }
                     }
                 );
-            };
 
-            /**
-             * @memberof PendingCtrl
-             * @desc Returns the difference between due date and current date
-             * 
-             * @param {Task} task
-             * @returns {Number} - The difference between dates
-             */
-            $scope.taskDelay = function (task) {
-                var diff;
+                /**
+                 * @memberof PendingCtrl
+                 * @desc Returns the difference between due date and current date
+                 *
+                 * @param {Task} task
+                 * @returns {Number} - The difference between dates
+                 */
+                $scope.taskDelay = function (task) {
+                    var diff;
 
-                if (task.dueDate === null)
-                    return Infinity;
+                    if (task.dueDate === null)
+                        return Infinity;
 
-                if (task.endDate) {
-                    diff = task.dueDate - task.endDate;
+                    if (task.endDate) {
+                        diff = task.dueDate - task.endDate;
 
-                } else {
-                    var currentDate = new Date();
-                    diff = task.dueDate - currentDate.getTime();
-                }
+                    } else {
+                        var currentDate = new Date();
+                        diff = task.dueDate - currentDate.getTime();
+                    }
 
-                var diffInDays = diff / (1000 * 3600 * 24);
-                return diffInDays;
-            };
+                    var diffInDays = diff / (1000 * 3600 * 24);
+                    return diffInDays;
+                };
 
-            /**
-             * @memberof PendingCtrl
-             * @desc Selects all available workflow definitions from the checkbox
-             */
-            $scope.selectAll = function () {
-                $scope.filteredTasks = $scope.allTasks;
-            };
+                /**
+                 * @memberof PendingCtrl
+                 * @desc Selects all available workflow definitions from the checkbox
+                 */
+                $scope.selectAll = function () {
+                    $scope.filteredTasks = $scope.allTasks;
+                };
 
-            /**
-             * @memberof PendingCtrl
-             * @desc Sorting tasks by given option
-             *
-             * @param {String} optionId
-             */
-            $scope.sortBy = function (optionId) {
-                $scope.orderByOption = optionId;
-            };
+                /**
+                 * @memberof PendingCtrl
+                 * @desc Sorting tasks by given option
+                 *
+                 * @param {String} optionId
+                 */
+                $scope.sortBy = function (optionId) {
+                    $scope.orderByOption = optionId;
+                };
 
-            /**
-             * @memberof PendingCtrl
-             * @desc Clears the date picker for the after date
-             *
-             */
-            $scope.clearDateAfter = function () {
-                $scope.searchFilter.dateAfter = 0;
-                $scope.searchTasks();
-            };
+                /**
+                 * @memberof PendingCtrl
+                 * @desc Clears the date picker for the after date
+                 *
+                 */
+                $scope.clearDateAfter = function () {
+                    $scope.searchFilter.dateAfter = null;
+                    $scope.searchTasks();
+                };
 
-            /**
-             * @memberof PendingCtrl
-             * @desc Clears the date picker for the before date
-             *
-             */
-            $scope.clearDateBefore = function () {
-                $scope.searchFilter.dateBefore = 0;
-                $scope.searchTasks();
-            };
+                /**
+                 * @memberof PendingCtrl
+                 * @desc Clears the date picker for the before date
+                 *
+                 */
+                $scope.clearDateBefore = function () {
+                    $scope.searchFilter.dateBefore = null;
+                    $scope.searchTasks();
+                };
 
-            /**
-             * @memberof PendingCtrl
-             * @desc Clears the task name filter
-             *
-             */
-            $scope.clearTaskName = function () {
-                $scope.searchFilter.taskName = "";
-                $scope.searchTasks();
-            };
+                /**
+                 * @memberof PendingCtrl
+                 * @desc Clears the task name filter
+                 *
+                 */
+                $scope.clearTaskName = function () {
+                    $scope.searchFilter.taskName = "";
+                    $scope.searchTasks();
+                };
 
-            /**
-             * @memberof PendingCtrl
-             * @desc Clears any filter
-             *
-             */
-            $scope.clearAllFilters = function () {
-                $scope.searchFilter.dateAfter = 0;
-                $scope.searchFilter.dateBefore = 0;
-                $scope.searchFilter.taskName = "";
-                $scope.searchFilter.definitionId = "all";
+                /**
+                 * @memberof PendingCtrl
+                 * @desc Clears any filter
+                 *
+                 */
+                $scope.clearAllFilters = function () {
+                    $scope.searchFilter.dateAfter = null;
+                    $scope.searchFilter.dateBefore = null;
+                    $scope.searchFilter.taskName = "";
+                    $scope.searchFilter.definitionId = "all";
 
-                $scope.searchTasks();
-            };
+                    $scope.searchTasks();
+                };
 
-            /**
-             * @memberof PendingCtrl
-             * @des Displays a modal panel, showing the exception message
-             *
-             * @param {any} response
-             * @param {event} $event
-             */
-            function exceptionModal(response, event) {
-                $mdDialog.show({
-                    controller: function ($scope, $mdDialog) {
-                        $scope.error = response.data;
+                $scope.print = function() {
+                    window.print();
+                };
 
-                        $scope.cancel = function () {
-                            $mdDialog.hide();
-                        };
-                    },
-                    templateUrl: 'templates/exception.tmpl.html',
-                    parent: angular.element(document.body),
-                    targetEvent: event,
-                    clickOutsideToClose: false
-                });
-            };
+                /**
+                 * @memberof PendingCtrl
+                 * @des Displays a modal panel, showing the exception message
+                 *
+                 * @param {any} response
+                 * @param {event} $event
+                 */
+                function exceptionModal(response, event) {
+                    $mdDialog.show({
+                        controller: function ($scope, $mdDialog) {
+                            $scope.error = response.data;
 
-        }]);
-})(angular);
+                            $scope.cancel = function () {
+                                $mdDialog.hide();
+                            };
+                        },
+                        templateUrl: 'templates/exception.tmpl.html',
+                        parent: angular.element(document.body),
+                        targetEvent: event,
+                        clickOutsideToClose: false
+                    });
+                };
+
+            }
+        }
+        angular.module('wfManagerControllers').controller('PendingCtrl', ['$scope', '$http', '$location', '$mdDialog', 'processService', 'CONFIG', 'auth', pendingCtrl]);
+    }
+);

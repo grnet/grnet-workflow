@@ -1,0 +1,32 @@
+<md-dialog aria-label="{{ 'addExternalForm' | translate }}" style="width:500px">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+		
+			<h2 ng-if="!edit">{{ 'add' | translate }}</h2>
+			<h2 ng-if="edit">{{ 'edit' | translate }}</h2>
+			
+			<span flex></span>
+			
+			<md-button class="md-icon-button" ng-click="cancel()">
+				<md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+	
+	<md-dialog-content>
+	
+		<md-content ng-show="!edit" style="max-height:400px">
+			 <md-list flex>
+			 	
+			 		<md-list-item class="md-1-line" ng-repeat="dashlet in predefinedDashlets" ng-click="addPredefinedDashlet(dashlet)">
+			 			<p>{{ dashlet.name }}</p>
+			 			
+			 			<md-divider ></md-divider>
+			 		</md-list-item>
+			 		
+			 </md-list>
+		</md-content>
+		
+	</md-dialog-content>
+        
+</md-dialog>

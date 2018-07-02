@@ -1,75 +1,213 @@
+<div id="fb-root"></div>
 <md-toolbar>
 	<div class="md-toolbar-tools">
-	
-		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md> 
+
+		<md-button id="menu-button" class="md-icon-button" aria-label="Menu" ng-click="toggle()" hide-gt-md>
 			<md-icon md-svg-icon="img/icons/menu.svg"></md-icon>
 		</md-button>
-		
+
 		<md-icon md-svg-icon="img/icons/wf-logo.svg" style="height: 48px; width: 48px"></md-icon>
-		
+
 		<div hide-sm layout-padding>
 			<h1 class="md-title application-title">workflow::manager</h1>
 			<h2 class="md-subhead page-title">{{'settings' | translate}}</h2>
 		</div>
-		
+
 		<span flex></span>
-		
-		<md-button class="md-icon-button" ng-if="isPageNumbering" ng-click="addNewRegistry()" aria-label="add new">
+
+		<md-button class="md-icon-button" ng-if="isPageNumbering" ng-click="addNewRegistry($event)" aria-label="add new">
 			<md-icon md-svg-icon="img/icons/add.svg"></md-icon>
 		</md-button>
+
+		<md-button class="md-icon-button" ng-if="isSocialMedia" ng-click="authenticateTwitter($event)" aria-label="add twitter account">
+			<md-icon md-svg-icon="img/icons/twitter.svg"></md-icon>
+		</md-button>
+
+		<md-button class="md-icon-button" ng-if="isSocialMedia" ng-click="newFacebookPage($event)" aria-label="add facebook page">
+			<md-icon md-svg-icon="img/icons/facebook.svg"></md-icon>
+		</md-button>
+
+		<md-button class="md-icon-button" ng-if="isOwner" aria-label="Create new owner" ng-click="createOwner($event)">
+			<md-icon md-svg-src="img/icons/add.svg"></md-icon>
+		</md-button>
+
+		<md-button class="md-icon-button" ng-if="isOwner" aria-label="Create new role" ng-click="synchronizeOwners($event)">
+			<md-icon md-svg-src="img/icons/refresh.svg"></md-icon>
+		</md-button>
+
+		<md-button class="md-icon-button" ng-if="isRoles" aria-label="Create new role" ng-click="crateRole($event)">
+			<md-icon md-svg-src="img/icons/add.svg"></md-icon>
+		</md-button>
+
+		<md-button class="md-icon-button" ng-if="isRoles" aria-label="Create new role" ng-click="synchronizeRoles($event)">
+			<md-icon md-svg-src="img/icons/refresh.svg"></md-icon>
+		</md-button>
+
 	</div>
 </md-toolbar>
 
-<md-tabs md-dynamic-height md-border-bottom class="wf-tabs">
-	<md-tab label="{{'generalSettings' | translate}}" md-on-select="onTabSelected('generalSettings')">
-	
-		<md-card flex>
-			<md-card-content>
-			
-				<section layout="row" layout-align="center center" class="wait-icon" ng-if="showProgressBar" style="position: relative;top: 25%;">
-					<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
-				</section>
-			
-				<form name="settingsForm" ng-show="!showProgressBar">
-				
-					<div layout="row">
-						<div flex="20" style="padding-right:15px">
-							<span class="md-body-1">{{'autoAssignment' | translate }}</span>
-						</div>
-						<md-switch aria-label="Auto Assignment" ng-model="settings.autoAssignment" class="md-primary md-hue-3"></md-switch>
-					</div>
-					
-					<md-divider style="margin-bottom:10px"></md-divider>
-					
-					<div layout="row">
-						<div flex="20" style="padding-right:15px">
-							<span class="md-body-1">{{'sentAssignNotif' | translate }}</span>
-						</div>
-						<md-switch aria-label="Auto Notification" ng-model="settings.assignmentNotification" class="md-primary md-hue-3"></md-switch>
-					</div>
-					
-					<md-divider style="margin-bottom:10px"></md-divider>
-					
-					<div layout="row">
-						<div  flex="20" style="padding-right:15px">
-							<span class="md-body-1"><strong>{{settings.duedateAlertPeriod}}</strong> {{'daysBeforeAlert' | translate }}</span>
-						</div>
-						<md-slider id="due-date" flex class="md-primary" md-discrete ng-model="settings.duedateAlertPeriod"
-							step="1" min="1" max="20" aria-label="due date warning" style="max-width:250px">
-						</md-slider>
-					</div>
-					
-				</form>
+<section layout="row" flex class="main-section">
 
-				<section layout-align="center center" style="position:absolute; bottom:5%; right:2%;">
-				
-					<md-button class="md-fab md-primary" aria-label="Update settings" ng-click="updateSettings()" ng-disabled="!settingsForm.$dirty || !settingsForm.$valid">
-						<md-icon md-svg-src="img/icons/save.svg"></md-icon>
-					</md-button>
-					
-				</section>
-				
-			</md-card-content>
-		</md-card>
-	</md-tab>	
-</md-tabs>
+	<md-tabs md-border-bottom md-autoselect flex style="margin-top:8px; height: 100%;" class="wf-tabs" md-whiteframe="2">
+
+		<md-tab label="{{'generalSettings' | translate}}" md-on-select="onTabSelected('generalSettings')">
+			<md-card flex>
+				<md-card-content>
+					<form name="settingsForm">
+
+						<div layout="row">
+							<div flex="20" style="padding-right:15px">
+								<span class="md-body-1">{{'autoAssignment' | translate }}</span>
+							</div>
+							<md-switch class="md-primary md-hue-3" aria-label="Auto Assignment" ng-model="settings.autoAssignment"></md-switch>
+						</div>
+
+						<md-divider style="margin-bottom:10px"></md-divider>
+
+						<div layout="row">
+							<div flex="20" style="padding-right:15px">
+								<span class="md-body-1">{{'sentAssignNotif' | translate }}</span>
+							</div>
+							<md-switch class="md-primary md-hue-3" aria-label="Auto Notification" ng-model="settings.assignmentNotification"></md-switch>
+						</div>
+
+						<md-divider style="margin-bottom:10px"></md-divider>
+
+						<div layout="row">
+							<div flex="20" style="padding-right:15px">
+								<span class="md-body-1"><strong>{{settings.duedateAlertPeriod}}</strong> {{'daysBeforeAlert' | translate }}</span>
+							</div>
+							<md-slider id="due-date" flex class="md-primary" md-discrete ng-model="settings.duedateAlertPeriod" step="1" min="1" max="20"
+							 aria-label="due date warning" style="max-width:250px">
+							</md-slider>
+						</div>
+
+					</form>
+
+					<section layout-align="center center" style="position:absolute; bottom: 5%;right: 2%;">
+						<md-button class="md-fab md-primary" aria-label="Save settings" ng-click="settingsChanged()" ng-disabled="!settingsForm.$dirty || !settingsForm.$valid">
+							<md-icon md-svg-src="img/icons/save.svg"></md-icon>
+						</md-button>
+					</section>
+
+				</md-card-content>
+			</md-card>
+		</md-tab>
+
+		<md-tab label="{{'numbering' | translate }}" md-on-select="onTabSelected('numbering')">
+
+			<md-content flex class="transparent">
+
+				<div layout="row" layout-align="center start" flex class="warning-message" ng-if="registries.length == 0">
+					<md-card style="margin-left: 8px;">
+						<md-card-content layout-align="center center">
+							<md-icon md-svg-icon="img/icons/info.svg"></md-icon>
+							<span>{{'noNumbering' | translate }}</span>
+						</md-card-content>
+					</md-card>
+				</div>
+
+				<md-list>
+					<md-card ng-repeat="registry in registries">
+						<md-list-item class="md-1-line" ng-click="editRegistry(registry, $event)">
+							<div class="md-list-item-text" layout="column">
+								<p>
+									<span class="md-body-1">{{'code' | translate}} : {{registry.id}}</span>
+									<span class="md-body-1 cardInline">{{'template' | translate}} : {{registry.template}}</span>
+								</p>
+							</div>
+						</md-list-item>
+					</md-card>
+				</md-list>
+			</md-content>
+		</md-tab>
+
+		<md-tab label="Social Media" md-on-select="onTabSelected('socialMedia')">
+			<div layout="column" layout-wrap style="background-color:white;width:100%">
+
+				<div flex="100" layout="row" layout-wrap>
+					<md-card md-theme="default" class="socialmedia-card" ng-repeat="account in twitterAccounts" ng-model="twitterAccounts" style="background:url('{{account.profileBannerUrl}}') no-repeat 50% 50%">
+						<md-card-title>
+							<div><img ng-src="img/icons/twitter-white.svg" class="md-card-image"></div>
+							<md-card-title-text>
+								<span class="md-headline">{{account.name}}</span>
+								<div class="md-subhead">#{{account.screenName}}</div>
+							</md-card-title-text>
+						</md-card-title>
+						<md-card-actions layout="row" layout-align="end center">
+							<md-button class="md-button md-default-theme" ng-click="selectAccount(account)" arial-label="Remove Page">
+								<md-icon md-svg-icon="img/icons/delete.svg"></md-icon>
+							</md-button>
+						</md-card-actions>
+					</md-card>
+				</div>
+
+				<div flex="100" layout="row" layout-wrap>
+					<md-card md-theme="default" ng-repeat="fbp in fbpages" class="socialmedia-card" ng-model="fbpages" style="background:url('{{fbp.coverPicUrl}}') no-repeat 50% 50%">
+						<md-card-title>
+							<div><img ng-src="img/icons/facebook-box.svg" class="md-card-image"></div>
+							<md-card-title-text>
+								<span class="md-headline">
+									{{fbp.name}}
+								</span>
+							</md-card-title-text>
+						</md-card-title>
+
+						<md-card-actions layout="row" layout-align="end center">
+							<md-button class="md-button md-default-theme" ng-click="selectPage(fbp)" arial-label="Remove Page">
+								<md-icon md-svg-icon="img/icons/delete.svg"></md-icon>
+							</md-button>
+						</md-card-actions>
+					</md-card>
+				</div>
+			</div>
+		</md-tab>
+
+		<!-- Owners tab -->
+		<md-tab label="{{ 'owners' | translate }}" md-on-select="ownersSelected()">
+			<md-content flex class="transparent">
+
+				<div layout="row" layout-align="center center" flex ng-if="ownersProgress">
+					<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
+				</div>
+
+				<md-list flex>
+					<md-card ng-repeat="owner in owners">
+						<md-list-item class="md-2-line" ng-click="editOwner($event, owner)">
+							<div class="md-list-item-text" layout="column">
+								<h3>{{owner.ownerId}}</h3>
+								<p>{{owner.name}}</p>
+							</div>
+						</md-list-item>
+					</md-card>
+				</md-list>
+
+			</md-content>
+
+		</md-tab>
+
+		<!-- Roles tab -->
+		<md-tab label="{{ 'roles' | translate }}" md-on-select="rolesSelected()" layout="column" flex>
+
+			<md-content flex class="transparent">
+
+				<div layout="row" layout-align="center center" flex ng-if="rolesProgress">
+					<md-progress-circular md-mode="indeterminate" md-diameter="30"></md-progress-circular>
+				</div>
+
+				<md-list flex>
+					<md-card ng-repeat="role in roles">
+						<md-list-item class="md-2-line" ng-click="editRole($event, role)">
+							<div class="md-list-item-text" layout="column">
+								<h3>{{role.roleId}}</h3>
+								<p>{{role.description}}</p>
+							</div>
+						</md-list-item>
+					</md-card>
+				</md-list>
+
+			</md-content>
+		</md-tab>
+
+	</md-tabs>
+</section>
