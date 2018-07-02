@@ -3,58 +3,71 @@
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" debug="false">
 
 	<property resource="workflow-engine.properties" />
-	
+
 	<appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
 		<target>System.err</target>
 		<filter class="gr.cyberstream.workflow.engine.common.ErrOutFilter" />
+		
 		<encoder>
 			<charset>UTF-8</charset>
-			<pattern>%-5level %logger{16} - %msg\n</pattern>
+			<pattern>%logger{36} - %msg \n</pattern>
 		</encoder>
 	</appender>
-	
+
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<target>System.out</target>
 		<filter class="gr.cyberstream.workflow.engine.common.StdOutFilter" />
+		
 		<encoder>
 			<charset>UTF-8</charset>
-			<pattern>%-5level %logger{16} - %msg\n</pattern>
+			<pattern>%logger{36} - %msg \n</pattern>
 		</encoder>
 	</appender>
-	
+
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>${log.path}/workflow-engine.log</file>
 		<filter class="gr.cyberstream.workflow.engine.common.StdOutFilter" />
-		
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${log.path}/workflow-engine.%d.%i.log.zip</fileNamePattern>
-			<MaxHistory>20</MaxHistory>
-			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-				<maxFileSize>5MB</maxFileSize>
-			</timeBasedFileNamingAndTriggeringPolicy>
+
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<!-- rollover daily -->
+			<fileNamePattern>${log.path}/workflow-engine.%d.%i.log.gz</fileNamePattern>
+			<!-- each file should be at most 100MB, keep 60 days worth of history, but at most 20GB -->
+			<maxFileSize>10MB</maxFileSize>
+			<maxHistory>60</maxHistory>
+			<totalSizeCap>20GB</totalSizeCap>
 		</rollingPolicy>
-		
+
 		<encoder>
 			<charset>UTF-8</charset>
-			<pattern>%d{yyyy/MM/dd-HH:mm:ss} [%thread] %-5level %logger{35} - %msg%n</pattern>
+			<pattern>%d{yyyy/MM/dd-HH:mm:ss} [%thread] %-5level %logger{35} - %msg \n</pattern>
 		</encoder>
 	</appender>
-	
+
 	<appender name="ERRORFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <filter class="gr.cyberstream.workflow.engine.common.ErrOutFilter" />
-        <file>${log.path}/workflow-engine-error.log</file>
-        
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${log.path}/workflow-engine-error.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
-        </rollingPolicy>
-        
-        <encoder>
-            <charset>UTF-8</charset>
-			<pattern>%d{yyyy/MM/dd-HH:mm:ss} [%thread] %-5level %logger{35} - %msg%n</pattern>
-        </encoder>
-    </appender>
-	
-	<logger name="gr.cyberstream" additivity="false">
+		<filter class="gr.cyberstream.workflow.engine.common.ErrOutFilter" />
+		<file>${log.path}/workflow-engine-error.log</file>
+
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<!-- rollover daily -->
+			<fileNamePattern>${log.path}/workflow-engine-error.%d.%i.log.gz</fileNamePattern>
+			<!-- each file should be at most 100MB, keep 60 days worth of history, but at most 20GB -->
+			<maxFileSize>10MB</maxFileSize>
+			<maxHistory>60</maxHistory>
+			<totalSizeCap>20GB</totalSizeCap>
+		</rollingPolicy>
+
+		<encoder>
+			<charset>UTF-8</charset>
+			<pattern>%d{yyyy/MM/dd-HH:mm:ss} [%thread] %-5level %logger{35} - %msg \n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+		<queueSize>100000</queueSize>
+		<appender-ref ref="FILE" />
+	</appender>
+
+	<logger name="gr.cyberstream.workflow" additivity="false">
 		<appender-ref ref="STDERR" />
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="FILE" />
@@ -67,33 +80,44 @@
 		<appender-ref ref="FILE" />
 		<appender-ref ref="ERRORFILE" />
 	</logger>
-	
+
 	<logger name="org.hibernate" level="info" additivity="false">
 		<appender-ref ref="STDERR" />
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="FILE" />
 		<appender-ref ref="ERRORFILE" />
 	</logger>
+
+	<logger name="org.hibernate.stat" level="debug" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="FILE" />
+	</logger>
 	
-	<!--  
+	<!--
 	<logger name="org.hibernate.SQL" level="warn" additivity="false">
 		<appender-ref ref="STDERR" />
 		<appender-ref ref="STDOUT" />
-		<appender-ref ref="FILE" />
+		<appender-ref ref="FILE" /> 
 		<appender-ref ref="ERRORFILE" />
 	</logger>
 	-->
 	
-	<!-- 	
-	<logger name="org.springframework.security" level="info" additivity="false">
+	<!--
+	<logger name="org.springframework.security" level="info" additivity="false"> 
+		<appender-ref ref="STDOUT" />
+	</logger>
+	-->
+	
+	<!-- 
+	<logger name="org.keycloak" level="debug" additivity="false">
 		<appender-ref ref="STDOUT" />
 	</logger>
 	 -->
-	 
+
 	<root level="info">
 		<appender-ref ref="STDERR" />
 		<appender-ref ref="STDOUT" />
-		<appender-ref ref="FILE" />
+		<appender-ref ref="ASYNC" />
 		<appender-ref ref="ERRORFILE" />
 	</root>
 

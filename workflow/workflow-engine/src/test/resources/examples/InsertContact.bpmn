@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://workstream.cyberstream.gr/workflow/examples">
+  <process id="insertContact" name="Insert Contact to File" isExecutable="true">
+    <startEvent id="start-event" name="Start"></startEvent>
+    <endEvent id="endevent1" name="End"></endEvent>
+    <userTask id="contactInfo-task" name="Provide Contact Info">
+      <extensionElements>
+        <activiti:formProperty id="firstname" name="Όνομα" type="string" variable="firstname" required="true"></activiti:formProperty>
+        <activiti:formProperty id="lastname" name="Επώνυμο" type="string" variable="lastname" required="true"></activiti:formProperty>
+        <activiti:formProperty id="phoneNumber" name="Αρ. Τηλεφώνου" type="string" variable="phoneNumber" required="true"></activiti:formProperty>
+      </extensionElements>
+    </userTask>
+    <serviceTask id="appendContact-task" name="Append Contact" activiti:class="gr.cyberstream.workflow.engine.customservicetasks.FileAppend" activiti:extensionId="gr.cyberstream.workflow.designer.servicetasks.FileAppend">
+      <extensionElements>
+        <activiti:field name="filepath">
+          <activiti:string>/var/www/html/repository/contacts.csv</activiti:string>
+        </activiti:field>
+        <activiti:field name="value">
+          <activiti:expression>${lastname},${firstname},${phoneNumber}</activiti:expression>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask>
+    <sequenceFlow id="flow1" sourceRef="start-event" targetRef="contactInfo-task"></sequenceFlow>
+    <sequenceFlow id="flow2" sourceRef="contactInfo-task" targetRef="appendContact-task"></sequenceFlow>
+    <sequenceFlow id="flow3" sourceRef="appendContact-task" targetRef="endevent1"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_insertContact">
+    <bpmndi:BPMNPlane bpmnElement="insertContact" id="BPMNPlane_insertContact">
+      <bpmndi:BPMNShape bpmnElement="start-event" id="BPMNShape_start-event">
+        <omgdc:Bounds height="35.0" width="35.0" x="80.0" y="260.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent1" id="BPMNShape_endevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="700.0" y="260.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="contactInfo-task" id="BPMNShape_contactInfo-task">
+        <omgdc:Bounds height="55.0" width="105.0" x="250.0" y="250.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="appendContact-task" id="BPMNShape_appendContact-task">
+        <omgdc:Bounds height="55.0" width="105.0" x="480.0" y="250.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="flow1" id="BPMNEdge_flow1">
+        <omgdi:waypoint x="115.0" y="277.0"></omgdi:waypoint>
+        <omgdi:waypoint x="250.0" y="277.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow2" id="BPMNEdge_flow2">
+        <omgdi:waypoint x="355.0" y="277.0"></omgdi:waypoint>
+        <omgdi:waypoint x="480.0" y="277.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow3" id="BPMNEdge_flow3">
+        <omgdi:waypoint x="585.0" y="277.0"></omgdi:waypoint>
+        <omgdi:waypoint x="700.0" y="277.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

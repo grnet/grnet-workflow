@@ -23,6 +23,7 @@ public class CustomTaskFormFields extends AbstractActivityBpmnParseHandler<UserT
 
 	private final String DOCUMENT_TITLE = "documentTitle";
 	private final String DOCUMENT_VAR = "documentVar";
+	private final String DOCUMENT_TEMPLATE = "templateDocument";
 	private final String APPROVAL_VAR = "approvalVar";
 	private final String SOURCE_VAR = "sourceVar";
 
@@ -41,21 +42,33 @@ public class CustomTaskFormFields extends AbstractActivityBpmnParseHandler<UserT
 	protected void executeParse(BpmnParse bpmnParse, UserTask userTask) {
 
 		if (userTask.getExtensionId() != null && userTask.getExtensionElements() != null) {
+
 			switch (userTask.getExtensionId()) {
 
 			case SUBMIT_DOC_EXTENSION_ID:
+
 				logger.debug("Parsing Submit Document Custom Task");
 
 				FormProperty documentProperty = getDocumentProperty(
 						userTask.getExtensionElements().get(DOCUMENT_VAR),
 						userTask.getExtensionElements().get(DOCUMENT_TITLE));
+				
+				documentProperty.setRequired(true);
 
 				if (documentProperty != null) {
 					userTask.getFormProperties().add(0, documentProperty);
 				}
+				
+				FormProperty templateProperty = getLinkProperty(userTask.getExtensionElements().get(DOCUMENT_TEMPLATE), "template");
+				
+				if (templateProperty != null) {
+					userTask.getFormProperties().add(templateProperty);
+				}
+
 				break;
 
 			case APPROVE_DOC_EXTENSION_ID:
+
 				logger.debug("Parsing Approve Document Custom Task");
 
 				FormProperty approvalDocumentProperty = getDocumentProperty(
@@ -64,20 +77,26 @@ public class CustomTaskFormFields extends AbstractActivityBpmnParseHandler<UserT
 				if (approvalDocumentProperty != null) {
 
 					FormProperty approvalProperty = getApprovalProperty(
-							userTask.getExtensionElements().get(APPROVAL_VAR), approvalDocumentProperty.getVariable());
+							userTask.getExtensionElements().get(APPROVAL_VAR),
+							approvalDocumentProperty.getVariable());
 
 					if (approvalProperty != null) {
 						userTask.getFormProperties().add(0, approvalProperty);
 					}
+
 					userTask.getFormProperties().add(0, approvalDocumentProperty);
 				}
+
 				break;
 
 			case SUBMIT_EXTERNAL_DOC_EXTENSION_ID:
-				logger.info("Parsing Submit External Document Custom Task");
+
+				logger.debug("Parsing Submit External Document Custom Task");
 
 				FormProperty extDocumentSourceProperty = getSourceProperty(
 						userTask.getExtensionElements().get(SOURCE_VAR));
+				
+				extDocumentSourceProperty.setRequired(true);
 
 				if (extDocumentSourceProperty != null) {
 					userTask.getFormProperties().add(0, extDocumentSourceProperty);
@@ -129,58 +148,94 @@ public class CustomTaskFormFields extends AbstractActivityBpmnParseHandler<UserT
 				break;
 			}
 		}
+
 	}
 
 	private FormProperty getDocumentProperty(List<ExtensionElement> documentVarElements, List<ExtensionElement> documentTitleElements) {
+
 		String documentTitle = "";
 
 		if (documentTitleElements != null && !documentTitleElements.isEmpty()) {
+
 			ExtensionElement documentTitleElement = documentTitleElements.get(0);
+
 			documentTitle = documentTitleElement.getElementText();
 		}
 
 		if (documentVarElements != null && !documentVarElements.isEmpty()) {
+
 			ExtensionElement documentVar = documentVarElements.get(0);
+
 			FormProperty property = new FormProperty();
-			
 			property.setId(NAMESPACE + documentVar.getName());
 			property.setName(documentTitle);
 			property.setType("document");
 
 			property.setVariable(documentVar.getElementText());
+
 			return property;
 		}
+
 		return null;
+	}
+	
+	private FormProperty getLinkProperty(List<ExtensionElement> extensionElements, String label) {
+
+		if (extensionElements != null && extensionElements.size() > 0) {
+
+			ExtensionElement linkElement = extensionElements.get(0);
+
+			FormProperty property = new FormProperty();
+			property.setId(NAMESPACE + linkElement.getName());
+			property.setName(label);
+			property.setType("url");
+			// property.setDefaultExpression("'" + linkElement.getElementText()  + "'");
+			property.setDefaultExpression(linkElement.getElementText());
+
+			return property;
+		}
+
+		return null;
+
 	}
 
 	private FormProperty getApprovalProperty(List<ExtensionElement> approvalVarElements, String documentVar) {
 
 		if (approvalVarElements != null && !approvalVarElements.isEmpty()) {
+
 			ExtensionElement approvalVar = approvalVarElements.get(0);
+
 			FormProperty property = new FormProperty();
-			
 			property.setId(NAMESPACE + approvalVar.getName());
 			property.setName(approvalVar.getElementText());
 			property.setType("approve");
+
 			property.setVariable(approvalVar.getElementText());
+
 			return property;
 		}
+
 		return null;
 	}
 
 	private FormProperty getSourceProperty(List<ExtensionElement> sourceVarElements) {
+
 		String sourceTitle = "Document Source";
 
 		if (sourceVarElements != null && !sourceVarElements.isEmpty()) {
+
 			ExtensionElement sourceVar = sourceVarElements.get(0);
+
 			FormProperty property = new FormProperty();
-			
 			property.setId(NAMESPACE + sourceVar.getName());
 			property.setName(sourceTitle);
 			property.setType("string");
+
 			property.setVariable(sourceVar.getElementText());
+
 			return property;
 		}
+
 		return null;
 	}
 }

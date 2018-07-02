@@ -22,13 +22,31 @@ public class WfProcessInstance {
 	private Date startDate;
 	private String status;
 	private Date endDate;
+	private String reference;
+	private String captchaHash;
+	private String captchaAnswer;
 	private String definitionIcon;
 	private String definitionName;
 
-	/**
-	 * Default constructor
-	 */
+	@JsonIgnore
+	private String client;
+
 	public WfProcessInstance() {
+	}
+
+	public WfProcessInstance(String id, String title, String folderId, String definitionVersionId, String supervisor,
+			List<WfFormProperty> processForm, String status, int version, Date startDate, String reference) {
+
+		this.id = id;
+		this.title = title;
+		this.folderId = folderId;
+		this.definitionVersionId = definitionVersionId;
+		this.supervisor = supervisor;
+		this.processForm = processForm;
+		this.status = status;
+		this.version = version;
+		this.startDate = startDate;
+		this.reference = reference;
 	}
 
 	public WfProcessInstance(WorkflowInstance instance) {
@@ -41,6 +59,7 @@ public class WfProcessInstance {
 		this.setStartDate(instance.getStartDate());
 		this.setStatus(instance.getStatus());
 		this.setEndDate(instance.getEndDate());
+		this.setReference(instance.getReference());
 		this.setDefinitionIcon(instance.getDefinitionVersion().getWorkflowDefinition().getIcon());
 		this.definitionName = instance.getDefinitionVersion().getWorkflowDefinition().getName();
 	}
@@ -150,6 +169,30 @@ public class WfProcessInstance {
 		this.endDate = endDate;
 	}
 
+	public String getReference() {
+		return reference;
+	}
+
+	public void setReference(String reference) {
+		this.reference = reference;
+	}
+
+	public String getCaptchaHash() {
+		return captchaHash;
+	}
+
+	public void setCaptchaHash(String captchaHash) {
+		this.captchaHash = captchaHash;
+	}
+
+	public String getCaptchaAnswer() {
+		return captchaAnswer;
+	}
+
+	public void setCaptchaAnswer(String captchaAnswer) {
+		this.captchaAnswer = captchaAnswer;
+	}
+
 	public String getDefinitionIcon() {
 		return definitionIcon;
 	}
@@ -164,5 +207,13 @@ public class WfProcessInstance {
 
 	public void setDefinitionName(String definitionName) {
 		this.definitionName = definitionName;
+	}
+
+	public String getClient() {
+		return client;
+	}
+
+	public void setClient(String client) {
+		this.client = client;
 	}
 }

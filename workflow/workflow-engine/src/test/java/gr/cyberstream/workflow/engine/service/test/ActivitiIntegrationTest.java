@@ -1,14 +1,12 @@
 package gr.cyberstream.workflow.engine.service.test;
 
-import gr.cyberstream.workflow.engine.config.test.ApplicationConfiguration;
-import gr.cyberstream.workflow.engine.config.test.MockKeycloakAccount;
-import gr.cyberstream.workflow.engine.config.test.MockKeycloakAuthenticationToken;
-import gr.cyberstream.workflow.engine.customservicetasks.DocumentMail;
-import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
-import gr.cyberstream.workflow.engine.model.WorkflowInstance;
-import gr.cyberstream.workflow.engine.model.api.*;
-import gr.cyberstream.workflow.engine.persistence.Processes;
-import gr.cyberstream.workflow.engine.service.ProcessService;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,16 +26,24 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import gr.cyberstream.workflow.engine.config.test.ApplicationConfiguration;
+import gr.cyberstream.workflow.engine.config.test.MockKeycloakAccount;
+import gr.cyberstream.workflow.engine.config.test.MockKeycloakAuthenticationToken;
+import gr.cyberstream.workflow.engine.customservicetasks.DocumentMail;
+import gr.cyberstream.workflow.engine.model.WorkflowDefinition;
+import gr.cyberstream.workflow.engine.model.WorkflowInstance;
+import gr.cyberstream.workflow.engine.model.api.WfFormProperty;
+import gr.cyberstream.workflow.engine.model.api.WfProcess;
+import gr.cyberstream.workflow.engine.model.api.WfProcessInstance;
+import gr.cyberstream.workflow.engine.model.api.WfProcessVersion;
+import gr.cyberstream.workflow.engine.model.api.WfTask;
+import gr.cyberstream.workflow.engine.persistence.Processes;
+import gr.cyberstream.workflow.engine.service.ProcessService;
 
 @ContextConfiguration(classes = ApplicationConfiguration.class)
 @WebAppConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
+@SuppressWarnings("deprecation")
 public class ActivitiIntegrationTest {
 
 	@Autowired
@@ -83,7 +89,7 @@ public class ActivitiIntegrationTest {
 			MockMultipartFile file = new MockMultipartFile("file", "", MediaType.TEXT_XML_VALUE, content);
 
 			// create wfProcess from BPMN File
-			WfProcess wfProcess = processService.createNewProcessDefinition(file.getInputStream(),"DocumentTestProcess.bpmn","Justification");
+			WfProcess wfProcess = processService.createNewProcessDefinition(file.getInputStream(),"DocumentTestProcess.bpmn");
 			wfProcess.setOwner("HR");
 			wfProcess.setAssignBySupervisor(true);
 			wfProcess.setActive(true);
@@ -135,6 +141,7 @@ public class ActivitiIntegrationTest {
 
 		WorkflowInstance instance = new WorkflowInstance();
 		instance.setTitle("A test instance");
+		instance.setReference("Reference");
 		instance.setSupervisor("kostas.koutros@cyberstream.gr");
 		instance.setDefinitionVersion(definition.getActiveVersion());
 

@@ -7,22 +7,24 @@
 	<appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
 		<target>System.err</target>
 		<filter class="gr.cyberstream.workflow.engine.common.ErrOutFilter" />
+		
 		<encoder>
 			<charset>UTF-8</charset>
-			<pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg\n</pattern>
+			<pattern>%d{yyyy/MM/dd-HH:mm:ss} %logger{36} - %msg \n</pattern>
 		</encoder>
 	</appender>
 
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<target>System.out</target>
 		<filter class="gr.cyberstream.workflow.engine.common.StdOutFilter" />
+		
 		<encoder>
 			<charset>UTF-8</charset>
-			<pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg\n</pattern>
+			<pattern>%d{yyyy/MM/dd-HH:mm:ss} %logger{36} - %msg \n</pattern>
 		</encoder>
 	</appender>
 
-	<logger name="gr.cyberstream" additivity="false">
+	<logger name="gr.cyberstream.workflow" additivity="false">
 		<appender-ref ref="STDERR" />
 		<appender-ref ref="STDOUT" />
 	</logger>
@@ -37,12 +39,28 @@
 		<appender-ref ref="STDOUT" />
 	</logger>
 
-	<!-- <logger name="org.hibernate.SQL" level="warn" additivity="false"> <appender-ref 
-		ref="STDERR" /> <appender-ref ref="STDOUT" /> <appender-ref ref="FILE" /> 
-		<appender-ref ref="ERRORFILE" /> </logger> -->
-
-	<!-- <logger name="org.springframework.security" level="info" additivity="false"> 
-		<appender-ref ref="STDOUT" /> </logger> -->
+	<logger name="org.hibernate.stat" level="debug" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	
+	<!--
+	<logger name="org.hibernate.SQL" level="warn" additivity="false">
+		<appender-ref ref="STDERR" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	-->
+	
+	<!--
+	<logger name="org.springframework.security" level="info" additivity="false"> 
+		<appender-ref ref="STDOUT" />
+	</logger>
+	-->
+	
+	<!-- 
+	<logger name="org.keycloak" level="debug" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	 -->
 
 	<root level="info">
 		<appender-ref ref="STDERR" />

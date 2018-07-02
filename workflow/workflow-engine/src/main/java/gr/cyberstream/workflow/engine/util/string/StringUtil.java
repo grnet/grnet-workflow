@@ -11,8 +11,7 @@ import java.io.InputStreamReader;
 public class StringUtil {
 
 	/**
-	 * Check id the input String is null or empty and return true. False
-	 * otherwise.
+	 * Check id the input String is null or empty and return true. False otherwise.
 	 * 
 	 * @param s
 	 * @return

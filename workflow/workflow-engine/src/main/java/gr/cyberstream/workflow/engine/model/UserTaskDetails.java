@@ -13,6 +13,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
@@ -27,6 +28,7 @@ import gr.cyberstream.workflow.engine.model.api.WfTaskDetails;
  *
  */
 @Entity
+@Table(name = "UserTaskDetails")
 public class UserTaskDetails implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -50,6 +52,7 @@ public class UserTaskDetails implements Serializable {
 	@JoinColumn(name = "definitionversion_id")
 	private DefinitionVersion definitionVersion;
 
+	// TODO: REFACTOR RENAME TO assignBySuperVisor
 	private boolean assign;
 
 	@OneToMany(mappedBy = "userTaskDetail", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)

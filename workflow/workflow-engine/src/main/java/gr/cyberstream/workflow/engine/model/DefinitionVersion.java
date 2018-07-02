@@ -15,6 +15,7 @@ import java.util.List;
  * @author nlyk
  */
 @Entity
+@Table(name = "DefinitionVersion")
 public class DefinitionVersion implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -45,25 +46,9 @@ public class DefinitionVersion implements Serializable {
 	@OneToMany(mappedBy = "definitionVersion", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<UserTaskDetails> tasks;
 
-	/**
-	 * Default constructor
-	 */
+	// Default constructor
 	public DefinitionVersion() {
 
-	}
-
-	/**
-	 * A copy constructor using a {@link WfProcessVersion} object
-	 * 
-	 * @param wfProcessVersion
-	 *            {@link WfProcessVersion} to be converted
-	 */
-	public void updateFrom(WfProcessVersion wfProcessVersion) {
-		this.deploymentId = wfProcessVersion.getDeploymentId();
-		this.deploymentdate = wfProcessVersion.getDeploymentdate();
-		this.processDefinitionId = wfProcessVersion.getProcessDefinitionId();
-		this.status = wfProcessVersion.getStatus();
-		this.justification = wfProcessVersion.getJustification();
 	}
 
 	public int getId() {
@@ -132,6 +117,21 @@ public class DefinitionVersion implements Serializable {
 
 	public void setTasks(List<UserTaskDetails> tasks) {
 		this.tasks = tasks;
+	}
+
+	/**
+	 * Update from {WfProcessVersion} API Model
+	 * 
+	 * TODO: Review the copy constructor
+	 * 
+	 * @param version
+	 */
+	public void updateFrom(WfProcessVersion version) {
+		this.deploymentId = version.getDeploymentId();
+		this.deploymentdate = version.getDeploymentdate();
+		this.processDefinitionId = version.getProcessDefinitionId();
+		this.status = version.getStatus();
+		this.justification = version.getJustification();
 	}
 
 	@Override

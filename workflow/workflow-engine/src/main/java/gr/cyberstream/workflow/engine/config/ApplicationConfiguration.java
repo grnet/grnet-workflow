@@ -1,3 +1,6 @@
+/**
+ * @author nlyk
+ */
 package gr.cyberstream.workflow.engine.config;
 
 import java.util.ArrayList;
@@ -49,6 +52,8 @@ import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.social.twitter.connect.TwitterConnectionFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -62,10 +67,12 @@ import gr.cyberstream.workflow.engine.cmis.CMISSession;
 import gr.cyberstream.workflow.engine.customtypes.ApproveFormType;
 import gr.cyberstream.workflow.engine.customtypes.ConversationFormType;
 import gr.cyberstream.workflow.engine.customtypes.DocumentFormType;
+import gr.cyberstream.workflow.engine.customtypes.DocumentListFormType;
 import gr.cyberstream.workflow.engine.customtypes.EmailFormType;
 import gr.cyberstream.workflow.engine.customtypes.MessageFormType;
 import gr.cyberstream.workflow.engine.customtypes.PositionFormType;
 import gr.cyberstream.workflow.engine.customtypes.TextareaFormType;
+import gr.cyberstream.workflow.engine.customtypes.URLType;
 import gr.cyberstream.workflow.engine.listeners.CustomTaskFormFields;
 import gr.cyberstream.workflow.engine.listeners.ProcessEventListener;
 import gr.cyberstream.workflow.engine.listeners.StartEventFormFields;
@@ -75,23 +82,24 @@ import gr.cyberstream.workflow.engine.listeners.StartEventFormFields;
  * frameworks and the application itself
  * 
  * @author nlyk
- *
+ * 
  */
 @Configuration
 @EnableScheduling
 @EnableTransactionManagement
-@ComponentScan(basePackages = { "gr.cyberstream.workflow.engine.config", "gr.cyberstream.workflow.engine.controller",
+@ComponentScan(basePackages = { "gr.cyberstream.workflow.engine.config", 
+		"gr.cyberstream.workflow.engine.controller.v1", "gr.cyberstream.workflow.engine.controller.v2",
 		"gr.cyberstream.workflow.engine.service", "gr.cyberstream.workflow.engine.persistence",
 		"gr.cyberstream.workflow.engine.cmis", "gr.cyberstream.workflow.engine.listeners",
-		"gr.cyberstream.workflow.engine.customservicetasks" })
+		"gr.cyberstream.workflow.engine.aspect", "gr.cyberstream.workflow.engine.customservicetasks" })
 @PropertySource("classpath:workflow-engine.properties")
-public class ApplicationConfiguration extends WebMvcConfigurationSupport {
+public class ApplicationConfiguration extends WebMvcConfigurationSupport{
 
-	private static final Logger logger = LoggerFactory.getLogger(ApplicationConfiguration.class);
+	final static Logger logger = LoggerFactory.getLogger(ApplicationConfiguration.class);
 
 	@Autowired
 	private Environment env;
-
+	
 	@Bean
 	public static PropertySourcesPlaceholderConfigurer propertyConfig() {
 		return new PropertySourcesPlaceholderConfigurer();
@@ -99,10 +107,11 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
 	@Override
 	public RequestMappingHandlerMapping requestMappingHandlerMapping() {
-		RequestMappingHandlerMapping handlerMapping = super.requestMappingHandlerMapping();
 
+		RequestMappingHandlerMapping handlerMapping = super.requestMappingHandlerMapping();
 		handlerMapping.setAlwaysUseFullPath(true);
-		handlerMapping.setRemoveSemicolonContent(false);
+		handlerMapping.setRemoveSemicolonContent(false); // In order to enable
+															// matrix variables
 		return handlerMapping;
 	}
 
@@ -116,6 +125,8 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 				response.setHeader("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate");
 				response.setHeader("Pragma", "no-cache");
 				response.setDateHeader("Expires", 0);
+				// setCacheControl(CacheControl.noCache());
+				// setCacheControl(CacheControl.noStore());
 			}
 
 			@Override
@@ -127,6 +138,7 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
 	@Bean
 	public DataSource dataSource() {
+
 		DataSource datasource = null;
 
 		try {
@@ -134,6 +146,7 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 			datasource = (DataSource) ctx.lookup(env.getProperty("datasource.name"));
 
 		} catch (NamingException e) {
+
 			logger.error("Unable to find datasource " + env.getProperty("datasource.name") + ". " + e.getMessage());
 		}
 
@@ -142,6 +155,7 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
 	@Bean
 	public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource, JpaVendorAdapter jpaVendorAdapter) {
+
 		LocalContainerEntityManagerFactoryBean emfb = new LocalContainerEntityManagerFactoryBean();
 
 		emfb.setDataSource(dataSource);
@@ -152,8 +166,8 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 		Map<String, Object> jpaProperties;
 		jpaProperties = emfb.getJpaPropertyMap();
 		jpaProperties.put("hibernate.show_sql", env.getProperty("database.showsql", Boolean.class));
-		jpaProperties.put("hibernate.format_sql", env.getProperty("database.showsql", Boolean.class));
 		jpaProperties.put("hibernate.use_sql_comments", env.getProperty("database.showsql", Boolean.class));
+		jpaProperties.put("hibernate.generate_statistics", env.getProperty("hibernate.statistics"));
 		jpaProperties.put("hibernate.format_sql", true);
 		jpaProperties.put("hibernate.hbm2ddl.auto", "validate");
 		emfb.setJpaPropertyMap(jpaProperties);
@@ -163,17 +177,20 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
 	@Bean
 	public JpaVendorAdapter jpaVendorAdapter() {
+
 		HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
 
 		adapter.setDatabasePlatform(env.getProperty("database.type"));
 		adapter.setShowSql(env.getProperty("database.showsql", Boolean.class));
 		adapter.setGenerateDdl(false);
 		adapter.setDatabasePlatform(env.getProperty("database.dialect"));
+
 		return adapter;
 	}
 
 	@Bean
 	public JpaTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
+
 		JpaTransactionManager transactionManager = new JpaTransactionManager();
 		transactionManager.setEntityManagerFactory(entityManagerFactory);
 
@@ -183,6 +200,11 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 	@Bean
 	public BeanPostProcessor persistenceTranslation() {
 		return new PersistenceExceptionTranslationPostProcessor();
+	}
+
+	@Bean
+	public ThreadPoolTaskScheduler taskScheduler() {
+		return new ThreadPoolTaskScheduler();
 	}
 
 	@Bean
@@ -200,7 +222,16 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 	}
 
 	@Bean
+	public TwitterConnectionFactory twitterConnectionFactory() {
+		String consumerKey = env.getProperty("twitter.consumerKey");
+		String consumerSecret = env.getProperty("twitter.consumerSecret");
+
+		return new TwitterConnectionFactory(consumerKey, consumerSecret);
+	}
+
+	@Bean
 	public JavaMailSender mailSender() {
+
 		JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
 
 		javaMailSender.setHost(env.getProperty("mail.host"));
@@ -211,7 +242,7 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
 		Properties properties = new Properties();
 		properties.setProperty("mail.transport.protocol", "smtp");
-		properties.setProperty("mail.smtp.auth", env.getProperty("mail.smtp.auth"));
+		properties.setProperty("mail.smtp.auth", env.getProperty("mail.auth"));
 		properties.setProperty("mail.debug", "false");
 
 		javaMailSender.setJavaMailProperties(properties);
@@ -224,7 +255,7 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 	private @Autowired AutowireCapableBeanFactory beanFactory;
 
 	@Bean
-	public SpringProcessEngineConfiguration springProcessEngineConfiguration(DataSource dataSource, PlatformTransactionManager txManager) {
+	public SpringProcessEngineConfiguration springProcessEngineConfiguration(DataSource dataSource,PlatformTransactionManager txManager) {
 
 		SpringProcessEngineConfiguration speconfig = new SpringProcessEngineConfiguration();
 		speconfig.setDataSource(dataSource());
@@ -257,12 +288,14 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 		// add the custom types to the Activiti engine configuration
 		List<AbstractFormType> customFormTypes = new ArrayList<AbstractFormType>();
 		customFormTypes.add(new DocumentFormType());
+		customFormTypes.add(new DocumentListFormType());
 		customFormTypes.add(new ApproveFormType());
 		customFormTypes.add(new ConversationFormType());
 		customFormTypes.add(new MessageFormType());
 		customFormTypes.add(new EmailFormType());
 		customFormTypes.add(new TextareaFormType());
 		customFormTypes.add(new PositionFormType());
+		customFormTypes.add(new URLType());
 		speconfig.setCustomFormTypes(customFormTypes);
 
 		return speconfig;
@@ -270,13 +303,11 @@ public class ApplicationConfiguration extends WebMvcConfigurationSupport {
 
 	@Bean
 	public ProcessEngineFactoryBean processEngineFactoryBean(SpringProcessEngineConfiguration spec) {
-		
 		ProcessEngineFactoryBean pefbean = new ProcessEngineFactoryBean();
 		pefbean.setProcessEngineConfiguration(spec);
 		return pefbean;
-
 	}
-
+	
 	/*
 	 * @Bean public EndEventListenerImplementation
 	 * endEventListener(SpringProcessEngineConfiguration spec){ spec.getBeans()

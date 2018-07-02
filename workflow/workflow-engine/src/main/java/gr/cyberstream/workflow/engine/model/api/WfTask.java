@@ -11,7 +11,6 @@ import java.util.Map;
 
 import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.task.Task;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -92,22 +91,6 @@ public class WfTask {
 		return variableValues;
 	}
 
-	/**
-	 * Utility function to convert a list of activiti tasks to list of WfTasks
-	 * 
-	 * @param tasks
-	 * @return
-	 */
-	static public List<WfTask> tasksToWfTasks(List<Task> tasks) {
-		List<WfTask> wfTasks = new ArrayList<WfTask>();
-
-		for (Task task : tasks) {
-			wfTasks.add(new WfTask(task));
-		}
-
-		return wfTasks;
-	}
-
 	public String getId() {
 		return id;
 	}
@@ -130,6 +113,32 @@ public class WfTask {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	/**
+	 * Utility function to convert a list of activiti tasks to list of WfTasks
+	 * 
+	 * @param tasks
+	 * @return
+	 */
+	static public List<WfTask> tasksToWfTasks(List<Task> tasks) {
+		List<WfTask> wfTasks = new ArrayList<WfTask>();
+
+		for (Task task : tasks) {
+			wfTasks.add(new WfTask(task));
+		}
+
+		return wfTasks;
+	}
+
+	@Override
+	public boolean equals(Object object) {
+		if (object == null || object.getClass() != getClass())
+			return false;
+		WfTask task = (WfTask) object;
+		if (this.id.equals(task.getId()))
+			return true;
+		return false;
 	}
 
 	public String getProcessDefinitionId() {
@@ -242,38 +251,5 @@ public class WfTask {
 
 	public void setStartForm(boolean startForm) {
 		this.startForm = startForm;
-	}
-
-	@Override
-	public boolean equals(Object other) {
-		boolean result = false;
-		if (other instanceof WfTask) {
-			WfTask that = (WfTask) other;
-			result = (this.getId() == that.getId());
-		}
-		return result;
-	}
-
-	@Override
-	public int hashCode() {
-		HashCodeBuilder builder = new HashCodeBuilder();
-		builder.append(id);
-		builder.append(name);
-		builder.append(description);
-		builder.append(processDefinitionId);
-		builder.append(deploymentId);
-		builder.append(taskForm);
-		builder.append(processId);
-		builder.append(dueDate);
-		builder.append(startDate);
-		builder.append(processInstance);
-		builder.append(assignee);
-		builder.append(icon);
-		builder.append(definitionName);
-		builder.append(taskDetails);
-		builder.append(completed);
-		builder.append(endDate);
-		builder.append(startForm);
-		return builder.toHashCode();
 	}
 }

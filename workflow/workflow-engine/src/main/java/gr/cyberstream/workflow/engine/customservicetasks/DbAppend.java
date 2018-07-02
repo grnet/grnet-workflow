@@ -18,11 +18,15 @@ import org.apache.ddlutils.PlatformFactory;
 import org.apache.ddlutils.model.Column;
 import org.apache.ddlutils.model.Database;
 import org.apache.ddlutils.model.Table;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import gr.cyberstream.workflow.engine.service.InvalidRequestException;
 
 public class DbAppend implements JavaDelegate{
 
+	private static final Logger logger = LoggerFactory.getLogger(DbAppend.class);
+	
 	private Expression datasource;
 	private Expression table;
 	private Expression columns;
@@ -44,7 +48,7 @@ public class DbAppend implements JavaDelegate{
 		String[] columnValuesParts = columnValues.split(",");
 		
 		if(columnParts.length != columnValuesParts.length){
-			System.out.println("Columns and values do not match");
+			logger.error("Columns and values do not match");
 			throw new InvalidRequestException("Columns and values do not match");
 		}
 		
@@ -66,11 +70,11 @@ public class DbAppend implements JavaDelegate{
 			connection = dataSource.getConnection();
 		}		
 		catch (NamingException e) {
-			System.out.println("Data source name not found");
+			logger.error("Data source name not found");
 			throw new InvalidRequestException("Data source name not found");
 		} 
 		catch (SQLException e) {
-			System.out.println("Connection Error: " + e.getMessage());
+			logger.error("Connection Error: " + e.getMessage());
 			throw new InvalidRequestException("Connection Error: " + e.getMessage());
 		}
 		
@@ -98,18 +102,40 @@ public class DbAppend implements JavaDelegate{
 			if(colVal==null)	continue;
 						
 			switch(col.getType()){						
-				case "VARCHAR": columnsMap.put(col.getName(),""+colVal);
+				case "VARCHAR":
+				case "CHAR":
+				case "LONGVARCHAR":
+					columnsMap.put(col.getName(),""+colVal);
 					columnTypesMap.put(col.getName(), col.getType());
 					break;
 					
 				case "INTEGER": 
+				case "BIGINT":
+				case "SMALLINT":
+				case "TINYINT":
 					try{
 						int intVal = Integer.parseInt(""+colVal);   
 						columnsMap.put(col.getName(),intVal);
 						columnTypesMap.put(col.getName(), col.getType());
 					}
 					catch(NumberFormatException e){
-						System.out.println("Column format error");
+						logger.error("Column format error");
+						throw new InvalidRequestException("Column format error");
+					}
+					break;
+					
+				case "DECIMAL":
+				case "DOUBLE":
+				case "FLOAT":
+				case "NUMERIC":
+				case "REAL":
+					try{
+						double doubleVal = Double.parseDouble("" + colVal);   
+						columnsMap.put(col.getName(), doubleVal);
+						columnTypesMap.put(col.getName(), col.getType());
+					}
+					catch(NumberFormatException e){
+						logger.error("Column format error");
 						throw new InvalidRequestException("Column format error");
 					}
 					break;
@@ -132,13 +158,13 @@ public class DbAppend implements JavaDelegate{
 			count++;
 		}
 	
-		System.out.println("Accumulator Query:: " + query);
+		logger.info("Accumulator Query: " + query);
 		
 		try{
 			statement.executeUpdate(query);		
 		}
 		catch(SQLException e){
-			System.out.println(e.getMessage());
+			logger.error(e.getMessage());
 			throw new InvalidRequestException(e.getMessage());
 		}
 		
