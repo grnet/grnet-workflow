@@ -1,22 +1,18 @@
-(function (angular) {
+define(['angular', 'services/process-service'],
 
-    'use strict';
+	function (angular) {
 
-    angular.module('wfworkspaceControllers').controller('TaskActivityListCtrl', ['$scope', '$location', '$mdDialog', 'processService', 'CONFIG',
-		/**
-		 * @name TaskActivityListCtrl
-		 * @ngDoc controllers
-		 * @memberof wfworkspaceControllers
-		 * 
-		 * @desc Controller used by Task activity view
-		 */
-		function ($scope, $location, $mdDialog, processService, config) {
+		'use strict';
 
-			$scope.currentDate = new Date();
-			$scope.currentDate.setDate($scope.currentDate.getDate() + 1);
+		function taskActivityListCtrl($scope, $mdDialog, processService, cacheService, config) {
 
 			$scope.imagePath = config.AVATARS_PATH;
 			$scope.showProgressBar = true;
+
+
+			// limit for date picker
+			$scope.nextDay = new Date();
+			$scope.nextDay.setDate($scope.nextDay.getDate() + 1);
 
 			$scope.instances = [];
 			$scope.tasks = null;
@@ -26,13 +22,13 @@
 
 			$scope.orderByOption = null;
 
-			$scope.options = [];
-            $scope.sortOptions = { title: 'process', id: 'definitionName' };
+            $scope.options = [];
+            $scope.sortOptions = { title: 'process', id: 'processInstance.definitionName' };
             $scope.options.push($scope.sortOptions);
-			$scope.sortOptions = { title: 'taskName', id: 'name' };
-			$scope.options.push($scope.sortOptions);
-			$scope.sortOptions = { title: 'processInstanceName', id: 'processInstance.title' };
-			$scope.options.push($scope.sortOptions);
+            $scope.sortOptions = { title: 'taskName', id: 'name' };
+            $scope.options.push($scope.sortOptions);
+            $scope.sortOptions = { title: 'processInstanceName', id: 'processInstance.title' };
+            $scope.options.push($scope.sortOptions);
             $scope.sortOptions = { title: 'dueTo', id: 'dueDate' };
             $scope.options.push($scope.sortOptions);
             $scope.sortOptions = { title: 'startDate', id: 'startDate' };
@@ -40,9 +36,12 @@
             $scope.sortOptions = { title: 'complete', id: 'endDate' };
             $scope.options.push($scope.sortOptions);
 
+			/**
+			 * Get completed definitions for user
+			 */
 			processService.getActiveProcessDefinitions().then(
-                // success callback
-                function (response) {
+				// success callback
+				function (response) {
 					$scope.definitions = response.data;
 
 					$scope.selectAllDefinitions = { name: "showAll", processDefinitionId: "all" };
@@ -50,20 +49,14 @@
 
 					$scope.initializeCriteria();
 					$scope.showTasksByFilters();
-                }).finally(function () {
+				}).finally(function () {
 					$scope.showProgressBar = false;
-                });
+				});
 
 			/**
-			 * @memberof TaskActivityListCtrl
-			 * @desc Returns the difference between due date and end date of task
-			 * 
-			 * @param {Date} endDate
-			 * @param {Date} dueDate
-			 * @returns
+			 * Returns the difference between due date and end date of task
 			 */
 			$scope.taskEndedDelay = function (endDate, dueDate) {
-
 				if (endDate === null)
 					return Infinity;
 
@@ -73,18 +66,20 @@
 				return diffInDays;
 			};
 
+
 			/**
-			 * @memberof TaskActivityListCtrl
-			 * @desc Shows tasks according to given filters
+			 * Return processes definitions by selected definitions
 			 */
 			$scope.showTasksByFilters = function () {
+
 				$scope.showProgressBar = true;
 
-				var dateAfterTime;
-				var dateBeforeTime;
 				var instanceIds = [];
 				var historyTasks = [];
 				var tasksMapped = {};
+
+				var dateAfterTime;
+				var dateBeforeTime;
 
 				if ($scope.searchFilter.dateAfter)
 					dateAfterTime = $scope.searchFilter.dateAfter.getTime();
@@ -96,20 +91,9 @@
 				else
 					dateBeforeTime = 0;
 
-				if (!$scope.searchFilter.definitionId)
-					$scope.searchFilter.definitionId = "all";
-
-				if (!$scope.searchFilter.instanceTitle)
-					$scope.searchFilter.instanceTitle = "";
-
 				processService.getSearchedUserTasks($scope.searchFilter.definitionId, $scope.searchFilter.instanceTitle, dateAfterTime, dateBeforeTime, "false").then(
 					function (response) {
 						$scope.tasks = response.data;
-
-						$location.search('definitionId', $scope.searchFilter.definitionId);
-						$location.search('instanceTitle', $scope.searchFilter.instanceTitle);
-						$location.search('dateAfter', dateAfterTime);
-						$location.search('dateBefore', dateBeforeTime);
 
 						tasksMapped = ArrayUtil.mapByProperty2innerProperty($scope.tasks, "processInstance", "id", "tasks");
 						instanceIds = Object.keys(tasksMapped);
@@ -118,101 +102,99 @@
 							var task = tasksMapped[item]["tasks"][0];
 							$scope.instances.push(task.processInstance);
 						});
+
+						// save criteria properties into the service
+						cacheService.saveCriteria('activity', $scope.searchFilter);
 					},
+
 					function (response) {
 						exceptionModal(response);
-					}
-				).finally(function () {
-					$scope.showProgressBar = false;
-				});
+
+					}).finally(function () {
+						$scope.showProgressBar = false;
+					});
 			};
 
 			/**
-			 * @memberof TaskActivityListCtrl
-			 * @desc Initialize search criteria
+			 * Initialize criteria
 			 */
 			$scope.initializeCriteria = function () {
-				$scope.searchFilter.definitionId = $location.search().definitionId;
-				$scope.searchFilter.instanceTitle = $location.search().instanceTitle;
 
-				if (!$location.search().dateAfter || $location.search().dateAfter == 0) {
+				var searchCriteria = cacheService.getCriteria("activity");
+
+				if (searchCriteria != null) {
+					$scope.searchFilter = searchCriteria;
+
+				} else {
+
+					$scope.searchFilter.dateBefore = new Date();
 					$scope.searchFilter.dateAfter = new Date();
 					$scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
-					$location.search('dateAfter', $scope.searchFilter.dateAfter.getTime());
-
-				} else
-					$scope.searchFilter.dateAfter = new Date(parseFloat($location.search().dateAfter));
-
-				if (!$location.search().dateBefore || $location.search().dateBefore == 0) {
-					$scope.searchFilter.dateBefore = new Date();
 					$scope.searchFilter.dateBefore.setDate($scope.searchFilter.dateBefore.getDate() + 1);
-					$location.search('dateBefore', $scope.searchFilter.dateBefore.getTime());
-
-				} else
-					$scope.searchFilter.dateBefore = new Date(parseFloat($location.search().dateBefore));
+					$scope.searchFilter.definitionId = "all";
+					$scope.searchFilter.instanceTitle = "";
+				}
 			};
 
 			/**
-			 * @memberof TaskActivityListCtrl
-			 * @desc Clears the "After date" filter
+			 * Clear datepicker for date after
 			 */
 			$scope.clearAfterDate = function () {
+
 				$scope.searchFilter.dateAfter = null;
 
 				$scope.showTasksByFilters();
 			};
 
 			/**
-			 * @memberof TaskActivityListCtrl
-			 * @desc Clears the "Before date" filter
+			 * Clear datepicker for date before
 			 */
 			$scope.clearBeforeDate = function () {
+
 				$scope.searchFilter.dateBefore = null;
 
 				$scope.showTasksByFilters();
 			};
 
-			/**
-			 * @memberof TaskActivityListCtrl
-			 * @desc Clears the "Instance title" filter
-			 */
-			$scope.clearInstanceTitle = function () {
-				$scope.searchFilter.instanceTitle = "";
+            /**
+             * Clear the instance title filter
+             */
+            $scope.clearInstanceTitle = function () {
+                $scope.searchFilter.instanceTitle = "";
+                $scope.showTasksByFilters();
+            };
 
-				$scope.showTasksByFilters();
-			};
+            /**
+             * @memberof InProgressCtrl
+             * @desc Clears any filter
+             *
+             */
+            $scope.clearAllFilters = function () {
+                $scope.searchFilter.dateAfter = 0;
+                $scope.searchFilter.dateBefore = 0;
+                $scope.searchFilter.instanceTitle = "";
+                $scope.searchFilter.definitionId = "all";
 
-			/**
-			 * @memberof TaskActivityListCtrl
-			 * @desc Sorts the tasks by given option
+                $scope.showTasksByFilters();
+            };
+
+            /**
+			 * Sorting function
 			 */
 			$scope.sortBy = function (optionId) {
 				$scope.orderByOption = optionId;
 			};
 
-			/**
-			 * @memberof TaskActivityListCtrl
-			 * @desc Clears all filters
-			 */
-			$scope.clearAllFilters = function () {
-				$scope.searchFilter.definitionId = "all";
-				$scope.searchFilter.instanceTitle = "";
-				$scope.searchFilter.dateBefore = null;
-				$scope.searchFilter.dateAfter = null;
-
-				$scope.showTasksByFilters();
+			$scope.print = function () {
+				window.print();
 			};
 
 			/**
-			 * @memberof TaskActivityListCtrl
-			 * @desc Displays a modal panel, showing the exception message
-			 * 
-			 * @param {any} response
-			 * @param {event} event
+			 * Exception modal
 			 */
-			function exceptionModal(response, event) {
+			function exceptionModal(response, $event) {
 				$mdDialog.show({
-		                		controller: function ($scope, $mdDialog) {
+					controller: function ($scope, $mdDialog) {
 						$scope.error = response.data;
 
 						$scope.cancel = function () {
@@ -221,10 +203,14 @@
 					},
 					templateUrl: 'templates/exception.tmpl.html',
 					parent: angular.element(document.body),
-					targetEvent: event,
+					targetEvent: $event,
 					clickOutsideToClose: false
 				});
-			};
+			}
 
-		}]);
-})(angular);
+		}
+
+		angular.module('wfWorkspaceControllers').controller('TaskActivityListCtrl', ['$scope', '$mdDialog', 'processService', 'cacheService', 'CONFIG', taskActivityListCtrl]);
+
+	}
+);

@@ -1,25 +1,16 @@
-/**
- * @memberOf workflow-workspace
- */
-(function (angular) {
+define(['angular', 'services/process-service'],
 
-    'use strict';
+    function (angular) {
 
-    angular.module('wfworkspaceControllers').controller('DocumentsCtrl', ['$scope', '$routeParams', '$location', 'processService', 'CONFIG',
-        /**
-         * @name DocumentsCtrl
-         * @ngDoc controllers
-         * @memberof wfworkspaceControllers
-         * @desc Controller for the documents view
-         */
-        function ($scope, $routeParams, $location, processService, config) {
+        'use strict';
+
+        function documentsCtrl($scope, $routeParams, $location, $window, $mdToast, $filter, processService, config) {
 
             var pageId = $routeParams['pageId'];
             var taskId = $routeParams['taskId'];
-            $scope.documentPath = config.WORKFLOW_DOCUMENTS_URL;
-
             $scope.documents = null;
             $scope.showProgress = true;
+            $scope.documentPath = config.WORKFLOW_DOCUMENTS_URL;
 
             // get the process instance docuemnts
             processService.getProcessInstanceDocuments(taskId).then(
@@ -36,26 +27,68 @@
                 $scope.showProgress = false;
             });
 
-            /**
-             * @memberof DocumentsCtrl
-             * 
-             * @desc Returns back to task
-             * 
-             */
             $scope.back = function () {
                 $location.path('/' + pageId + '/' + taskId);
             };
 
-            /**
-             * @memberof DocumentsCtrl
-             * 
-             * @param {Date} time
-             * @returns The given date to {String} 
-             */
             $scope.getDateString = function (time) {
                 var date = new Date(time);
                 return date.toLocaleString();
             };
+
+            $scope.goToDocument = function (documentId) {
+
+                var path = $scope.documentPath + documentId;
+                $window.open(path, "_blank");
+            };
+
+            $scope.copyLink = function (documentId) {
+
+                var path = $scope.documentPath + documentId;
+
+                var body = angular.element($window.document.body);
+                var textarea = angular.element('<textarea/>');
+                textarea.val(path);
+                body.append(textarea);
+                textarea[0].select();
+
+                try {
+                    var successful = document.execCommand('copy');
+
+                    if (!successful) throw successful
+                    if (successful) $scope.showToast(($filter('translate')('copiedToClipboard')));
+
+                } catch (err) {
+                    console.log(err);
+                    $scope.showToast("Failed to copy link: " + path);
+                }
+
+                textarea.remove();
+            }
+
+            $scope.checkFileType = function (filename, type) {
+
+                if (type === "any") {
+                    return filename.indexOf("pdf") == -1 && filename.indexOf("xls") == -1 && filename.indexOf("xlsx") == -1;
+                } else {
+                    return filename.indexOf(type) > 0
+                }
+            };
+
+            $scope.toggleVersions = function (document) {
+                document.isExpanded = !document.isExpanded;
+            };
+
+            $scope.showToast = function (message) {
+
+                $mdToast.show(
+                    $mdToast.simple()
+                        .textContent(message)
+                        .position("top")
+                        .hideDelay(3500)
+                );
+            };
+
 
             /**
              * @memberof DocumentsCtrl
@@ -80,6 +113,8 @@
                     clickOutsideToClose: false
                 })
             };
-        }]
-    );
-})(angular);
+        }
+
+        angular.module('wfWorkspaceControllers').controller('DocumentsCtrl', ['$scope', '$routeParams', '$location', '$window', '$mdToast', '$filter', 'processService', 'CONFIG', documentsCtrl]);
+    }
+);

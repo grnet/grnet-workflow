@@ -1,16 +1,10 @@
-(function (angular) {
+define(['angular', 'services/process-service', 'util/core'],
 
-    'use strict';
+    function (angular) {
 
-    angular.module('wfworkspaceControllers').controller('TaskListCtrl', ['$scope', '$location', '$mdDialog', '$filter', 'processService', 'CONFIG',
-        /**
-         * @name TaskListCtrl
-         * @ngDoc controllers
-         * @memberof wfworkspaceControllers
-         * 
-         * @desc Controller for the Task list view
-         */
-        function ($scope, $location, $mdDialog, $filter, processService, config) {
+        'use strict';
+
+        function taskListCtrl($scope, $mdDialog, processService, config) {
 
             $scope.claimTasks = [];
             $scope.tasks = [];
@@ -30,18 +24,10 @@
             $scope.sortOption = { title: 'processInstanceName', id: 'processInstance.title' };
             $scope.sortOptions.push($scope.sortOption);
 
-
             $scope.imagePath = config.AVATARS_PATH;
 
             $scope.showProgress = true;
 
-            /**
-             * @memberOf TaskListCtrl
-             * @desc Returns the difference between due date(if present) and current date 
-             * 
-             * @param {Task} task
-             * @returns {Number} - Difference between dates
-             */
             $scope.taskDelay = function (task) {
                 var diff;
 
@@ -50,7 +36,6 @@
 
                 if (task.endDate) {
                     diff = task.dueDate - task.endDate;
-
                 } else {
                     var currentDate = new Date();
                     diff = task.dueDate - currentDate.getTime();
@@ -77,15 +62,14 @@
 
                             $scope.taskMapByProcess = ArrayUtil.extendMapByProperty($scope.claimTasks, $scope.taskMapByProcess, "definitionName", "unassigned");
                         });
+
                 }).finally(function () {
                     $scope.showProgress = false;
                 });
 
+
             /**
-             * @memberof TaskListCtrl
-             * @desc Handles the selected item from the item list
-             * 
-             * @param {String} definitionName
+             * Handles the selected item from the item list
              */
             $scope.selectionChanged = function (definitionName) {
                 $scope.assignedTasks = $scope.taskMapByProcess[definitionName]["assigned"];
@@ -93,8 +77,7 @@
             };
 
             /**
-             * @memberof TaskListCtrl
-             * @desc Shows all tasks
+             * Shows all the tasks
              */
             $scope.selectAllTasks = function () {
                 $scope.assignedTasks = $scope.tasks;
@@ -110,5 +93,8 @@
             $scope.sortBy = function (optionId) {
                 $scope.orderByOption = optionId;
             };
-        }]);
-})(angular);
+        }
+
+        angular.module('wfWorkspaceControllers').controller('TaskListCtrl', ['$scope', '$mdDialog', 'processService', 'CONFIG', taskListCtrl]);
+    }
+);

@@ -1,18 +1,20 @@
-<md-dialog aria-label="{{ 'taskDetails' | translate }}" style="max-width: 500px">
+<md-dialog aria-label="{{ 'taskDetails' | translate }}" style="width: 500px">
 
 	<md-toolbar>
 		<div class="md-toolbar-tools">
-        	<h2>{{ 'taskDetails' | translate }} {{task.taskDetails.name}}</h2>
-            <span flex></span>
-            <md-button class="md-icon-button" ng-click="cancel()">
-                <md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
-            </md-button>
-        </div>
+			<h2>{{task.taskDetails.name}}</h2>
+			
+			<span flex></span>
+			
+			<md-button class="md-icon-button" ng-click="cancel()">
+				<md-icon md-svg-src="img/icons/close.svg" aria-label="Close dialog"></md-icon>
+			</md-button>
+		</div>
     </md-toolbar>
     
     <md-dialog-content layout-padding>
     
-         <section layout="column">
+    	<section layout="column">
 	        <md-input-container class="md-block">
 	        	<label for="taskDescription">{{ 'taskDescription' | translate }}</label>
 				<textarea id="taskDescription" ng-model="task.taskDetails.description" readonly></textarea>			 
@@ -23,8 +25,4 @@
 	        <md-divider></md-divider>
         </section> 
      </md-dialog-content>    
-        
-        <md-dialog-actions layout="row" layout-align="left center">
-     		<md-button class="md-raised" ng-click="cancel()">{{ 'close' | translate }}</md-button>
-     	</md-dialog-actions>	
 </md-dialog>

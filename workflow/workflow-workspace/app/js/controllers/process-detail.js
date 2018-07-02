@@ -1,31 +1,28 @@
-(function (angular) {
+define(['angular', 'services/process-service'],
 
-    'use strict';
+    function (angular) {
 
-    angular.module('wfworkspaceControllers').controller('ProcessDetailCtrl', ['$scope', '$location', '$mdDialog', '$filter', 'processService', 'CONFIG',
-        /**
-		 * @name ProcessDetailCtrl
-		 * @ngDoc controllers
-		 * @memberof wfworkspaceControllers
-		 * 
-		 * @desc Controller used by Process details view
-		 */
-        function ($scope, $location, $mdDialog, $filter, processService, config) {
+        'use strict';
 
+        function processDetailCtrl($scope, $location, $mdDialog, $filter, processService, config) {
+
+            /** @type {WorkflowDefinition[]} */
             $scope.workflowDefinitions = null;
             $scope.groupProcesses = null;
             $scope.process = null;
             $scope.selectedIndex = null;
             $scope.activeVersion = null;
+            $scope.showProgress = true;
 
             // get the processes
             processService.getProcesses().then(
                 // success callback
                 function (response) {
+
                     $scope.processes = response.data;
-                    if (response.data.length > 0) {
+
+                    if (response.data.length > 0)
                         $scope.selectedProcess = response.data[0].id;
-                    }
 
                     //$scope.groupProcesses = ArrayUtil.mapByProperty(response.data, "owner");
 
@@ -43,14 +40,10 @@
                     if (response.data.length > 0)
                         $scope.processSelectionChanged(response.data[0].id);
                 }
-            );
+            ).finally(function() {
+                $scope.showProgress = false;
+            });
 
-            /**
-             * @memberof ProcessDetailCtrl
-             * @desc Shows only the selected processes (Filters by the selected one)
-             * 
-             * @param {String} processId
-             */
             $scope.processSelectionChanged = function (processId) {
                 $scope.selectedIndex = processId;
 
@@ -75,10 +68,8 @@
             };
 
             /**
-             * @memberof ProcessDetailCtrl
-             * @desc Displays a modal panel, showing the progress diagram
-             * 
-             * @param {event} event
+             * Shows a dialog with the process diagram
+             * @param event
              */
             $scope.showDiagram = function (event) {
                 $mdDialog.show({
@@ -100,28 +91,27 @@
                         'service': config.WORKFLOW_SERVICE_ENTRY,
                         'process': $scope.process
                     }
-                });
+                })
             };
 
             /**
-             * @memberof ProcessDetailCtrl
-             * @desc Check if process is active
-             * 
+             * Returns true if the selected version is active
              * @param {WorkflowDefinition} process
-             * @returns {Boolean} - Whether the process is active or not
              */
             $scope.isActive = function (process) {
                 return processService.isProcessActive(process);
             };
 
             /**
-             * @memberof ProcessDetailCtrl
-             * @desc Redirects to '/process/start/', using the selected process in order to start it
-             * 
+             * Shows the UI to start a new instance of the selected process
              */
             $scope.startProcess = function () {
                 $location.path('/process/start/' + $scope.process.id);
             };
 
-        }]);
-})(angular);
+        }
+
+        angular.module('wfWorkspaceControllers').controller('ProcessDetailCtrl', ['$scope', '$location', '$mdDialog', '$filter', 'processService', 'CONFIG', processDetailCtrl]);
+    }
+
+);

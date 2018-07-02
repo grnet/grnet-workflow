@@ -1,368 +1,314 @@
-(function (angular) {
+define(['angular', 'services/process-service'],
 
-    'use strict';
+	function (angular) {
 
-    angular.module('wfworkspaceControllers').controller('TaskDetailCtrl', ['$scope', '$filter', '$routeParams', '$location', '$mdDialog', '$window', 'processService', 'CONFIG',
-        /**
-         * @name TaskDetailCtrl
-         * @ngDoc controllers
-         * @memberof wfworkspaceControllers
-         * 
-         * @desc Controller for the Task detail view
-         */
-        function ($scope, $filter, $routeParams, $location, $mdDialog, $window, processService, config) {
+		'use strict';
 
-            $scope.imagePath = config.AVATARS_PATH;
-            var taskId = $routeParams['taskId'];
-            $scope.executionActiveView = "list";
+		function taskDetailCtrl($scope, $filter, $routeParams, $location, $mdDialog, $window, processService, config) {
 
-            $scope.showProgress = true;
+			// System constants
+			$scope.imagePath = config.AVATARS_PATH;
+			$scope.documentPath = config.WORKFLOW_DOCUMENTS_URL;
 
-            $scope.historyTasks = [];
+			// The task id
+			var taskId = $routeParams['taskId'];
 
-            $scope.task = null;
-            $scope.historicTask = null;
+			// Sets the view during the render of the page on "completed tasks".
+			// Used by completed tasks tab
+			$scope.executionActiveView = "list";
 
-            $scope.assignee = null;
-            $scope.instance = {
-                title: "",
-                supervisor: null,
-                variableValues: null
-            };
+			// Show the progress bar during rendering
+			$scope.showProgress = true;
 
-            $scope.startDate = null;
-            $scope.dueDate = null;
-            $scope.endDate = null;
+			/**
+			 * Returns the difference between due date and current date
+			 */
+			$scope.taskDelay = function (task) {
+				var diff;
 
-            $scope.historicStartDate = null;
-            $scope.historicDueDate = null;
-            $scope.historicEndDate = null;
+				if (task.dueDate === null)
+					return Infinity;
 
+				if (task.endDate) {
+					diff = task.dueDate - task.endDate;
 
-            $scope.approveAction = null;
-            $scope.documentPath = config.WORKFLOW_DOCUMENTS_URL;
+				} else {
+					var currentDate = new Date();
+					diff = task.dueDate - currentDate.getTime();
+				}
 
-            /**
-             * @memberOf TaskDetailCtrl
-             * @desc Returns the difference between due date(if present) and current date 
-             * 
-             * @param {Task} task
-             * @returns {Number} - Difference between dates
-             */
-            $scope.taskDelay = function (task) {
-                var diff;
+				var diffInDays = diff / (1000 * 3600 * 24);
+				return diffInDays;
+			};
 
-                if (task.dueDate === null)
-                    return Infinity;
+			/**
+			 * Get the task based by its id
+			 * 
+			 * @param taskId
+			 *            The task's id
+			 */
+			function getTask(taskId) {
+				$scope.showProgress = true;
 
-                if (task.endDate) {
-                    diff = task.dueDate - task.endDate;
+				// get the selected task
+				processService.getTask(taskId).then(
+					// success callback
+					function (response) {
+						$scope.task = response.data;
 
-                } else {
-                    var currentDate = new Date();
-                    diff = task.dueDate - currentDate.getTime();
-                }
+						if ($scope.task.dueDate != null)
+							$scope.dueDate = $filter('date')($scope.task.dueDate, "d/M/yyyy H:mm");
 
-                var diffInDays = diff / (1000 * 3600 * 24);
-                return diffInDays;
-            };
+						if ($scope.task.endDate != null)
+							$scope.endDate = $filter('date')($scope.task.endDate, "d/M/yyyy");
 
-            /**
-             * @memberOf TaskDetailCtrl
-             * @desc Returns task by given id
-             * 
-             * @param {String} taskId
-             */
-            function getTask(taskId) {
-                $scope.showProgress = true;
+						$scope.startDate = $filter('date')($scope.task.startDate, "d/M/yyyy");
 
-                // get the selected task
-                processService.getTask(taskId).then(
-                    // success callback
-                    function (response) {
-                        $scope.task = response.data;
+						// check if task has approval property
+						var formProperties = response.data.taskForm;
+						for (var i = 0; i < formProperties.length; i++) {
+							var property = formProperties[i];
 
-                        if ($scope.task.dueDate != null)
-                            $scope.dueDate = $filter('date')($scope.task.dueDate, "d/M/yyyy");
+							if (property.type === 'approve') {
+								$scope.approveAction = property;
+								break;
+							}
+						}
+					},// error callback
+					function (response) {
+						exceptionModal(response);
+					}
 
+				).finally(function () {
+					$scope.showProgress = false;
+				});
+			}
 
-                        if ($scope.task.endDate != null)
-                            $scope.endDate = $filter('date')($scope.task.endDate, "d/M/yyyy");
+			getTask(taskId);
 
-                        $scope.startDate = $filter('date')($scope.task.startDate, "d/M/yyyy");
+			/**
+			 * Opens assignee modal
+			 */
+			$scope.selectAssigneeModal = function () {
+				$mdDialog.show({
+					controller: function ($mdDialog, candidates) {
+						$scope.candidates = candidates;
 
-                        var formProperties = response.data.taskForm;
+						$scope.cancel = function () {
+							$mdDialog.hide();
+						};
 
-                        for (var i = 0; i < formProperties.length; i++) {
+						$scope.confirm = function () {
+							$scope.task.assignee = $scope.assignee;
+							$mdDialog.hide();
+						};
+					},
+					scope: $scope,
+					preserveScope: true,
+					templateUrl: 'templates/assigneeSelection.tmpl.html',
+					parent: document.body,
+					targetEvent: event,
+					clickOutsideToClose: true,
+					locals: {
+						'candidates': $scope.task.candidates
+					}
+				})
+			};
 
-                            var property = formProperties[i];
+			/**
+			 * Claim the task by the logged in user
+			 */
+			$scope.claimTask = function () {
+				$scope.showProgress = true;
 
-                            if (property.type === 'approve') {
-
-                                $scope.approveAction = property;
-                                break;
-                            }
-                        }
-                    },
-                    // error callback
-                    function (response) {
-                        exceptionModal(response);
-
-                    }).finally(function () {
-                        $scope.showProgress = false;
-                    });
-            }
-
-            getTask(taskId);
-
-            /**
-             * @memberof TaskDetailCtrl
-             * @desc Displays a modal panel showing available candidates for the task.
-             * If no candidates found, then all users will be available as candidates
-             * 
-             */
-            $scope.selectAssigneeModal = function () {
-                $mdDialog.show({
-                    controller: function ($mdDialog, candidates) {
-                        $scope.candidates = candidates;
-
-                        $scope.cancel = function () {
-                            $mdDialog.hide();
-                        };
-
-                        $scope.confirm = function () {
-                            $scope.task.assignee = $scope.assignee;
-                            $mdDialog.hide();
-                        };
-                    },
-                    scope: $scope,
-                    preserveScope: true,
-                    templateUrl: 'templates/assigneeSelection.tmpl.html',
-                    parent: document.body,
-                    targetEvent: event,
-                    clickOutsideToClose: true,
-                    locals: {
-                        'candidates': $scope.task.candidates
-                    }
-                })
-            };
-
-            /**
-             * @memberOf TaskDetailCtrl
-             * @desc Claims the task (assigns the task to user)
-             */
-            $scope.claimTask = function () {
-                $scope.showProgress = true;
-
-                processService.claimTask($scope.task.id).then(
-                    // success callback
-                    function (response) {
-                        $scope.task = response.data;
-                        getTask(taskId);
-                    },
-                    // error callback
-                    function (response) {
+				processService.claimTask($scope.task.id).then(
+					// success callback
+					function (response) {
+						$scope.task = response.data;
+						getTask(taskId);
+					},
+					// error callback
+					function (response) {
                         exceptionModal(response, $scope.task);
+					}
+				).finally(function () {
+					$scope.showProgress = false;
+				});
+			};
 
-                    }).finally(function () {
-                        $scope.showProgress = false;
-                    });
-            };
+			/**
+			 * Completes task
+			 */
+			$scope.completeTask = function () {
+				$scope.showProgress = true;
 
-            /**
-             * @memberOf TaskDetailCtrl
-             * @desc Completes a task
-             */
-            $scope.completeTask = function () {
-                $scope.showProgress = true;
-
-                processService.completeTask($scope.task).then(
-                    // success callback
-                    function (response) {
-                        $scope.task = response.data;
-                        $location.path('/task');
-                    },
-                    // error callback
-                    function (response) {
+				processService.completeTask($scope.task).then(
+					// success callback
+					function (response) {
+						$scope.task = response.data;
+						$location.path('/task');
+					},
+					// error callback
+					function (response) {
                         exceptionModal(response, $scope.task);
-                    }
+					}
 
-                ).finally(function () {
-                    $scope.showProgress = false;
-                });
-            };
+				).finally(function () {
+					$scope.showProgress = false;
+				});
+			};
 
-            /**
-             * @memberOf TaskDetailCtrl
-             * @desc Completes a task (if the task is an approve document)
-             * 
-             * @param {String} outcome
-             */
-            $scope.acceptTask = function (outcome) {
-                $scope.showProgress = true;
-                $scope.approveAction.value = outcome;
+			/**
+			 * Handle the approve document task
+			 * 
+			 * @param outcome The result of the approve
+			 * 
+			 */
+			$scope.acceptTask = function (outcome) {
+				$scope.showProgress = true;
+				$scope.approveAction.value = outcome;
 
-                processService.completeTask($scope.task).then(
-                    // success callback
-                    function (response) {
-                        $scope.task = response.data;
-                        $location.path('/task');
-                    },
-                    // error callback
-                    function (response) {
+				processService.completeTask($scope.task).then(
+					// success callback
+					function (response) {
+						$scope.task = response.data;
+						$location.path('/task');
+					},
+					// error callback
+					function (response) {
                         exceptionModal(response, $scope.task);
-                    }
+					}
 
-                ).finally(function () {
-                    $scope.showProgress = false;
-                });
-            };
+				).finally(function () {
+					$scope.showProgress = false;
+				});
+			};
 
-            /**
-             * @memberof TaskDetailCtrl
-             * @desc Displays a modal panel showing task's details
-             * 
-             * @param {event} event
-             */
-            $scope.showTaskDetails = function (event) {
-                $mdDialog.show({
-                    controller: function ($mdDialog) {
+			/**
+			 * Open a modal to display task details
+			 */
+			$scope.showTaskDetails = function (event) {
+				$mdDialog.show({
+					controller: function ($mdDialog) {
 
-                        $scope.cancel = function () {
-                            $mdDialog.hide();
-                        };
-                    },
-                    scope: $scope,
-                    preserveScope: true,
-                    templateUrl: 'templates/taskDetails.tmpl.html',
-                    parent: document.body,
-                    targetEvent: event,
-                    clickOutsideToClose: true,
-                    locals: {
-                        'taskDetails': $scope.task.taskDetails
-                    }
-                })
-            };
+						$scope.cancel = function () {
+							$mdDialog.hide();
+						};
+					},
+					scope: $scope,
+					preserveScope: true,
+					templateUrl: 'templates/taskDetails.tmpl.html',
+					parent: document.body,
+					targetEvent: event,
+					clickOutsideToClose: true,
+					locals: {
+						'taskDetails': $scope.task.taskDetails
+					}
+				})
+			};
 
-            /**
-             * @memberof TaskDetailCtrl
-             * @desc Tab change event listener. Gets completed tasks when user selects the particular tab
-             * 
-             * @param {String} tab
-             */
-            $scope.onTabSelected = function (tab) {
-                if (tab == "executionHistory") {
-                    // get tasks by task instance
-                    processService.getCompletedTasksByInstances($scope.task.processInstance.id).then(
-                        function (response) {
-                            $scope.historyTasks = response.data;
-                        });
-                } else
-                    $scope.executionActiveView = "list";
-            };
+			/**
+			 * Tab change event
+			 */
+			$scope.onTabSelected = function (tab) {
+				if (tab == "executionHistory") {
+					// get tasks by task instance
+					processService.getCompletedTasksByInstances($scope.task.processInstance.id).then(
+						function (response) {
+							$scope.historyTasks = response.data;
+						});
+				} else
+					$scope.executionActiveView = "list";
+			};
 
-            /**
-             * @memberof TaskDetailCtrl
-             * @desc Returns task details for a completed task
-             * 
-             * @param {String} taskId
-             */
-            $scope.goToCompletedTask = function (taskId) {
-                processService.getTask(taskId).then(
-                    function (response) {
-                        $scope.historicTask = response.data;
+			/**
+			 * Get the details of selected historic task
+			 */
+			$scope.goToCompletedTask = function (taskId) {
+				processService.getTask(taskId).then(
+					function (response) {
+						$scope.historicTask = response.data;
 
-                        $scope.executionActiveView = "form";
+						$scope.executionActiveView = "form";
 
-                        if ($scope.historicTask.dueDate != null) {
-                            $scope.historicDueDate = $filter('date')($scope.historicTask.dueDate, "d/M/yyyy");
-                        }
+						if ($scope.historicTask.dueDate != null)
+							$scope.historicDueDate = $filter('date')($scope.historicTask.dueDate, "d/M/yyyy H:mm");
 
-                        if ($scope.historicTask.endDate != null) {
-                            $scope.historicEndDate = $filter('date')($scope.historicTask.endDate, "d/M/yyyy");
-                        }
+						if ($scope.historicTask.endDate != null)
+							$scope.historicEndDate = $filter('date')($scope.historicTask.endDate, "d/M/yyyy");
 
-                        $scope.historicStartDate = $filter('date')($scope.historicTask.startDate, "d/M/yyyy");
-                    },
-                    function (response) {
-                        exceptionModal(response);
-                    });
-            };
-
-            /**
-             * @memberof TaskDetailCtrl
-             * @desc Temporary saves the task form data
-             */
-            $scope.temporarySave = function () {
-                $scope.showProgress = true;
-
-                processService.temporarySave($scope.task).then(
-                    //success callback
-                    function (response) {
-                        // get the task
-                        getTask(taskId);
-                    },
-                    //error callback
-                    function (response) {
+						$scope.historicStartDate = $filter('date')($scope.historicTask.startDate, "d/M/yyyy");
+					},
+					function (response) {
                         exceptionModal(response, $scope.task);
-                    }
+					});
+			};
 
-                ).finally(function () {
-                    $scope.showProgress = false;
-                });
-            };
+			/**
+			 * Temporary saves the task form data
+			 */
+			$scope.temporarySave = function () {
+				$scope.showProgress = true;
 
-            /**
-             * @memberof TaskDetailCtrl
-             * @desc Go back to historic tasks
-             */
-            $scope.goBack = function () {
-                $scope.executionActiveView = "list";
-            };
+				processService.temporarySave($scope.task).then(
+					//success callback
+					function (response) {
+						getTask(taskId);
+					},
+					//error callback
+					function (response) {
+						exceptionModal(response);
+					}
+				).finally(function () {
+					$scope.showProgress = false;
+				});
+			};
 
-            /**
-             * @memberof TaskDetailCtrl
-             * @desc Redirects to print page
-             */
-            $scope.goToPrintPage = function () {
-                $location.path('/startform/print/' + $scope.task.processInstance.id, '_blank')
-            };
+			/**
+			 * Go back to historic tasks
+			 */
+			$scope.goBack = function () {
+				$scope.executionActiveView = "list";
+			};
 
-            /**
-             * @memberof TaskDetailCtrl
-             * @desc Displays a modal panel showing the process diagram
-             */
-            $scope.showProgressDiagram = function () {
-                $mdDialog.show({
-                    controller: function ($mdDialog) {
+			/**
+			 * Redirects to print page
+			 */
+			$scope.goToPrintPage = function () {
+				$location.path('/startform/print/' + $scope.task.processInstance.id, '_blank')
+			};
 
-                        $scope.instance = $scope.task.processInstance;
-                        $scope.service = config.WORKFLOW_SERVICE_ENTRY;
+			$scope.showProgressDiagram = function (event) {
+				$mdDialog.show({
+					controller: function ($mdDialog) {
 
-                        $scope.cancel = function () {
-                            $mdDialog.hide();
-                        };
-                    },
-                    scope: $scope,
-                    preserveScope: true,
-                    templateUrl: 'templates/progressDiagram.tmpl.html',
-                    parent: document.body,
-                    targetEvent: event,
-                    clickOutsideToClose: true,
-                    locals: {
-                        'service': $scope.service,
-                        'instance': $scope.instance,
-                    }
-                })
-            };
+						$scope.instance = $scope.task.processInstance;
+						$scope.service = config.WORKFLOW_SERVICE_ENTRY;
 
-            /**
-             * @memberof TaskDetailCtrl
-             * @desc Displays a modal panel, showing the exception message 
-             * 
-             * @param {any} response
-             * @param {event} event
-             */
+						$scope.cancel = function () {
+							$mdDialog.hide();
+						};
+					},
+					scope: $scope,
+					preserveScope: true,
+					templateUrl: 'templates/progressDiagram.tmpl.html',
+					parent: document.body,
+					targetEvent: event,
+					clickOutsideToClose: true,
+					locals: {
+						'service': $scope.service,
+						'instance': $scope.instance,
+					}
+				})
+			};
+
+			/**
+			 * Navigates to previous page
+			 */
+			$scope.back = function () {
+				$window.history.back();
+			};
+
             function exceptionModal(response, task, event) {
                 $mdDialog.show({
                     controller: function ($scope, $mdDialog) {
@@ -384,15 +330,10 @@
                     targetEvent: event,
                     clickOutsideToClose: false
                 })
-            };
+            }
 
-            /**
-             * @memberof TaskDetailCtrl
-             * @desc Navigates to previous page
-             */
-            $scope.back = function () {
-                $window.history.back();
-            };
+		}
 
-        }]);
-})(angular);
+		angular.module('wfWorkspaceControllers').controller('TaskDetailCtrl', ['$scope', '$filter', '$routeParams', '$location', '$mdDialog', '$window', 'processService', 'CONFIG', taskDetailCtrl]);
+	}
+);

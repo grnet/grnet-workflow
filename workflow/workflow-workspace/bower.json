@@ -1,16 +1,20 @@
 {
-  "name": "grnet-workflow-manager",
-  "description": "Client Application for managing Process Definitions within the GRNET.WORKFLOW platform",
-  "version": "0.1.0",
-  "homepage": "",
-  "license": "EUPL",
-  "private": true,
-  "dependencies": {
-    "angular": "~1.5.0",
-    "angular-route": "~1.5.0",
-    "angular-material": "~0.11.0"
-  },
-  "devDependencies": {
-    "angular-mocks": "~1.5.0"
-  }
+	"name": "workstream-workspace",
+	"description": "Client Application for executing Process Definitions within the WorkStream platform",
+	"version": "1.0.0",
+	"license": "MIT",
+	"homepage": "",
+	"private": true,
+	"dependencies": {
+		"angular": "~1.6.4",
+		"angular-material": "1.1.4",
+		"angular-animate": "1.6.4",
+		"angular-route": "~1.6.4",
+		"angular-aria": "^1.6.4",
+		"angular-sanitize": "^1.6.4",
+		"keycloak": "2.1.0"
+	},
+	"authors": [
+		"CyberStream LTD"
+	]
 }

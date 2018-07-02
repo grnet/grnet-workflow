@@ -1,18 +1,13 @@
-(function (angular) {
+define(['angular', 'services/process-service'],
 
-	'use strict';
+	function (angular) {
 
-	angular.module('wfworkspaceControllers').controller('InProgressCtrl', ['$scope', '$location', '$mdDialog', 'processService', 'CONFIG',
-		/**
-		 * @name InProgressCtrl
-		 * @ngDoc controllers
-		 * @memberof wfworkspaceControllers
-		 * 
-		 * @desc Controller used by In progress view
-		 */
-		function ($scope, $location, $mdDialog, processService, config) {
+		'use strict';
 
-            $scope.imagePath = config.AVATARS_PATH;
+		function inProgressCtrl($scope, $mdDialog, processService, config) {
+
+			$scope.imagePath = config.AVATARS_PATH;
+			$scope.showProgress = true;
 
             $scope.activeMaxDateBefore = new Date();
             $scope.activeMaxDateBefore.setDate($scope.activeMaxDateBefore.getDate() + 1);
@@ -27,16 +22,16 @@
 
             var sortOption = { title: 'process', id: 'definitionName' };
             $scope.activeSortOptions.push(sortOption);
-            sortOption = { title: 'processInstanceName', id: 'processInstance.title' };
+            sortOption = { title: 'processInstanceName', id: 'title' };
             $scope.activeSortOptions.push(sortOption);
-            sortOption = { title: 'supervisor', id: 'assignee' };
+            sortOption = { title: 'supervisor', id: 'supervisor' };
             $scope.activeSortOptions.push(sortOption);
             sortOption = { title: 'startDate', id: 'startDate' };
             $scope.activeSortOptions.push(sortOption);
 
             processService.getActiveProcessDefinitions().then(
-                // success callback
-                function (response) {
+				//success callback
+				function (response) {
                     $scope.activeDefinitions = response.data;
 
                     $scope.selectAllActiveDefinitions = { name: "showAll", processDefinitionId: "all" };
@@ -44,49 +39,21 @@
 
                     initializeCriteria();
                     $scope.searchInProgressInstances();
-                },
-                // error callback
-                function (response) {
+				}, function (response) {
                     exceptionModal(response);
-                });
+				}).finally(function () {
+					$scope.showProgress = false;
+				});
 
-            /**
-             * @memberof InProgressCtrl
-             * @descr Initializes all search criteria
-             *
-             */
             function initializeCriteria() {
-                if (!$location.search().dateAfter || $location.search().dateAfter == 0) {
-                    $scope.searchFilter.dateAfter = new Date();
-                    $scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
-                    $location.search('dateAfter', $scope.searchFilter.dateAfter.getTime());
-                } else
-                    $scope.searchFilter.dateAfter = new Date(parseFloat($location.search().dateAfter));
+                $scope.searchFilter.dateBefore = new Date();
+                $scope.searchFilter.dateAfter = new Date();
+                $scope.searchFilter.dateAfter.setMonth($scope.searchFilter.dateAfter.getMonth() - 3);
+                $scope.searchFilter.dateBefore.setDate($scope.searchFilter.dateBefore.getDate() + 1);
+                $scope.searchFilter.instanceTitle = "";
+                $scope.searchFilter.definitionId = "all";
+            }
 
-                if (!$location.search().dateBefore || $location.search().dateBefore == 0) {
-                    $scope.searchFilter.dateBefore = new Date();
-                    $scope.searchFilter.dateBefore.setDate($scope.searchFilter.dateBefore.getDate() + 1);
-                    $location.search('dateBefore', $scope.searchFilter.dateBefore.getTime());
-
-                } else
-                    $scope.searchFilter.dateBefore = new Date(parseFloat($location.search().dateBefore));
-
-                if (!$location.search().instanceTitle)
-                    $location.search('instanceTitle', "");
-                else
-                    $scope.searchFilter.instanceTitle = $location.search().instanceTitle;
-
-                if (!$location.search().definitionId)
-                    $location.search('definitionId', "all");
-                else
-                    $scope.searchFilter.definitionId = $location.search().definitionId;
-            };
-
-            /**
-             * @memberof InProgressCtrl
-             * @desc Searches for instances based on given criteria
-             *
-             */
             $scope.searchInProgressInstances = function () {
                 var dateAfterTime;
                 var dateBeforeTime;
@@ -110,11 +77,6 @@
                 processService.getInProgressInstances($scope.searchFilter.definitionId, $scope.searchFilter.instanceTitle, dateAfterTime, dateBeforeTime).then(
                     // success callback
                     function (response) {
-                        $location.search('definitionId', $scope.searchFilter.definitionId);
-                        $location.search('instanceTitle', $scope.searchFilter.instanceTitle);
-                        $location.search('dateAfter', dateAfterTime);
-                        $location.search('dateBefore', dateBeforeTime);
-
                         var instances = response.data;
                         var tasksMapped = ArrayUtil.mapByProperty2Property(instances, "id", "instances");
                         var instanceIds = Object.keys(tasksMapped);
@@ -123,7 +85,8 @@
 
                         instanceIds.forEach(function (item) {
                             var instance = tasksMapped[item]["instances"][0];
-                            $scope.inProgressInstances.push(instance);
+                            if($scope.activeDefinitions.map(function(a) {return a.name;}).indexOf(instance.definitionName) >= 0)
+                                $scope.inProgressInstances.push(instance);
                         });
                     },
                     // error callback
@@ -132,6 +95,10 @@
                     }
                 );
             };
+
+			$scope.print = function() {
+				window.print();
+			};
 
             /**
              * @memberof InProgressCtrl
@@ -209,5 +176,8 @@
                     clickOutsideToClose: false
                 });
             };
-        }]);
-})(angular);
+        }
+
+		angular.module('wfWorkspaceControllers').controller('InProgressCtrl', ['$scope', '$mdDialog', 'processService', 'CONFIG', inProgressCtrl]);
+	}
+);
