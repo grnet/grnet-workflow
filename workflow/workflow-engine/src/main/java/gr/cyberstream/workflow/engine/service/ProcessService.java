@@ -32,6 +32,7 @@ import org.activiti.engine.history.HistoricDetail;
 import org.activiti.engine.history.HistoricFormProperty;
 import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.history.HistoricTaskInstanceQuery;
+import org.activiti.engine.identity.User;
 import org.activiti.engine.impl.cmd.SetProcessDefinitionVersionCmd;
 import org.activiti.engine.impl.persistence.entity.HistoricDetailVariableInstanceUpdateEntity;
 import org.activiti.engine.impl.persistence.entity.HistoricFormPropertyEntity;
@@ -1140,6 +1141,7 @@ public class ProcessService {
 			List<StartEvent> startEvents = p.findFlowElementsOfType(StartEvent.class);
 			for (StartEvent startEvent : startEvents) {
 
+				process.setStartFormDocumentation(startEvent.getDocumentation());
 				// task detail
 				taskDetail = processRepository.getUserTaskDetailByDefinitionKey(startEvent.getId(),
 						process.getProcessDefinitionId());
@@ -1583,6 +1585,7 @@ public class ProcessService {
 				for (WfFormProperty property : instanceData.getProcessForm()) {
 					if (property.getType().equals("conversation")) 
 						property.setValue(fixConversationMessage(property.getValue(), userId));
+					property.setWritable(true);
 				}
 			}
 
@@ -3027,15 +3030,8 @@ public class ProcessService {
 
 		List<IdentityLink> links = activitiTaskSrv.getIdentityLinksForTask(taskId);
 
-		if (links.size() == 0 || links == null) {
-			for (WfUser user : realmService.getAllUsers()) {
-
-				if (user.getEmail() != null)
-					user.setPendingTasks(activitiTaskSrv.createTaskQuery().active().taskAssignee(user.getEmail()).count());
-
-				if (!candidates.contains(user))
-					candidates.add(user);
-			}
+		if (links == null || links.size() == 0) {
+			return candidates;
 		}
 
 		for (IdentityLink link : links) {
@@ -3098,6 +3094,21 @@ public class ProcessService {
 		}
 
 		return candidates;
+	}
+
+	public List<WfUser> getCandidatesWithEmptyListAlso(String taskId){
+		List<WfUser> users = this.getCandidatesByTaskId(taskId);
+
+		if(users.isEmpty()){
+			for (WfUser user : realmService.getAllUsers()) {
+				if (user.getEmail() != null)
+					user.setPendingTasks(activitiTaskSrv.createTaskQuery().active().taskAssignee(user.getEmail()).count());
+				if (!users.contains(user))
+					users.add(user);
+			}
+		}
+
+		return users;
 	}
 
 	/**
@@ -3861,35 +3872,40 @@ public class ProcessService {
 		WorkflowSettings settings = definitionService.getSettings();
 
 		List<WfUser> users = this.getCandidatesByTaskId(task.getId());
-
-		if ((users == null || users.isEmpty()) && task.getAssignee() == null) {
-			String adminEmail = environment.getProperty("mail.admin");
-			WorkflowDefinition workflowDef = processRepository.getProcessByDefinitionId(task.getProcessDefinitionId());
-			WorkflowInstance instance = processRepository.getInstanceById(task.getProcessInstanceId());
-			mailService.sendBpmnErrorEmail(adminEmail, workflowDef, task, instance);
-			return;
-		}
-
-		if (!settings.isAutoAssignment() || users.size() > 1)
-			return;
 		String userEmail;
 
-		if(users.size() > 0)
+		// Case of no candidate
+		if(users.isEmpty() && task.getAssignee() == null){
+		}
+		// Case of a candidate group
+		else if(!settings.isAutoAssignment() || users.size() > 1) {
+			for (WfUser user : users) {
+				String email = user.getEmail();
+				mailService.sendCandidateGroupMail(email, task);
+			}
+		}
+		// Case of a candidate user
+		else if(users.size() > 0) {
 			userEmail = users.get(0).getEmail();
-		else if (task.getAssignee() != null)
+			activitiTaskSrv.claim(task.getId(), userEmail);
+			if (settings.isAssignmentNotification())
+				mailService.sendTaskAssignedMail(userEmail, task);
+		}
+		// Case of a task assignee
+		else if (task.getAssignee() != null) {
 			userEmail = task.getAssignee();
-		else{
+			activitiTaskSrv.claim(task.getId(), userEmail);
+			if (settings.isAssignmentNotification())
+				mailService.sendTaskAssignedMail(userEmail, task);
+			logger.info("Assignee email: " + userEmail);
+		}
+		// Case of no candidate
+		else {
 			String adminEmail = environment.getProperty("mail.admin");
 			WorkflowDefinition workflowDef = processRepository.getProcessByDefinitionId(task.getProcessDefinitionId());
 			WorkflowInstance instance = processRepository.getInstanceById(task.getProcessInstanceId());
 			mailService.sendBpmnErrorEmail(adminEmail, workflowDef, task, instance);
-			return;
 		}
-
-		activitiTaskSrv.claim(task.getId(), userEmail);
-
-		if (settings.isAssignmentNotification())
-			mailService.sendTaskAssignedMail(userEmail, task);
 	}
 
 	/**

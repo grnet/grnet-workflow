@@ -38,12 +38,17 @@
 
 				<div>{{instanceTitle}}</div>
 
-				<section ng-if="process.description">
-					<label for="processDescription">{{ 'description' | translate }}</label>
-					<div id="processDescription" ng-bind-html="process.description" readonly class="disabledLabel" disabled>{{process.description}}</div>
-				</section>
+                <md-input-container></md-input-container>
 
-				<md-input-container class="md-block"></md-input-container>
+                    <md-input-container ng-if="process.description" flex class="md-block" ng-if="process.description" style="margin-top:0px">
+                        <label for="processDescription">{{'description' | translate }}</label>
+                        <textarea id="processDescription" ng-model="process.description" readonly disabled></textarea>
+                    </md-input-container>
+
+                    <md-input-container ng-if="process.startFormDocumentation" flex class="md-block" ng-if="process.startFormDocumentation" style="margin-top:0px">
+                        <label for="startFormDocumentation">{{'startFormDocumentation' | translate }}</label>
+                        <textarea id="startFormDocumentation" ng-model="process.startFormDocumentation" readonly disabled></textarea>
+                    </md-input-container>
 
 				<md-input-container class="md-block">
 					<label for="title">{{ 'executionTitle' | translate }}</label>

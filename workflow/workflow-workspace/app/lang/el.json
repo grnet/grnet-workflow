@@ -176,5 +176,6 @@
 	"owner": "ιδιοκτήτης",
 	"approval": "έγκριση κειμένου",
 	"{\"approve\":true}": "εγκρίθηκε",
-	"{\"approve\":false}": "δεν εγκρίθηκε"
+	"{\"approve\":false}": "δεν εγκρίθηκε",
+	"startFormDocumentation": "οδηγίες"
 }

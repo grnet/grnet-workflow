@@ -19,6 +19,17 @@ public interface MailService {
 	public void sendTaskAssignedMail(String recipient, Task task);
 
 	/**
+	 * When a task is has a candidate group, sends an email to the members of the group
+	 *
+	 * @param recipient
+	 *            The assignee's email
+	 *
+	 * @param task
+	 *            The task which is assigned
+	 */
+	public void sendCandidateGroupMail(String recipient, Task task);
+
+	/**
 	 * When a task is assigned, sends an email to the "assignee"
 	 *
 	 * @param recipient

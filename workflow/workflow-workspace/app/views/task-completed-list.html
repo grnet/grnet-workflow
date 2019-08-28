@@ -132,7 +132,7 @@
 					<img ng-src="{{imagePath + task.icon}}" class="md-avatar" alt="{{task.name}}" />
 					<div class="md-list-item-text" layout="column">
 						<h3>[{{task.processInstance.title}}] {{task.name}}</h3>
-						<p flex>{{ 'process' | translate}}: {{task.definitionName}}
+						<p flex>{{ 'process' | translate}}: {{task.processInstance.definitionName}}
 							<span class="cardInline">{{ 'version' | translate}}: {{task.processInstance.version}}</span>
 						</p>
 						<section layout="row">

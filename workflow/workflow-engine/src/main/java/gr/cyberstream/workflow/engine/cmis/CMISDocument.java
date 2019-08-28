@@ -3,7 +3,10 @@
  */
 package gr.cyberstream.workflow.engine.cmis;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -296,10 +299,16 @@ public class CMISDocument {
 
 		try {
 			CmisObject object = session.getObject(id);
+			logger.warn("This is the CmisObject name: " + object.getName());
+			logger.warn("This is the CmisObject content: " + getContentAsString(((Document) object).getContentStream()));
+
 			return (Document) object;
 
 		} catch (CmisObjectNotFoundException e) {
 			logger.error("Document is not found: id(" + id + ")");
+			return null;
+		} catch (IOException e) {
+			e.printStackTrace();
 			return null;
 		}
 	}
@@ -327,5 +336,27 @@ public class CMISDocument {
 	 */
 	public ContentStream getDocumentContent(Document document) {
 		return document.getContentStream();
+	}
+
+	private static String getContentAsString(ContentStream stream) throws IOException {
+		StringBuilder sb = new StringBuilder();
+		Reader reader = new InputStreamReader(stream.getStream(), "UTF-8");
+
+		try {
+			final char[] buffer = new char[4 * 1024];
+			int b;
+			while (true) {
+				b = reader.read(buffer, 0, buffer.length);
+				if (b > 0) {
+					sb.append(buffer, 0, b);
+				} else if (b == -1) {
+					break;
+				}
+			}
+		} finally {
+			reader.close();
+		}
+
+		return sb.toString();
 	}
 }

@@ -73,12 +73,12 @@
 
 			</section>
 
-			<section layout="row" layout-align="start center">
-				<md-input-container flex class="md-block" ng-if="task.description" style="margin-top: 0;">
-					<label for="taskDescription">{{ 'description' | translate }}</label>
-					<input id="taskDescription" ng-model="task.description" readonly disabled>
-				</md-input-container>
-			</section>
+            <section layout="row" layout-align="start center">
+                <md-input-container flex class="md-block" ng-if="task.description" style="margin-top:0px">
+                    <label for="taskDescription">{{'description' | translate }}</label>
+                    <textarea id="taskDescription" ng-model="task.description" readonly disabled></textarea>
+                </md-input-container>
+            </section>
 
 			<md-input-container class="md-block" ng-if="task.description" flex></md-input-container>
 

@@ -2,12 +2,7 @@ package gr.cyberstream.workflow.engine.customservicetasks;
 
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
+import java.util.*;
 
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.delegate.DelegateExecution;
@@ -34,6 +29,8 @@ import gr.cyberstream.workflow.engine.model.MailServiceResponse;
 import gr.cyberstream.workflow.engine.model.RESTMail;
 import gr.cyberstream.workflow.engine.model.RESTRecipient;
 import gr.cyberstream.workflow.engine.service.InvalidRequestException;
+
+import static org.springframework.http.converter.StringHttpMessageConverter.DEFAULT_CHARSET;
 
 @Component
 public class DocumentMail implements JavaDelegate {
@@ -152,7 +149,6 @@ public class DocumentMail implements JavaDelegate {
 			if (documentValue != null) {
 				document = cmisDocument.getDocumentById(documentValue.getDocumentId());
 				multipartFileResource = new MultipartFileResource(document);
-
 			}
 		}
 
@@ -197,11 +193,12 @@ public class DocumentMail implements JavaDelegate {
 			formHttpMessageConverter.setMultipartCharset(Charset.forName("UTF-8"));
 			formHttpMessageConverter.setCharset(Charset.forName("UTF-8"));
 			rest.getMessageConverters().add(formHttpMessageConverter);
-			rest.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+			MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+			rest.getMessageConverters().add(converter);
 
 			HttpHeaders fileHeaders = new HttpHeaders();
 			fileHeaders.set("Content-Type", document.getContentStreamMimeType());
-			HttpEntity<MultipartFileResource> fileEntity = new HttpEntity<MultipartFileResource>(multipartFileResource, fileHeaders);
+			HttpEntity<MultipartFileResource> fileEntity = new HttpEntity<>(multipartFileResource, fileHeaders);
 
 			HttpHeaders jsonHeader = new HttpHeaders();
 			jsonHeader.setContentType(MediaType.APPLICATION_JSON);
@@ -211,6 +208,7 @@ public class DocumentMail implements JavaDelegate {
 
 			parts.add("json", jsonEntity);
 			parts.add("file", fileEntity);
+			logger.warn("This is the file name inside DocumentMail: " + fileEntity.getBody().getOriginalFilename());
 
 			mailResponse = rest.postForObject(uri, parts, MailServiceResponse.class);
 		}

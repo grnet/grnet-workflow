@@ -22,6 +22,10 @@ public class OpenCMISSessionFactory {
 		parameter.put(SessionParameter.BROWSER_URL, url);
 		parameter.put(SessionParameter.BINDING_TYPE, BindingType.BROWSER.value());
 		parameter.put(SessionParameter.REPOSITORY_ID, repository);
+		parameter.put(SessionParameter.COMPRESSION, "true");
+		parameter.put(SessionParameter.CLIENT_COMPRESSION, "false");
+		parameter.put(SessionParameter.LOCALE_ISO639_LANGUAGE, "el");
+		parameter.put(SessionParameter.LOCALE_ISO3166_COUNTRY, "GR");
 		
 		SessionFactory factory = SessionFactoryImpl.newInstance();
 		

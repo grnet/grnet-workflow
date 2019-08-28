@@ -33,7 +33,6 @@ public class StartEventFormFields extends AbstractActivityBpmnParseHandler<Start
 
 		// for each form property check type
 		for (FormProperty formProperty : formProperties) {
-
 			String datePattern = formProperty.getDatePattern();
 			datePattern = datePattern == null ? "date" : datePattern;
 

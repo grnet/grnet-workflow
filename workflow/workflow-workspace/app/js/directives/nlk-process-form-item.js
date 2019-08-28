@@ -144,14 +144,21 @@ define(['angular'],
 					case 'textarea':
 						inputTmpl =
 							'<section layout="row" class="md-block"> ' +
-							
-								'<md-input-container class="md-block" flex="50"> ' +
+
+								'<md-input-container ng-if="!ngModel.writable" class="md-block" flex="50"> ' +
+									'<label for="{{ngModel.id}}">{{ngModel.name}}</label> ' +
+									'<textarea id="{{ngModel.id}}" ng-model="ngModel.value" ng-required="ngModel.required" ng-readonly="!ngModel.writable || wfPreview()" ' +
+										'ng-disabled="!ngModel.writable || wfPreview()" maxlength="150" rows="2" md-autogrow> ' +
+								'	</textarea> ' +
+								'</md-input-container> ' +
+
+								'<md-input-container ng-if="ngModel.writable" class="md-block" flex="50"> ' +
 									'<label for="{{ngModel.id}}">{{ngModel.name}}</label> ' +
 									'<textarea id="{{ngModel.id}}" ng-model="ngModel.value" ng-required="ngModel.required" ng-readonly="!ngModel.writable || wfPreview()" ' +
 										'ng-disabled="!ngModel.writable || wfPreview()" md-maxlength="150" rows="2" md-autogrow> ' +
 									'</textarea> ' +
 								'</md-input-container> ' +
-								
+
 								'<md-button class="md-icon-button formItem-info" ng-if="ngModel.description" aria-label="Info" ng-click="showElementInfo()"> ' +
 									'<md-icon md-svg-icon="img/icons/elementInfo.svg" class="md-primary"></md-icon> ' +
 								'</md-button> ' +

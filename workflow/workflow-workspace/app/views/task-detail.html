@@ -84,10 +84,12 @@
 
 					</section>
 
-					<section layout-align="start center" ng-if="task.description">
-						<label for="taskDescription" >{{ 'description' | translate }}</label>
-						<div id="taskDescription" ng-bind-html="task.description" class="disabledLabel" disabled>{{task.description}}</div>
-					</section>
+                    <section layout="row" layout-align="start center">
+                        <md-input-container flex class="md-block" ng-if="task.description" style="margin-top:0px">
+                            <label for="taskDescription">{{'description' | translate }}</label>
+                            <textarea id="taskDescription" ng-model="task.description" readonly disabled></textarea>
+                        </md-input-container>
+                    </section>
 
 					<md-input-container class="md-block"></md-input-container>
 
@@ -204,10 +206,12 @@
 
 						</section>
 
-						<section layout-align="start center" ng-if="historicTask.description">
-							<label for="processDescription">{{ 'description' | translate }}</label>
-							<div id="processDescription" ng-bind-html="historicTask.description" class="disabledLabel" disabled>{{historicTask.description}}</div>
-						</section>
+                        <section layout="row" layout-align="start center">
+                            <md-input-container flex class="md-block" ng-if="historicTask.description" style="margin-top:0px">
+                                <label for="taskDescription">{{'description' | translate }}</label>
+                                <textarea id="taskDescription" ng-model="historicTask.description" readonly disabled></textarea>
+                            </md-input-container>
+                        </section>
 
 						<md-input-container class="md-block"></md-input-container>
 

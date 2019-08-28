@@ -97,13 +97,13 @@
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-web</artifactId>
-			<version>RELEASE</version>
+			<version>4.1.1.RELEASE</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-config</artifactId>
-			<version>RELEASE</version>
+			<version>4.1.1.RELEASE</version>
 		</dependency>
 
 		<!-- Keycloak - Spring Security Adapter -->

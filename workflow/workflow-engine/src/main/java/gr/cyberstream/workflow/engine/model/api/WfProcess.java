@@ -30,6 +30,7 @@ public class WfProcess { // extends WorkflowDefinition {
 	private String activeDeploymentId;
 	private String registryId;
 	private boolean startForm;
+	private String startFormDocumentation;
 
 	public WfProcess() {
 	}
@@ -175,4 +176,15 @@ public class WfProcess { // extends WorkflowDefinition {
 		this.startForm = startForm;
 	}
 
+	public boolean isStartForm() {
+		return startForm;
+	}
+
+	public String getStartFormDocumentation() {
+		return startFormDocumentation;
+	}
+
+	public void setStartFormDocumentation(String startFormDocumentation) {
+		this.startFormDocumentation = startFormDocumentation;
+	}
 }

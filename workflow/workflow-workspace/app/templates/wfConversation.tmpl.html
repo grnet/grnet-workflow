@@ -8,9 +8,9 @@
 				{{item.message}}
 			</md-input-container>
 		</div>
-		<md-input-container class="md-block">
+		<md-input-container ng-if="!ngReadonly" class="md-block">
 			<label for="comment">{{ 'addComment' | translate }}</label>
-			<textarea id="comment" ng-model="ngModel.comment"></textarea>
+			<textarea ng-required="ngRequired" id="comment" ng-model="ngModel.comment"></textarea>
 		</md-input-container>
 	</md-input-container>
 </section>

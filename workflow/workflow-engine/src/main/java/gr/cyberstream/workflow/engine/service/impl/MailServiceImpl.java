@@ -101,6 +101,45 @@ public class MailServiceImpl implements MailService {
 	}
 
 	@Override
+	public void sendCandidateGroupMail(String recipient, Task task) {
+		WorkflowSettings settings = getSettings();
+		String taskName = task.getName();
+		Date dueDate = task.getDueDate();
+		String taskId = task.getId();
+
+		if (!settings.isAssignmentNotification())
+			return;
+
+		ProcessDefinition definition = activitiRepositorySrv.getProcessDefinition(task.getProcessDefinitionId());
+		WorkflowInstance instance = processRepository.getProcessInstance(task.getProcessInstanceId());
+
+		String taskAssignedSubject = "Νέα εργασία για την ομάδα σας";
+		String taskAssignedContent = "<p><b>Διαδικασία:</b> '" + definition.getName() + "'</p>";
+		taskAssignedContent += "<p><b>Εκτέλεση:</b> '" + instance.getTitle() + "'</p>";
+
+		if (taskName != null && !taskName.isEmpty()) {
+			taskAssignedSubject += " '" + taskName + "'";
+			taskAssignedContent += "<p>Η εργασία '" + taskName + "' έχει ανατεθεί στην ομάδα σας.</p>";
+		} else {
+			taskAssignedContent += "<p>Μία νέα εργασία έχει ανατεθεί στην ομάδα σας.</p>";
+		}
+
+		if (dueDate != null) {
+			taskAssignedContent += "<p>Η χρονική περίοδος για την εκτέλεση της εργασίας είναι μέχρι τις "
+					+ DateFormatUtils.format(dueDate, datePattern) + ".</p>";
+		}
+
+		taskAssignedContent += "<p><a href=\"" + workspaceURL + "/#/task/" + taskId
+				+ "\">Επιλέξτε για να δείτε την εργασία και, αν το επιθυμείτε, να την αναλάβετε.</a></p>";
+
+		try {
+			sendMail(recipient, taskAssignedSubject, taskAssignedContent);
+		} catch (MessagingException e) {
+			logger.warn("Unable to send task assignment email to " + recipient);
+		}
+	}
+
+	@Override
 	public void sendTaskAssignedMail(String recipient, WfTask task) {
 		WorkflowSettings settings = getSettings();
 		String taskName = task.getName();

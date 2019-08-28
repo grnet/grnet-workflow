@@ -9,6 +9,7 @@ import java.net.URLEncoder;
 public class MultipartFileResource extends InputStreamResource {
 
 	private String filename;
+	private String originalFilename;
 	private Long length;
 
 	public MultipartFileResource(Document document) {
@@ -16,12 +17,12 @@ public class MultipartFileResource extends InputStreamResource {
 		// String extension = MimeTypes.getExtension(document.getContentStreamMimeType());
 		//this.filename = document.getContentStream().getFileName() + extension;
 		this.filename = document.getContentStream().getFileName();
-		this.length = document.getContentStream().getLength();
+		this.originalFilename = document.getContentStreamFileName();
+		this.length = document.getContentStreamLength();
 	}
 
 	@Override
 	public String getFilename() {
-
 		try {
 			return URLEncoder.encode(this.filename, "UTF-8");
 
@@ -37,4 +38,14 @@ public class MultipartFileResource extends InputStreamResource {
 		return this.length;
 	}
 
+	public String getOriginalFilename() {
+		try {
+			return URLEncoder.encode(this.originalFilename, "UTF-8");
+
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+
+		return this.originalFilename;
+	}
 }

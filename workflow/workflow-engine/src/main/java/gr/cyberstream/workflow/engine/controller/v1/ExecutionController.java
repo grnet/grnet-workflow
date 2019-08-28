@@ -269,8 +269,8 @@ public class ExecutionController {
 	public List<WfUser> getCandidatesForTask(@PathVariable String taskId){
 		
 		logger.debug("Getting candidates for task: " + taskId);
-		
-		return processService.getCandidatesByTaskId(taskId);
+
+		return processService.getCandidatesWithEmptyListAlso(taskId);
 	}
 	
 	/**
