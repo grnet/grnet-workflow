@@ -11,6 +11,7 @@ import gr.cyberstream.workflow.engine.persistence.Processes;
 import gr.cyberstream.workflow.engine.service.ActivitiHelper;
 import gr.cyberstream.workflow.engine.service.DefinitionService;
 import gr.cyberstream.workflow.engine.service.InvalidRequestException;
+import gr.cyberstream.workflow.engine.service.ProcessService;
 import gr.cyberstream.workflow.engine.service.RealmService;
 import gr.cyberstream.workflow.engine.util.string.StringUtil;
 import org.activiti.bpmn.BpmnAutoLayout;
@@ -64,6 +65,9 @@ public class DefinitionServiceImpl implements DefinitionService {
 
 	@Autowired
 	private Processes processRepository;
+	
+	@Autowired
+	private ProcessService processService;
 
 	@Autowired
 	private RealmService realmService;
@@ -553,6 +557,36 @@ public class DefinitionServiceImpl implements DefinitionService {
 
 		} else
 			throw new InvalidRequestException("notAuthorizedToDeleteDefinition");
+	}
+	
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void deleteProcessDefinitionFull(int processId) throws InvalidRequestException {
+
+		// get the definition throw exception if not found
+		try {
+			WorkflowDefinition definition = processRepository.getById(processId);
+			
+			if (definition.getActiveDeploymentId() != null) {
+				throw new InvalidRequestException("notInactiveProcess");
+			} else if (!(hasRole(ROLE_ADMIN) || hasGroup(definition.getOwner()))) {
+				throw new InvalidRequestException("notAuthorizedToDeleteDefinition");
+			}
+
+			// delete instances
+			for (DefinitionVersion version : definition.getDefinitionVersions()) {
+				processService.findAndDeleteInstances(version.getId());
+				activitiRepositoryService.deleteDeployment(version.getDeploymentId());
+			}
+
+			// delete workflow definition entry
+			processRepository.delete(processId);
+
+		//	cmisFolder.deleteFolderById(definition.getFolderId());
+
+		} catch (EmptyResultDataAccessException e) {
+			throw new InvalidRequestException("noProcessVersionWithId");
+		}
 	}
 
 	@Override

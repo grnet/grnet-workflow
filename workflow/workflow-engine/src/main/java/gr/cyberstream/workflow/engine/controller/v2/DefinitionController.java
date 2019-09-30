@@ -191,6 +191,22 @@ public class DefinitionController {
 
 		return result;
 	}
+	
+	@RequestMapping(value = "/process/{id}/full", method = RequestMethod.DELETE)
+	@ResponseBody
+	@PreAuthorize("hasAnyRole('ProcessAdmin','Admin')")
+	public ErrorResponse deleteFullProcessDefinition(@PathVariable int id) throws InvalidRequestException {
+
+		ErrorResponse result = new ErrorResponse();
+		result.setCode(ErrorResponse.noerror);
+		result.setMessage("no error");
+
+		definitionService.deleteProcessDefinitionFull(id);
+
+		return result;
+	}
+	
+	
 
 	/**
 	 * <code>GET: /api/v2/process/{id}/diagram</code>

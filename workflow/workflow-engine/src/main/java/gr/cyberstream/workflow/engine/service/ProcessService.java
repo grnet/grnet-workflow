@@ -4691,6 +4691,22 @@ public class ProcessService {
 		// delete from workflow instance table
 		processRepository.deleteProcessInstance(instanceId);
 	}
+	
+	public void findAndDeleteInstances(int versionId) throws InvalidRequestException {
+
+		List<WorkflowInstance> defs = processRepository.getInstancesByDefinitionVersionId(versionId);
+		// delete from activiti
+		for (WorkflowInstance wi : defs) {
+			if (wi.getStatus().equals(WorkflowInstance.STATUS_RUNNING)) {
+				throw new InvalidRequestException("activeWorkflowInstanceExist");
+			} else {
+			activitiHistorySrv.deleteHistoricProcessInstance(wi.getId());
+
+			// delete from workflow instance table
+			processRepository.deleteProcessInstance(wi.getId());
+			}
+		}
+	}
 
 	/**
 	 * Returns a list of external wrapper class which contains group and forms

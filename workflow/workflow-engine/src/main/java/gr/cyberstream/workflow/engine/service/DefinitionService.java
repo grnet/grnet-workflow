@@ -128,6 +128,8 @@ public interface DefinitionService {
 	 * @throws InvalidRequestException
 	 */
 	public void deleteProcessDefinition(int processId) throws InvalidRequestException;
+	
+	public void deleteProcessDefinitionFull(int processId) throws InvalidRequestException;
 
 	/**
 	 * Deletes the specific version of the process definition. Fail if instances

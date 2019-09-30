@@ -10,10 +10,10 @@ define(['angular'],
              * Creates a new process definition from a BPMN file
              * @param {File} file
              * @return {HttpPromise}
-             * 
+             *
                  * V1 API: @name ProcessController#createProcessDefinition
              * V2 API: @name DefinitionController#createProcessDefinition
-             * 
+             *
              * Note: On v2 api the url should be /api/v2/process
              */
             this.createProcess = function (file, justification) {
@@ -31,7 +31,7 @@ define(['angular'],
 
             /**
              * Returns all groups from realm
-             * 
+             *
              * V1 API: @name RealmController#getGroups
              * V2 API: @name RealmController#getGroups
              */
@@ -41,7 +41,7 @@ define(['angular'],
 
             /**
              * Deletes an owner/group by its name
-             * 
+             *
              */
             this.deleteOwner = function (ownerId) {
                 return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/owner/?ownerId=' + ownerId);
@@ -49,9 +49,9 @@ define(['angular'],
 
             /**
              * Creates a new or updates an owner
-             * 
+             *
              * @param owner
-             * 
+             *
              */
             this.saveOwner = function (owner) {
                 return $http.post(config.WORKFLOW_SERVICE_ENTRY + '/owner', owner);
@@ -59,7 +59,7 @@ define(['angular'],
 
             /**
              * Returns user groups from realm
-             * 
+             *
              * V1 API: @name RealmController#getUserGroups
              * V2 API: @name RealmController#getUserGroups
              */
@@ -69,7 +69,7 @@ define(['angular'],
 
             /**
              * Returns all available roles
-             * 
+             *
              */
             this.getRoles = function () {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/roles');
@@ -85,7 +85,7 @@ define(['angular'],
 
             /**
              * Creates a user task form element and then saves it
-             * 
+             *
              * V1 API: @name ExecutionController#saveUserTaskFormElement
              * V2 API: @name TaskController#saveUserTaskFormElement
              */
@@ -96,14 +96,14 @@ define(['angular'],
 
             /**
              * Create a new version for the given process based on an uploaded BPMN file
-             * 
+             *
              * @param {number} processId The process id
              * @param {File} file The BPMN File
              * @return {HttpPromise}
-             * 
+             *
                      * V1 API: @name ProcessController#createProcessVersion
              * V2 API: @name DefinitionController#createProcessVersion
-             * 
+             *
              * Note: On v2 api the url should be /api/v2/process/{id}/version
              *
              */
@@ -125,12 +125,12 @@ define(['angular'],
              * Delete the process with the given id
              * @param {number} processId       - the process (workflow definition) id
              * @return {HttpPromise}
-             * 
+             *
              * V1 API: @name ProcessController#deleteProcessDefinition
              * V2 API: @name DefinitionController#deleteProcessDefinition
              */
             this.deleteProcess = function (processId) {
-                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/v2/process/' + processId);
+                return $http.delete(config.WORKFLOW_SERVICE_ENTRY + '/v2/process/' + processId+'/full');
             };
 
             /**
@@ -142,7 +142,7 @@ define(['angular'],
              *
              * V1 API: @name ProcessController#deleteProcessDefinitionVersion
              * V2 API: @name DefinitionController#deleteProcessDefinitionVersion
-             * 
+             *
              * Note: On v2 api the url should be /api/v2/process/version/{processId}/{deploymentId}
              */
             this.deleteProcessVersion = function (processId, deploymentId) {
@@ -175,7 +175,7 @@ define(['angular'],
              * Return a promise object for the process (workflow definition) object
              * @param {number} processId
              * @return {HttpPromise}
-             * 
+             *
              * V1 API: @name ProcessController#getProcessDefinition
              * V2 API: @name DefinitionController#getProcessDefinition
              */
@@ -197,11 +197,11 @@ define(['angular'],
 
             /**
              * Returns a list of wftasks based on instance id
-             * 
+             *
              * V1 API: @name ExecutionController#getTaskByInstanceId
              * V2 API: @name TaskController#getTaskByExecutionId
-             * 
-             * Note: On v2 api the url should be /api/v2/task/execution/{id} 
+             *
+             * Note: On v2 api the url should be /api/v2/task/execution/{id}
              */
             this.getTasksByInstanceId = function (instanceId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/tasks/instance/' + instanceId)
@@ -210,12 +210,12 @@ define(['angular'],
 
             /**
              * NOT USED!!!
-             * 
+             *
              * Updates the process definition version
              * @param {number} processId
              * @param {ProcessVersion} version
              * @return {HttpPromise}
-             * 
+             *
              */
             this.updateProcessDefinitionVersion = function (processId, version) {
                 return $http.put(config.WORKFLOW_SERVICE_ENTRY + '/process/' + processId + '/version', version);
@@ -223,10 +223,10 @@ define(['angular'],
 
             /**
              * Get task by task id
-             * 
+             *
              * @param {string} taskId
              * @return {HttpPromise}
-             * 
+             *
              * V1 API: @name ExecutionController#getTask
              * V2 API: @name TaskController#getTask
              */
@@ -236,10 +236,10 @@ define(['angular'],
 
             /**
              * Returns a task by task definition key
-             * 
+             *
              * @param {String} taskDefinitionKey
              * @param {String} processId
-             * 
+             *
              * V1 API: @name ExecutionController#getTask
              * V2 API: @name TaskController#getTask
              */
@@ -249,7 +249,7 @@ define(['angular'],
 
             /**
              * Not used. Deprecated by getTaskById
-             * 
+             *
              */
             this.getCompletedTask = function (taskId) {
                 return $http.get(config.WORKFLOW_SERVICE_ENTRY + '/task/' + taskId + '/completed');
@@ -263,7 +263,7 @@ define(['angular'],
              *
              * V1 API: @name ProcessController#setActiveVersion
              * V2 API: @name DefinitionController#setActiveVersion
-             * 
+             *
              * Note: On v2 api the url should be /api/v2/process/{processId}/version/{versionId}/active
              */
             this.setActiveVersion = function (processId, versionId) {
@@ -275,10 +275,10 @@ define(['angular'],
              * @param {number} processId
              * @param {number} versionId
              * @return {HttpPromise}
-             * 
+             *
              * V1 API: @name ProcessController#deactivateVersion
              * V2 API: @name DefinitionController#deactivateVersion
-             * 
+             *
              * Note: On v2 api the url should be /api/v2/process/{processId}/version/{versionId}/inactive
              */
             this.deactivateVersion = function (processId, versionId) {
@@ -302,12 +302,12 @@ define(['angular'],
             };
 
             /**
-             * Returns a promise object for the list of the task details of the 
+             * Returns a promise object for the list of the task details of the
              * process specified version
-             * 
+             *
              * V1 API: @name ProcessController#getVersionsTaskDetails
              * V2 API: @name TaskController#getVersionsTaskDetails
-             * 
+             *
              * Note: On v2 api the url should be /api/v2/task/process/version/{id}
              */
             this.getVersionTaskDetails = function (versionid) {
@@ -316,10 +316,10 @@ define(['angular'],
 
             /**
              * Update a UserTaskDetails object
-             * 
+             *
              * V1 API: @name ProcessController#updateTaskDetails
              * V2 API: @name TaskController#updateTaskDetails
-             * 
+             *
              * Note: On v2 api the url should be /api/v2/task
              */
             this.updateTaskDetails = function (task) {
@@ -330,7 +330,7 @@ define(['angular'],
              * @memberof processService
              * @desc Cancel a running instance
              * API: @name ProcessController#cancelProcessInstance
-             * 
+             *
              * @param {String} instanceid
              * @returns {HttpPromise}
              */
@@ -340,10 +340,10 @@ define(['angular'],
 
             /**
              * Suspend / Resume a running instance.
-             * 
+             *
              * V1 API: @name ProcessController#modifyProcessInstanceStatus
              * V2 API: @name ExecutionController#modifyProcessInstanceStatus
-             * 
+             *
              * Note: On v2 api the url should be /api/v2/execution/{id}/{action}
              */
             this.actOnInstance = function (instanceid, action) {
@@ -383,10 +383,10 @@ define(['angular'],
 
             /**
              * Get user activity, all tasks having the specified user as assignee
-             * 
+             *
              * V1 API: @name ProcessController#getUserActivity
              * V2 API: @name TaskController#getUserActivity
-             * 
+             *
              * Note: On v2 api the url should be /api/v2/task/search:{after:\\d+},{before:\\d+}/assignee/{userId}
              */
             this.getUserActivity = function (after, before, userId) {
@@ -396,7 +396,7 @@ define(['angular'],
 
             /**
              * Retrieve all active tasks
-             * 
+             *
              * V1 API: @name ExecutionController#getAllActiveTasks
              * V2 API: @name TaskController#getAllActiveTasks
              */
@@ -421,7 +421,7 @@ define(['angular'],
 
             /**
              * Retrieve all users
-             * 
+             *
              * V1 API: @name RealmController#getUsers
              * V2 API: @name RealmController#getUsers
              */
@@ -431,7 +431,7 @@ define(['angular'],
 
             /**
              * Get all registries
-             * 
+             *
              * V1 API: @name ProcessController#getRegistries
              * V2 API: @name PublicFormController#getRegistries
              */
@@ -441,7 +441,7 @@ define(['angular'],
 
             /**
              * Get the current settings
-             * 
+             *
              * V1 API: @name ProcessController#getSettings
              * V2 API: @name DefinitionController#getSettings
              */
@@ -451,7 +451,7 @@ define(['angular'],
 
             /**
              * Update settings
-             * 
+             *
              * V1 API: @name ProcessController#updateSettings
              * V2 API: @name DefinitionController#updateSettings
              */
@@ -461,7 +461,7 @@ define(['angular'],
 
             /**
              * Update registry
-             * 
+             *
              * V1 API: @name ProcessController#updateRegistry
              * V2 API: @name PublicFormController#getSettings
              */
@@ -471,10 +471,10 @@ define(['angular'],
 
             /**
              * Create a new registry
-             * 
+             *
              * V1 API: @name ProcessController#createRegistry
              * V2 API: @name PublicFormController#createRegistry
-             * 
+             *
              * Note: On v2 api the method is PUT
              */
             this.createRegistry = function (registry) {
@@ -483,7 +483,7 @@ define(['angular'],
 
             /**
              * Delete registry
-             * 
+             *
              * V1 API: @name ProcessController#deleteRegistry
              * V2 API: @name PublicFormController#deleteRegistry
              */
@@ -493,10 +493,10 @@ define(['angular'],
 
             /**
              * Get external forms of the process specified by its id
-             * 
+             *
              * V1 API: @name ProcessController#getProcessExternalForms
              * V2 API: @name PublicFormController#getProcessPublicForms
-             * 
+             *
              * Note: On v2 api the url should be api/v2/form/process/{id}
              */
             this.getExternalForms = function (id) {
@@ -505,10 +505,10 @@ define(['angular'],
 
             /**
              * Create new external form
-             * 
+             *
              * V1 API: @name ProcessController#createExternalForm
              * V2 API: @name PublicFormController#createPublicForm
-             * 
+             *
              * Note: On v2 api the url should be api/v2/form method = POST
              */
             this.saveExternalForm = function (externalForm) {
@@ -517,10 +517,10 @@ define(['angular'],
 
             /**
              * Update external form
-             * 
+             *
              * V1 API: @name ProcessController#updateExternalForm
              * V2 API: @name PublicFormController#updatePublicForm
-             * 
+             *
              * Note: On v2 api the url should be api/v2/form with method PUT
              */
             this.updateExternalForm = function (externalForm) {
@@ -529,10 +529,10 @@ define(['angular'],
 
             /**
              * Delete external form
-             * 
+             *
              * V1 API: @name ProcessController#deleteExternalForm
              * V2 API: @name PublicFormController#deletePublicForm
-             * 
+             *
              * Note: On v2 api the url should be api/v2/form/{id}
              */
             this.deleteExternalForm = function (id) {
@@ -541,10 +541,10 @@ define(['angular'],
 
             /**
              * Suspend / Resume an external form.
-             * 
+             *
              * V1 API: @name ProcessController#modifyExternalFormStatus
              * V2 API: @name PublicFormController#modifyExternalFormStatus
-             * 
+             *
              * Note: On v2 api the url should be api/v2/form/{id}/{action}
              */
             this.actOnExternalForm = function (externalFormId, action) {
@@ -599,11 +599,11 @@ define(['angular'],
 
             /**
              * Returns instances by process definition
-             * 
-             * 
+             *
+             *
              * V1 API: @name ProcessController#getProcessInstances
              * V2 API: @name ExecutionController#getExecutions
-             * 
+             *
              * Note: On v2 api the url should be api/v2/execution/process/version/{id}
              */
             this.getWorkflowInstances = function (workflowId) {
@@ -612,10 +612,10 @@ define(['angular'],
 
             /**
              * Delete a process instance by id
-             * 
+             *
              * V1 API: @name ExecutionController#deleteProcessCompletedInstance
              * V2 API: @name ExecutionController#deleteCompletedExecution
-             * 
+             *
              * Note: On v2 api the url should be api/v2/execution/{id}
              */
             this.deleteProcessInstance = function (instanceId) {
@@ -624,10 +624,10 @@ define(['angular'],
 
             /**
              * Get groups/forms wrapped
-             * 
+             *
              * V1 API: @name ExecutionController#getWrappedGroupsForms
              * V2 API: @name PublicFormController#getWrappedGroupsForms
-             * 
+             *
              * Note: On v2 api the url should be api/v2/form/group/wrapped
              */
             this.getGroupsFormsWrapped = function () {
@@ -636,10 +636,10 @@ define(['angular'],
 
             /**
              * Creates new external group
-             * 
+             *
              * V1 API: @name ProcessController#createExternalGroup
              * V2 API: @name PublicFormController#createPublicGroup
-             * 
+             *
              * Note: On v2 api the url should be api/v2/form/group
              */
             this.createExternalGroup = function (externalGroup) {
@@ -648,10 +648,10 @@ define(['angular'],
 
             /**
              * Gets all available groups
-             * 
+             *
              * V1 API: @name ProcessController#getExternalGroups
              * V2 API: @name PublicFormController#getPublicGroups
-             * 
+             *
              * Note: On v2 api the url should be api/v2/form/group
              */
             this.getExternalGroups = function () {
@@ -660,10 +660,10 @@ define(['angular'],
 
             /**
              * Deletes a public group
-             * 
+             *
              * V1 API: @name ProcessController#deletePublicGroup
              * V2 API: @name PublicFormController#deletePublicGroup
-             * 
+             *
              * Note: On v2 api the url should be api/v2/form/group/{groupId}
              */
             this.deletePublicGroup = function (groupId) {
@@ -672,10 +672,10 @@ define(['angular'],
 
             /**
              * Edits public group
-             * 
+             *
              * V1 API: @name ProcessController#updatePublicGroup
              * V2 API: @name PublicFormController#updatePublicGroup
-             * 
+             *
              * Note: On v2 api the url should be api/v2/form/group
              */
             this.editPublicGroup = function (group) {
@@ -684,10 +684,10 @@ define(['angular'],
 
             /**
              * Gets supervisors by process id
-             * 
+             *
              * V1 API: @name ProcessController#getSupervirosByProcess
              * V2 API: @name RealmController#getSupervisorsByProcess
-             * 
+             *
              * Note: On v2 api the url should be api/v2/user/process/{processId}/supervisor
              */
             this.getSupervisorsByProcessId = function (processId) {
@@ -696,7 +696,7 @@ define(['angular'],
 
             /**
              * Returns all in progress instances
-             * 
+             *
              * V1 API: @name ExecutionController#getInProgressInstances
              * V2 API: @name ExecutionController#getInProgressInstances
              */
@@ -726,7 +726,7 @@ define(['angular'],
 
             /**
              * Returns instance's documents by id
-             * 
+             *
              * V1 API: @name ExecutionController#getDocumentsByInstanceId
              * V2 API: @name ExecutionController#getDocumentsByInstanceId
              */
@@ -736,7 +736,7 @@ define(['angular'],
 
             /**
              * Returns users having role Supervisor
-             * 
+             *
              * V1 API: @name RealmController#getUsersByRole
              * V2 API: @name RealmController#getUsersByRole
              */
@@ -746,7 +746,7 @@ define(['angular'],
 
             /**
              * Change instace's supervisor
-             * 
+             *
              * V1 API: @name ExecutionController#changeInstanceSupervisor
              * V2 API: @name ExecutionController#changeInstanceSupervisor
              */
@@ -757,7 +757,7 @@ define(['angular'],
             /**
              * @memberof processService
              * @desc Deletes an instance by a given id
-             * 
+             *
              * @param {String} instanceid
              * @returns {HttpPromise}
              */
