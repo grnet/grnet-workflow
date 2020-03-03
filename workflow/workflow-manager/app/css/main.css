@@ -311,7 +311,7 @@ div.card-header {
 .warning-message md-card {
 	width:100%;
 	line-height: 32px;
-	background-color: #d84315;
+	background-color: #6895c3; /* #d84315; */
 	margin-left: 0;
 }
 

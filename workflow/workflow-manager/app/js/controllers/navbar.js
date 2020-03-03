@@ -46,7 +46,7 @@ define(
 
             $scope.initializePages = function () {
 
-                $scope.page = { title: 'processes', path: '/process', icon: 'processDefinitions.svg', color: null, disabled: false };
+                $scope.page = { title: 'processes', path: '/process', icon: 'processDefinitions.svg', color: 'blue', disabled: false };
                 $scope.pages.push($scope.page);
 
                 //User should only see the processes and exit menu items
@@ -59,7 +59,7 @@ define(
                         title: 'dashboard',
                         path: '/dashboard',
                         icon: 'chart_type.svg',
-                        color: "grey",
+                        color: "blue",
                         disabled: false
                     };
                     $scope.pages.push($scope.page);
@@ -69,7 +69,7 @@ define(
                             title: 'externalForms',
                             path: '/externalForms',
                             icon: 'external.svg',
-                            color: "grey",
+                            color: "blue",
                             disabled: false
                         };
                         $scope.pages.push($scope.page);
@@ -78,7 +78,7 @@ define(
                             title: 'externalForms',
                             path: '/externalForms',
                             icon: 'external.svg',
-                            color: "grey",
+                            color: "blue",
                             disabled: true
                         };
                         $scope.pages.push($scope.page);
@@ -88,7 +88,7 @@ define(
                         title: 'processesHistory',
                         path: '/history',
                         icon: 'history.svg',
-                        color: null,
+                        color: 'blue',
                         disabled: false
                     };
                     $scope.pages.push($scope.page);
@@ -97,7 +97,7 @@ define(
                         title: 'pendingTasks',
                         path: '/pending',
                         icon: 'inbox.svg',
-                        color: 'purple',
+                        color: 'blue',
                         disabled: false
                     };
                     $scope.pages.push($scope.page);
@@ -106,7 +106,7 @@ define(
                         title: 'executionsInProgress',
                         path: '/inprogress',
                         icon: 'inProgressInstances.svg',
-                        color: 'purple',
+                        color: 'blue',
                         disabled: false
                     };
                     $scope.pages.push($scope.page);
@@ -115,7 +115,7 @@ define(
                         title: 'userActivity',
                         path: '/activity',
                         icon: 'activity.svg',
-                        color: 'purple',
+                        color: 'blue',
                         disabled: false
                     };
                     $scope.pages.push($scope.page);
@@ -125,7 +125,7 @@ define(
                             title: 'settings',
                             path: '/settings',
                             icon: 'settings.svg',
-                            color: 'grey',
+                            color: 'blue',
                             disabled: false
                         };
                         $scope.pages.push($scope.page);
@@ -134,7 +134,7 @@ define(
                             title: 'settings',
                             path: '/settings',
                             icon: 'settings.svg',
-                            color: 'grey',
+                            color: 'blue',
                             disabled: true
                         };
                         $scope.pages.push($scope.page);
