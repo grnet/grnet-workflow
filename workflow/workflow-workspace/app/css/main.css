@@ -332,7 +332,7 @@ nlk-process-form-item {
 .warning-message md-card {
 	width:100%;
 	line-height: 32px;
-	background-color: #d84315;
+	background-color: #6895c3; /* #d84315; */
 	margin-left: 0;
 	margin-left: 8px;
 }
@@ -356,23 +356,23 @@ nlk-process-form-item {
 	.printBtnSection {
 		display: none;
 	}
-	
+
 	.docInputRef {
 		margin-top: 0
 	}
-	
+
 	.docInputDoc {
 		margin-top: 0
 	}
-	
+
 	.documentActions{
 		display: none;
 	}
-	
+
 	.printWrapper {
 		padding-top: 0px;
 	}
-	
+
 	textarea {
 		min-height: 800px
 	}

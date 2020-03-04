@@ -41,8 +41,8 @@
 <div layout="row" style="height: calc(100% - 60px);">
 	<div ng-show="!showProgressBar && !showNoData" style="width: 100%; height: 100%" class="chartContainer"></div>
 	
-	<div flex class="infoMessage" ng-if="!showProgressBar && showNoData" style="position: relative;">
-		<md-card layout="row" layout-align="center center" style="width:100%; line-height: 32px; background-color: #d84315; margin: 0;">
+	<div flex class="warning-message" ng-if="!showProgressBar && showNoData" style="position: relative;">
+		<md-card layout="row" layout-align="center center" style="width:100%; line-height: 32px; margin: 0;">
 			<md-card-content layout-align="center center">
 				<md-icon md-svg-icon="img/icons/info.svg" style="height: 32px; width: 32px; margin-right: 10px;"></md-icon>
 				<span style="display: inline-block; vertical-align: middle; padding-right: 15px; color:white">{{'noDataFound' | translate }}</span>

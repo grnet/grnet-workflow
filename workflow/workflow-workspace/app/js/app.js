@@ -230,9 +230,11 @@ define(['angular',
 						$locationProvider.hashPrefix("");
 
 						// configure theming
+						/*
 						$mdThemingProvider.theme('default')
 							.primaryPalette('purple')
 							.accentPalette('amber');
+						*/
 					}]);
 		}
 

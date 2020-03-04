@@ -110,8 +110,8 @@
 
 	<md-content flex class="transparent">
 
-		<div layout="row" layout-align="center start" flex class="infoMessage" ng-if="filteredTasks === null || filteredTasks.length == 0">
-			<md-card style="width:100%; line-height: 32px; background-color: #d84315">
+		<div layout="row" layout-align="center start" flex class="warning-message" ng-if="filteredTasks === null || filteredTasks.length == 0">
+			<md-card style="width:100%; line-height: 32px;">
 				<md-card-content layout-align="center center">
 					<md-icon md-svg-icon="img/icons/info.svg" style="height: 32px; width: 32px; margin-right: 10px;"></md-icon>
 					<span style="display: inline-block; vertical-align: middle; color:white">{{'noTasksForUser' | translate }}</span>

@@ -52,82 +52,82 @@ define(['angular', 'services/authprovider'],
 				var isUser = authProvider.getRoles().indexOf("ROLE_User") >= 0 ? true : false;
 
 				//always shown. no need to check
-				$scope.page = { title: 'myTasks', path: '/task', icon: 'myTasks.svg', color: 'red', disabled: false };
+				$scope.page = { title: 'myTasks', path: '/task', icon: 'myTasks.svg', color: 'blue', disabled: false };
 				$scope.pages.push($scope.page);
 
 				//handle admin
 				if (isAdmin) {
 
-					$scope.page = { title: 'assignTasks', path: '/assign', icon: 'assignTasks.svg', color: 'red', disabled: false };
+					$scope.page = { title: 'assignTasks', path: '/assign', icon: 'assignTasks.svg', color: 'blue', disabled: false };
 					$scope.pages.push($scope.page);
 
-					$scope.page = { title: 'completedTasks', path: '/completed', icon: 'completedTasks.svg', color: 'green', disabled: false };
+					$scope.page = { title: 'completedTasks', path: '/completed', icon: 'completedTasks.svg', color: 'blue', disabled: false };
 					$scope.pages.push($scope.page);
 
 					$scope.page = { title: 'startNewProcess', path: '/process', icon: 'startProccess.svg', color: 'blue', disabled: false };
 					$scope.pages.push($scope.page);
 
-					$scope.page = { title: 'executionsInProgress', path: '/inprogress', icon: 'history.svg', color: 'purple', disabled: false };
+					$scope.page = { title: 'executionsInProgress', path: '/inprogress', icon: 'history.svg', color: 'blue', disabled: false };
 					$scope.pages.push($scope.page);
 
-					$scope.page = { title: 'myActivity', path: '/activity', icon: 'myActivity.svg', color: 'green', disabled: false };
+					$scope.page = { title: 'myActivity', path: '/activity', icon: 'myActivity.svg', color: 'blue', disabled: false };
 					$scope.pages.push($scope.page);
 
 					//handle process admin
 				} else if (isProcessAdmin) {
 
 					if(isSupervisor) {
-						$scope.page = { title: 'assignTasks', path: '/assign', icon: 'assignTasks.svg', color: 'red', disabled: false };
+						$scope.page = { title: 'assignTasks', path: '/assign', icon: 'assignTasks.svg', color: 'blue', disabled: false };
 						$scope.pages.push($scope.page);
 					} else {
-						$scope.page = { title: 'assignTasks', path: '/assign', icon: 'assignTasks.svg', color: 'red', disabled: true };
+						$scope.page = { title: 'assignTasks', path: '/assign', icon: 'assignTasks.svg', color: 'blue', disabled: true };
 						$scope.pages.push($scope.page);
 					}
 
-					$scope.page = { title: 'completedTasks', path: '/completed', icon: 'completedTasks.svg', color: 'green', disabled: false };
+					$scope.page = { title: 'completedTasks', path: '/completed', icon: 'completedTasks.svg', color: 'blue', disabled: false };
 					$scope.pages.push($scope.page);
 
 					$scope.page = { title: 'startNewProcess', path: '/process', icon: 'startProccess.svg', color: 'blue', disabled: false };
 					$scope.pages.push($scope.page);
 
-					$scope.page = { title: 'executionsInProgress', path: '/inprogress', icon: 'history.svg', color: 'purple', disabled: false };
+					$scope.page = { title: 'executionsInProgress', path: '/inprogress', icon: 'history.svg', color: 'blue', disabled: false };
 					$scope.pages.push($scope.page);
 
-					$scope.page = { title: 'myActivity', path: '/activity', icon: 'myActivity.svg', color: 'green', disabled: false };
+					$scope.page = { title: 'myActivity', path: '/activity', icon: 'myActivity.svg', color: 'blue', disabled: false };
 					$scope.pages.push($scope.page);
 
 					//handle supervisor
 				} else if (isSupervisor) {
-					$scope.page = { title: 'assignTasks', path: '/assign', icon: 'assignTasks.svg', color: 'red', disabled: false };
+					$scope.page = { title: 'assignTasks', path: '/assign', icon: 'assignTasks.svg', color: 'blue', disabled: false };
 					$scope.pages.push($scope.page);
 
-					$scope.page = { title: 'completedTasks', path: '/completed', icon: 'completedTasks.svg', color: 'green', disabled: false };
+					$scope.page = { title: 'completedTasks', path: '/completed', icon: 'completedTasks.svg', color: 'blue', disabled: false };
 					$scope.pages.push($scope.page);
 
 					$scope.page = { title: 'startNewProcess', path: '/process', icon: 'startProccess.svg', color: 'blue', disabled: true };
 					$scope.pages.push($scope.page);
 
-					$scope.page = { title: 'executionsInProgress', path: '/inprogress', icon: 'history.svg', color: 'purple', disabled: false };
+					$scope.page = { title: 'executionsInProgress', path: '/inprogress', icon: 'history.svg', color: 'blue', disabled: false };
 					$scope.pages.push($scope.page);
 
-					$scope.page = { title: 'myActivity', path: '/activity', icon: 'myActivity.svg', color: 'green', disabled: false };
+					$scope.page = { title: 'myActivity', path: '/activity', icon: 'myActivity.svg', color: 'blue', disabled: false };
 					$scope.pages.push($scope.page);
 
 					//handle user
 				} else if (isUser) {
-					$scope.page = { title: 'assignTasks', path: '/assign', icon: 'assignTasks.svg', color: 'red', disabled: true };
+					$scope.page = { title: 'assignTasks', path: '/assign', icon: 'assignTasks.svg', color: 'blue', disabled: true };
 					$scope.pages.push($scope.page);
 
-					$scope.page = { title: 'completedTasks', path: '/completed', icon: 'completedTasks.svg', color: 'green', disabled: true };
+					$scope.page = { title: 'completedTasks', path: '/completed', icon: 'completedTasks.svg', color: 'blue', disabled: true };
 					$scope.pages.push($scope.page);
 
-					$scope.page = { title: 'myActivity', path: '/activity', icon: 'myActivity.svg', color: 'green', disabled: false };
+					$scope.page = { title: 'myActivity', path: '/activity', icon: 'myActivity.svg', color: 'blue', disabled: false };
 					$scope.pages.push($scope.page);
 
 					$scope.page = { title: 'startNewProcess', path: '/process', icon: 'startProccess.svg', color: 'blue', disabled: true };
 					$scope.pages.push($scope.page);
 
-					$scope.page = { title: 'executionsInProgress', path: '/inprogress', icon: 'history.svg', color: 'purple', disabled: false };
+					$scope.page = { title: 'executionsInProgress', path: '/inprogress', icon: 'history.svg', color: 'blue', disabled: false };
 					$scope.pages.push($scope.page);
 
 				}
