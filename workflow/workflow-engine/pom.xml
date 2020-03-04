@@ -27,7 +27,7 @@
 		<activiti.version>5.21.0</activiti.version>
 		<opencmis.version>0.14.0</opencmis.version>
 		<jackson.version>2.8.2</jackson.version>
-		<keycloak.version>2.1.0.Final</keycloak.version>
+		<keycloak.version>9.0.0</keycloak.version>
 	</properties>
 
 	<dependencies>
