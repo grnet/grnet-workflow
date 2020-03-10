@@ -53,11 +53,11 @@ define(['angular',
         var initialize = function () {
 
 			/* localhost */
-            var WORKFLOW_SERVICE_ENTRY = 'http://localhost:8080/workflow-engine/api';
-            var DASHBOARD_SERVICE_ENTRY = 'http://localhost:8080/workflow-engine/api/v2';
-            var HOME_URL = 'http://localhost:80/workflow-manager/index.html';
-            var WORKFLOW_DOCUMENTS_URL = 'http://localhost:8080/workflow-engine/document/';
-            var WORKFLOW_WORKSPACE_URL = 'http://localhost:8080/workflow-workspace';
+            var WORKFLOW_SERVICE_ENTRY = window.location.protocol + '//' + window.location.hostname +':8080/engine/api';
+            var DASHBOARD_SERVICE_ENTRY = window.location.protocol + '//' + window.location.hostname +':8080/engine/api/v2';
+            var HOME_URL = window.location.protocol + '//' + window.location.hostname +'/manager/';
+            var WORKFLOW_DOCUMENTS_URL = window.location.protocol + '//' + window.location.hostname +':8080/engine/document/';
+            var WORKFLOW_WORKSPACE_URL = window.location.protocol + '//' + window.location.hostname +'/workspace';
 
             var AVATARS_PATH = 'img/avatars/';
             var DEFAULT_AVATAR = 'like.svg';
